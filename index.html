@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#111111" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Life Progress" />
+    <title>Life Progress Dashboard</title>
+    <link rel="manifest" href="manifest.webmanifest?v=5" />
+    <link rel="stylesheet" href="styles.css?v=10" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">Life Progress</p>
+          <h1>今日も前進中</h1>
+        </div>
+        <div class="hero-metric">
+          <span id="fireRate">0%</span>
+          <small>FIRE達成率</small>
+        </div>
+      </header>
+
+      <nav class="view-nav" aria-label="画面切り替え">
+        <button class="view-tab is-active" type="button" data-view-target="overview">現在地</button>
+        <button class="view-tab" type="button" data-view-target="input">前進</button>
+        <button class="view-tab" type="button" data-view-target="settings">月次</button>
+      </nav>
+
+      <section id="view-overview" class="view is-active">
+        <section class="top-grid" aria-label="主要ダッシュボード">
+          <article class="panel focus-panel">
+            <div class="panel-title">
+              <span>総資産</span>
+              <strong id="totalAssets">¥0</strong>
+            </div>
+            <p id="lastUpdated" class="last-updated">前回更新 --</p>
+            <div class="progress-track" aria-label="FIRE達成率">
+              <div id="fireProgress" class="progress-fill"></div>
+            </div>
+            <div class="stat-row">
+              <div>
+                <small>FIRE目標額</small>
+                <strong id="fireGoal">¥0</strong>
+              </div>
+              <div>
+                <small>到達予想</small>
+                <strong id="arrivalAge">--歳</strong>
+              </div>
+            </div>
+          </article>
+
+          <article class="panel month-panel">
+            <div class="panel-title">
+              <span>今月の前進</span>
+              <strong id="monthlyProgressCount">0件</strong>
+            </div>
+            <p id="todayHighlight" class="highlight-text">今日の前進をひとつ積む</p>
+            <div class="stat-row">
+              <div>
+                <small>年間配当金</small>
+                <strong id="annualDividend">¥0</strong>
+              </div>
+              <div>
+                <small>月間配当換算</small>
+                <strong id="monthlyDividend">¥0</strong>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <section class="goal-strip" aria-label="ゴール進捗">
+          <article class="mini-panel">
+            <span>FIREまであと</span>
+            <strong id="remainingToFire">¥0</strong>
+          </article>
+          <article class="mini-panel">
+            <span>次の1%</span>
+            <strong id="nextOnePercent">¥0</strong>
+          </article>
+          <article class="mini-panel">
+            <span>45歳まで</span>
+            <strong id="yearsToTarget">--年</strong>
+          </article>
+          <article class="mini-panel">
+            <span>前回比</span>
+            <strong id="monthlyAssetDiff">--</strong>
+          </article>
+        </section>
+
+        <section class="content-grid">
+          <article class="panel">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Side Quest</p>
+                <h2>副業進捗</h2>
+              </div>
+            </div>
+            <div id="sideHustleList" class="quest-list"></div>
+          </article>
+
+          <article class="panel">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Stock Assets</p>
+                <h2>ストック資産</h2>
+              </div>
+            </div>
+            <div class="asset-chart" aria-label="資産構成グラフ">
+              <div id="assetDonut" class="donut"></div>
+              <div id="assetLegend" class="legend"></div>
+            </div>
+          </article>
+
+          <article class="panel">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Life Score</p>
+                <h2>人生スコア</h2>
+              </div>
+            </div>
+            <div id="scoreList" class="score-list"></div>
+          </article>
+        </section>
+      </section>
+
+      <section id="view-input" class="view">
+        <section class="content-grid single-focus">
+          <article class="panel daily-panel">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Daily Move</p>
+                <h2>今日の前進</h2>
+              </div>
+              <span id="todayLimit" class="pill">0 / 3</span>
+            </div>
+            <div class="quick-actions" aria-label="よく使う前進">
+              <button type="button" data-quick-progress="ゲーム出品1件">ゲーム出品</button>
+              <button type="button" data-quick-progress="Totebell投稿1件">Totebell投稿</button>
+              <button type="button" data-quick-progress="AI学習30分">AI学習</button>
+            </div>
+            <p id="dailyStatus" class="daily-status" role="status" aria-live="polite"></p>
+            <form id="progressForm" class="entry-form">
+              <input id="progressInput" type="text" maxlength="40" placeholder="例: AI学習30分" autocomplete="off" />
+              <button type="submit">記録</button>
+            </form>
+            <div id="progressHistory" class="history-list"></div>
+          </article>
+        </section>
+      </section>
+
+      <section id="view-settings" class="view">
+        <section class="content-grid">
+        <article class="panel settings-panel">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Monthly</p>
+              <h2>月次更新</h2>
+            </div>
+          </div>
+          <form id="settingsForm" class="settings-grid">
+            <div class="monthly-summary">
+              <div>
+                <p class="eyebrow">Monthly Update</p>
+                <h2>月次更新</h2>
+              </div>
+              <div>
+                <small>前回比</small>
+                <strong id="settingsMonthlyDiff">--</strong>
+              </div>
+            </div>
+            <label>
+              <span>投資資産</span>
+              <input name="investments" type="text" inputmode="numeric" data-number-input autocomplete="off" />
+            </label>
+            <label>
+              <span>現金</span>
+              <input name="cash" type="text" inputmode="numeric" data-number-input autocomplete="off" />
+            </label>
+            <label>
+              <span>年間配当金</span>
+              <input name="dividends" type="text" inputmode="numeric" data-number-input autocomplete="off" />
+            </label>
+            <label>
+              <span>FIRE目標額</span>
+              <input name="fireGoal" type="text" inputmode="numeric" data-number-input autocomplete="off" />
+            </label>
+            <label>
+              <span>年間増加見込み</span>
+              <input name="yearlyAssetGrowth" type="text" inputmode="numeric" data-number-input autocomplete="off" />
+            </label>
+            <div id="sideHustleSettings" class="side-settings"></div>
+            <button type="submit">反映</button>
+            <p id="saveStatus" class="save-status" role="status" aria-live="polite"></p>
+          </form>
+          <div class="backup-panel">
+            <div>
+              <p class="eyebrow">Backup</p>
+              <h2>データ保護</h2>
+            </div>
+            <div class="backup-actions">
+              <button type="button" id="exportBackup">書き出し</button>
+              <button type="button" id="importBackup">読み込み</button>
+              <input id="backupFile" type="file" accept="application/json,.json" hidden />
+            </div>
+            <p id="backupStatus" class="save-status" role="status" aria-live="polite"></p>
+          </div>
+        </article>
+        </section>
+      </section>
+    </main>
+
+    <script src="app.js?v=10"></script>
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker.register("sw.js?v=10");
+        });
+      }
+    </script>
+  </body>
+</html>
