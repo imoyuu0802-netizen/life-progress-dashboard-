@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Life Progress" />
     <title>Life Progress Dashboard</title>
     <link rel="manifest" href="manifest.webmanifest?v=5" />
-    <link rel="stylesheet" href="styles.css?v=14" />
+    <link rel="stylesheet" href="styles.css?v=15" />
   </head>
   <body>
     <main class="app-shell">
@@ -18,19 +18,45 @@
           <h1>45歳FIREへの冒険</h1>
         </div>
         <div class="hero-metric">
-          <span id="shortenGap">--年</span>
-          <small>短縮したい年数</small>
+          <span id="heroDaysToFire">--日</span>
+          <small>FIRE達成まで</small>
         </div>
       </header>
 
       <nav class="view-nav" aria-label="画面切り替え">
         <button class="view-tab is-active" type="button" data-view-target="overview">現在地</button>
         <button class="view-tab" type="button" data-view-target="input">前進</button>
+        <button class="view-tab" type="button" data-view-target="score">スコア</button>
         <button class="view-tab" type="button" data-view-target="settings">月次</button>
       </nav>
 
       <section id="view-overview" class="view is-active">
         <section class="top-grid" aria-label="主要ダッシュボード">
+          <article class="panel focus-panel">
+            <div class="panel-title">
+              <span>FIRE達成まで</span>
+              <strong id="fireDistanceHero">--日</strong>
+            </div>
+            <p id="fireShortenMessage" class="boss-message">FIREまでの日数を減らす</p>
+            <div class="progress-track thick" aria-label="FIRE達成率">
+              <div id="fireProgress" class="progress-fill"></div>
+            </div>
+            <div class="fire-days-row">
+              <div>
+                <small>現在予想</small>
+                <strong id="arrivalAge">--歳</strong>
+              </div>
+              <div>
+                <small>目標</small>
+                <strong id="targetAge">45歳</strong>
+              </div>
+              <div>
+                <small>今月の短縮</small>
+                <strong id="monthlyShortening">0日</strong>
+              </div>
+            </div>
+          </article>
+
           <article class="panel today-panel">
             <div class="panel-title">
               <span>今日の前進</span>
@@ -46,6 +72,7 @@
             </div>
             <div class="quick-actions top-actions" aria-label="よく使う前進">
               <button type="button" data-quick-progress="ゲーム出品1件">ゲーム出品<small>+10XP</small></button>
+              <button type="button" data-quick-progress="せどり出品1件">せどり<small>+10XP</small></button>
               <button type="button" data-quick-progress="Totebell投稿1件">Totebell<small>+20XP</small></button>
               <button type="button" data-quick-progress="AI学習30分">AI学習<small>+15XP</small></button>
             </div>
@@ -60,37 +87,16 @@
               </div>
             </div>
           </article>
-
-          <article class="panel focus-panel">
-            <div class="panel-title">
-              <span>FIREとの距離</span>
-              <strong id="fireDistanceHero">--年</strong>
-            </div>
-            <p id="fireShortenMessage" class="boss-message">45歳までの距離を短縮する</p>
-            <div class="progress-track thick" aria-label="FIRE達成率">
-              <div id="fireProgress" class="progress-fill"></div>
-            </div>
-            <div class="stat-row">
-              <div>
-                <small>現在予想</small>
-                <strong id="arrivalAge">--歳</strong>
-              </div>
-              <div>
-                <small>目標</small>
-                <strong id="targetAge">45歳</strong>
-              </div>
-            </div>
-          </article>
         </section>
 
         <section class="goal-strip" aria-label="ゴール進捗">
           <article class="mini-panel">
-            <span>現在資産</span>
+            <span>資産合計</span>
             <strong id="totalAssets">¥0</strong>
           </article>
           <article class="mini-panel">
-            <span>今月の短縮</span>
-            <strong id="monthlyShortening">0日</strong>
+            <span>投資</span>
+            <strong id="investmentAssets">¥0</strong>
           </article>
           <article class="mini-panel">
             <span>前月比</span>
@@ -103,14 +109,6 @@
           <article class="mini-panel">
             <span>FIRE達成率</span>
             <strong id="fireRate">0%</strong>
-          </article>
-          <article class="mini-panel">
-            <span>投資成長率</span>
-            <strong id="investmentGrowthRateView">5%</strong>
-          </article>
-          <article class="mini-panel">
-            <span>FIREまであと</span>
-            <strong id="remainingToFire">¥0</strong>
           </article>
         </section>
 
@@ -152,8 +150,8 @@
           <article class="panel">
             <div class="section-head">
               <div>
-                <p class="eyebrow">Stock Assets</p>
-                <h2>ストック資産</h2>
+                <p class="eyebrow">Assets</p>
+                <h2>資産合計</h2>
               </div>
             </div>
             <div class="asset-chart" aria-label="資産構成グラフ">
@@ -173,25 +171,6 @@
             </div>
           </article>
 
-          <article class="panel">
-            <div class="section-head">
-              <div>
-                <p class="eyebrow">Life Score</p>
-                <h2>人生スコア</h2>
-              </div>
-            </div>
-            <div id="scoreList" class="score-list"></div>
-          </article>
-
-          <article class="panel timeline-panel">
-            <div class="section-head">
-              <div>
-                <p class="eyebrow">Life Trail</p>
-                <h2>人生の軌跡</h2>
-              </div>
-            </div>
-            <div id="lifeTrailList" class="life-trail-list"></div>
-          </article>
         </section>
       </section>
 
@@ -217,6 +196,7 @@
             </div>
             <div class="quick-actions" aria-label="よく使う前進">
               <button type="button" data-quick-progress="ゲーム出品1件">ゲーム出品<small>+10XP</small></button>
+              <button type="button" data-quick-progress="せどり出品1件">せどり<small>+10XP</small></button>
               <button type="button" data-quick-progress="Totebell投稿1件">Totebell<small>+20XP</small></button>
               <button type="button" data-quick-progress="AI学習30分">AI学習<small>+15XP</small></button>
             </div>
@@ -226,6 +206,20 @@
               <button type="submit">記録</button>
             </form>
             <div id="progressHistory" class="history-list"></div>
+          </article>
+        </section>
+      </section>
+
+      <section id="view-score" class="view">
+        <section class="content-grid single-focus">
+          <article class="panel score-panel">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Life Score</p>
+                <h2>人生スコア</h2>
+              </div>
+            </div>
+            <div id="scoreList" class="score-list"></div>
           </article>
         </section>
       </section>
@@ -244,6 +238,7 @@
               <div>
                 <p class="eyebrow">Monthly Update</p>
                 <h2>月次更新</h2>
+                <p id="monthlyAutoLabel" class="auto-month-label">現在の日付で自動記録</p>
               </div>
               <div>
                 <small>前回比</small>
@@ -308,11 +303,11 @@
       </section>
     </main>
 
-    <script src="app.js?v=14"></script>
+    <script src="app.js?v=15"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js?v=14");
+          navigator.serviceWorker.register("sw.js?v=15");
         });
       }
     </script>

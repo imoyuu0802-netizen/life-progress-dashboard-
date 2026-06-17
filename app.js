@@ -151,6 +151,10 @@ function arrivalAge() {
   return state.profile.currentAge + yearsLeft;
 }
 
+function daysToFire() {
+  return Math.max(0, Math.ceil((remainingToFire() / annualFirePower()) * 365));
+}
+
 function yearsToTargetAge() {
   return Math.max(0, state.profile.targetAge - state.profile.currentAge);
 }
@@ -168,6 +172,7 @@ function xpForProgress(text) {
   if (text.includes("Totebell")) return 20;
   if (text.includes("AI学習")) return 15;
   if (text.includes("ゲーム出品")) return 10;
+  if (text.includes("せどり")) return 10;
   return 5;
 }
 
@@ -270,9 +275,24 @@ function calcScores() {
   const streak = streakDays();
 
   return [
-    { label: "自由", value: clamp(Math.round(rate * 0.7 + monthlyProfit / 2500 + state.assets.dividends / 7000)), note: "資産・副業・配当" },
-    { label: "創造", value: clamp(Math.round(todayCount * 18 + creativeXp / 12 + monthlyProfit / 3500)), note: "発信・AI・制作" },
-    { label: "持続可能性", value: clamp(Math.round(42 + streak * 8 + todayCount * 8)), note: "継続・余白・生活" }
+    {
+      label: "自由",
+      value: clamp(Math.round(rate * 0.7 + monthlyProfit / 2500 + state.assets.dividends / 7000)),
+      note: "資産・副業・配当",
+      detail: `FIRE達成率 ${rate}% / 副業利益 ${yen.format(monthlyProfit)} / 年間配当 ${yen.format(state.assets.dividends)}`
+    },
+    {
+      label: "創造",
+      value: clamp(Math.round(todayCount * 18 + creativeXp / 12 + monthlyProfit / 3500)),
+      note: "Totebell・AI・制作",
+      detail: `今日の前進 ${todayCount}件 / 創造XP ${numberFormatter.format(Math.round(creativeXp))} / 副業利益 ${yen.format(monthlyProfit)}`
+    },
+    {
+      label: "持続可能性",
+      value: clamp(Math.round(42 + streak * 8 + todayCount * 8)),
+      note: "継続・余白・生活",
+      detail: `基礎点 42 / 連続記録 ${streak}日 / 今日の前進 ${todayCount}件`
+    }
   ];
 }
 
@@ -286,13 +306,15 @@ function render() {
   const xp = levelInfo();
   const streak = streakDays();
   const shorteningYears = targetShortenYears();
+  const fireDays = daysToFire();
 
   setText("fireRate", `${rate}%`);
-  setText("shortenGap", `${shorteningYears}年`);
-  setText("fireDistanceHero", `あと${shorteningYears}年`);
+  setText("heroDaysToFire", `${numberFormatter.format(fireDays)}日`);
+  setText("fireDistanceHero", `あと${numberFormatter.format(fireDays)}日`);
   setText("totalAssets", yen.format(total));
+  setText("investmentAssets", yen.format(state.assets.investments));
   setText("arrivalAge", `${arrivalAge()}歳`);
-  setText("fireShortenMessage", `現在${arrivalAge()}歳予想。今月 ${formatShortening(monthlyShorteningDays())} 短縮`);
+  setText("fireShortenMessage", `現在${arrivalAge()}歳予想。今日から1日ずつ減らす`);
   setText("levelLabel", `Lv.${xp.level}`);
   setText("nextLevelXp", `${xp.nextLevelXp}XP`);
   setText("streakCount", `${streak}日`);
@@ -303,12 +325,11 @@ function render() {
   setText("monthlyShortening", `${monthlyShorteningDays()}日`);
   setText("monthlyAssetDiff", formatDiff(state.lastMonthlyChange?.diff));
   setText("monthlyAssetRate", formatPercent(monthlyAssetRateChange()));
-  setText("investmentGrowthRateView", `${Number(state.profile.investmentGrowthRate) || 0}%`);
   setText("investmentGrowthAmount", yen.format(investmentGrowthAmount()));
-  setText("monthlyProgressCount", `${monthlyProgressEntries().length}件`);
-  setText("lastUpdated", `前回更新 ${formatUpdatedAt(state.lastUpdatedAt)}`);
-  setText("remainingToFire", yen.format(remainingToFire()));
   setText("settingsMonthlyDiff", formatDiff(state.lastMonthlyChange?.diff));
+  setText("monthlyAutoLabel", `${formatCurrentMonthLabel()}として自動記録`);
+  setSignedClass("monthlyAssetDiff", state.lastMonthlyChange?.diff);
+  setSignedClass("monthlyAssetRate", monthlyAssetRateChange());
   document.getElementById("fireProgress").style.width = `${rate}%`;
   document.getElementById("levelProgress").style.width = `${xp.currentLevelXp}%`;
 
@@ -324,11 +345,23 @@ function render() {
   renderAssetTrend();
   renderTodayQuests();
   renderJourney();
-  renderLifeTrail();
   renderHistory();
   renderScores();
   hydrateSettings();
   switchView(currentView);
+}
+
+function formatCurrentMonthLabel() {
+  const [year, month] = currentMonthKey().split("-");
+  return `${year}年${Number(month)}月`;
+}
+
+function setSignedClass(id, value) {
+  const element = document.getElementById(id);
+  if (!element) return;
+  element.classList.remove("is-plus", "is-minus");
+  if (typeof value !== "number" || value === 0) return;
+  element.classList.add(value > 0 ? "is-plus" : "is-minus");
 }
 
 function formatShortening(days) {
@@ -418,10 +451,10 @@ function renderJourney() {
 
 function comparisonRows(data) {
   return [
-    { label: "資産", current: yen.format(totalAssets()), diff: formatDiff(data.assetDiff), empty: data.empty },
-    { label: "年間配当", current: yen.format(state.assets.dividends), diff: formatDiff(data.dividendDiff), empty: data.empty },
-    { label: "副業利益", current: yen.format(monthlySideProfit()), diff: formatDiff(data.sideProfitDiff), empty: data.empty },
-    { label: "FIRE年齢", current: `${arrivalAge()}歳`, diff: data.fireAgeDiffText, empty: data.empty }
+    { label: "資産", current: yen.format(totalAssets()), diff: formatDiff(data.assetDiff), value: data.assetDiff, empty: data.empty },
+    { label: "年間配当", current: yen.format(state.assets.dividends), diff: formatDiff(data.dividendDiff), value: data.dividendDiff, empty: data.empty },
+    { label: "副業利益", current: yen.format(monthlySideProfit()), diff: formatDiff(data.sideProfitDiff), value: data.sideProfitDiff, empty: data.empty },
+    { label: "FIRE年齢", current: `${arrivalAge()}歳`, diff: data.fireAgeDiffText, value: data.fireAgeDiffValue, empty: data.empty }
   ];
 }
 
@@ -440,9 +473,14 @@ function renderCompareRow(row) {
     <div class="compare-row">
       <span>${row.label}</span>
       <strong>${row.current}</strong>
-      <b>${row.diff}</b>
+      <b class="${signedClass(row.value)}">${row.diff}</b>
     </div>
   `;
+}
+
+function signedClass(value) {
+  if (typeof value !== "number" || value === 0) return "";
+  return value > 0 ? "is-plus" : "is-minus";
 }
 
 function monthlyComparison() {
@@ -457,7 +495,8 @@ function monthlyComparison() {
     assetDiff: state.lastMonthlyChange?.diff ?? diffFromSnapshot(previousSnapshot, "total", totalAssets()),
     dividendDiff: diffFromSnapshot(previousSnapshot, "dividends", state.assets.dividends),
     sideProfitDiff: currentProfit - previousProfit,
-    fireAgeDiffText: formatFireAgeDiff(fireAgeDiff)
+    fireAgeDiffText: formatFireAgeDiff(fireAgeDiff),
+    fireAgeDiffValue: -fireAgeDiff
   };
 }
 
@@ -469,7 +508,8 @@ function yearlyComparison() {
       assetDiff: 0,
       dividendDiff: 0,
       sideProfitDiff: 0,
-      fireAgeDiffText: "記録待ち"
+      fireAgeDiffText: "記録待ち",
+      fireAgeDiffValue: null
     };
   }
 
@@ -478,7 +518,8 @@ function yearlyComparison() {
     assetDiff: totalAssets() - snapshot.total,
     dividendDiff: diffFromSnapshot(snapshot, "dividends", state.assets.dividends),
     sideProfitDiff: diffFromSnapshot(snapshot, "sideProfit", monthlySideProfit()),
-    fireAgeDiffText: snapshot.fireAge ? formatFireAgeDiff(arrivalAge() - snapshot.fireAge) : "記録待ち"
+    fireAgeDiffText: snapshot.fireAge ? formatFireAgeDiff(arrivalAge() - snapshot.fireAge) : "記録待ち",
+    fireAgeDiffValue: snapshot.fireAge ? -(arrivalAge() - snapshot.fireAge) : null
   };
 }
 
@@ -520,27 +561,6 @@ function heroJournal() {
   };
 }
 
-function renderLifeTrail() {
-  const list = document.getElementById("lifeTrailList");
-  const history = assetTrendItems().slice(-6).reverse();
-
-  if (!history.length) {
-    list.innerHTML = `<div class="empty-history">月次更新で人生の軌跡が残ります</div>`;
-    return;
-  }
-
-  list.innerHTML = history
-    .map((item) => `
-      <div class="trail-item">
-        <strong>${formatMonthLabel(item.month)}</strong>
-        <span>資産 ${yen.format(item.total)}</span>
-        <span>配当 ${yen.format(item.dividends ?? state.assets.dividends)}</span>
-        <span>副業 ${yen.format(item.sideProfit ?? monthlySideProfit())}</span>
-      </div>
-    `)
-    .join("");
-}
-
 function sideQuestProgress(item, index) {
   if (index === 0) {
     return {
@@ -565,7 +585,7 @@ function sideQuestProgress(item, index) {
 
 function renderAssets() {
   const values = [
-    ["投資資産", "investments", state.assets.investments],
+    ["投資", "investments", state.assets.investments],
     ["現金", "cash", state.assets.cash],
     ["配当", "dividends", state.assets.dividends]
   ];
@@ -621,6 +641,7 @@ function renderAssetTrend() {
   const diff = last - first;
 
   setText("assetTrendDelta", items.length >= 2 ? formatDiff(diff) : "記録開始");
+  setSignedClass("assetTrendDelta", diff);
   note.textContent = items.length >= 2 ? "直近の月次更新から自動で表示" : "月次更新で推移が育ちます";
   chart.innerHTML = items
     .map((item) => {
@@ -671,6 +692,7 @@ function renderScores() {
         <div class="score-meta">
           <strong>${score.label}</strong>
           <small>${score.note}</small>
+          <span>${escapeHtml(score.detail)}</span>
         </div>
         <div class="score-bar"><span style="width:${score.value}%"></span></div>
         <strong class="score-value">${score.value}</strong>
