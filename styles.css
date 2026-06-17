@@ -503,21 +503,21 @@ small {
 }
 
 .delta {
-  color: var(--danger);
+  color: var(--green);
   font-size: 12px;
   font-weight: 800;
 }
 
 .is-plus {
-  color: var(--danger);
+  color: var(--green);
 }
 
 .delta.down {
-  color: var(--green);
+  color: var(--danger);
 }
 
 .is-minus {
-  color: var(--green);
+  color: var(--danger);
 }
 
 .quest-progress {
