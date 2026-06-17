@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Life Progress" />
     <title>Life Progress Dashboard</title>
     <link rel="manifest" href="manifest.webmanifest?v=5" />
-    <link rel="stylesheet" href="styles.css?v=20" />
+    <link rel="stylesheet" href="styles.css?v=21" />
   </head>
   <body>
     <main class="app-shell">
@@ -58,6 +58,38 @@
             </div>
           </article>
 
+          <article class="panel result-panel">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Results</p>
+                <h2>結果ダッシュボード</h2>
+              </div>
+            </div>
+            <div class="result-hero">
+              <small>総資産</small>
+              <strong id="totalAssets">¥0</strong>
+              <span id="peerLead">29歳平均より --</span>
+            </div>
+            <div class="result-grid">
+              <div>
+                <small>年間配当</small>
+                <strong id="annualDividendResult">¥0</strong>
+              </div>
+              <div>
+                <small>副業利益/月</small>
+                <strong id="monthlySideProfitResult">¥0</strong>
+              </div>
+              <div>
+                <small>同年代比</small>
+                <strong id="peerRatio">--倍</strong>
+              </div>
+              <div>
+                <small>FIREリード</small>
+                <strong id="retirementLead">--年</strong>
+              </div>
+            </div>
+          </article>
+
           <article class="panel asset-panel">
             <div class="section-head">
               <div>
@@ -82,6 +114,9 @@
             </div>
           </article>
 
+        </section>
+
+        <section class="content-grid">
           <article class="panel today-panel">
             <div class="panel-title">
               <span>今日の前進</span>
@@ -112,9 +147,7 @@
               </div>
             </div>
           </article>
-        </section>
 
-        <section class="content-grid">
           <article class="panel">
             <div class="section-head">
               <div>
@@ -281,11 +314,11 @@
       </section>
     </main>
 
-    <script src="app.js?v=20"></script>
+    <script src="app.js?v=21"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js?v=20");
+          navigator.serviceWorker.register("sw.js?v=21");
         });
       }
     </script>

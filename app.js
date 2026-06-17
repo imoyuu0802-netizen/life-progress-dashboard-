@@ -1,5 +1,7 @@
 const storageKey = "life-progress-dashboard-v1";
 const dailyEntryLimit = 5;
+const peerNetWorthAverage = 2800000;
+const averageRetirementAge = 65;
 
 const defaultState = {
   profile: {
@@ -284,6 +286,18 @@ function monthlySideProfit() {
   return state.sideHustles.reduce((sum, item) => sum + item.profit, 0);
 }
 
+function peerLeadAmount() {
+  return totalAssets() - peerNetWorthAverage;
+}
+
+function peerRatio() {
+  return totalAssets() / peerNetWorthAverage;
+}
+
+function retirementLeadYears() {
+  return Math.max(0, averageRetirementAge - arrivalAge());
+}
+
 function investmentGrowthAmount() {
   return Math.round(state.assets.investments * ((Number(state.profile.investmentGrowthRate) || 0) / 100));
 }
@@ -347,6 +361,11 @@ function render() {
   setText("fireRate", `${rate}%`);
   setText("fireDistanceHero", `あと${numberFormatter.format(fireDays)}日（約${yearsToFireDecimal().toFixed(1)}年）`);
   setText("totalAssets", yen.format(total));
+  setText("annualDividendResult", yen.format(state.assets.dividends));
+  setText("monthlySideProfitResult", yen.format(monthlySideProfit()));
+  setText("peerLead", `29歳平均より ${formatDiff(peerLeadAmount())}`);
+  setText("peerRatio", `${peerRatio().toFixed(1)}倍`);
+  setText("retirementLead", `${retirementLeadYears()}年`);
   setText("arrivalAge", `${arrivalAge()}歳`);
   setText("fireShortenMessage", "今日が一番若い日");
   setText("levelLabel", `Lv.${xp.level}`);
