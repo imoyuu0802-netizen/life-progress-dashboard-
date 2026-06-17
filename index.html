@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Life Progress" />
     <title>Life Progress Dashboard</title>
     <link rel="manifest" href="manifest.webmanifest?v=5" />
-    <link rel="stylesheet" href="styles.css?v=13" />
+    <link rel="stylesheet" href="styles.css?v=14" />
   </head>
   <body>
     <main class="app-shell">
@@ -31,40 +31,28 @@
 
       <section id="view-overview" class="view is-active">
         <section class="top-grid" aria-label="主要ダッシュボード">
-          <article class="panel focus-panel">
+          <article class="panel today-panel">
             <div class="panel-title">
-              <span>予想FIRE年齢</span>
-              <strong id="arrivalAge">--歳</strong>
+              <span>今日の前進</span>
+              <strong id="todayQuestCount">0 / 3</strong>
             </div>
-            <p id="fireShortenMessage" class="boss-message">45歳までの距離を短縮する</p>
-            <div class="progress-track" aria-label="FIRE達成率">
-              <div id="fireProgress" class="progress-fill"></div>
+            <div id="todayQuestList" class="today-quest-list"></div>
+            <div class="level-row">
+              <span id="levelLabel">Lv.1</span>
+              <div class="xp-track" aria-label="次のレベルまで">
+                <div id="levelProgress" class="xp-fill"></div>
+              </div>
+              <small id="nextLevelXp">--XP</small>
+            </div>
+            <div class="quick-actions top-actions" aria-label="よく使う前進">
+              <button type="button" data-quick-progress="ゲーム出品1件">ゲーム出品<small>+10XP</small></button>
+              <button type="button" data-quick-progress="Totebell投稿1件">Totebell<small>+20XP</small></button>
+              <button type="button" data-quick-progress="AI学習30分">AI学習<small>+15XP</small></button>
             </div>
             <div class="stat-row">
               <div>
-                <small>現在資産</small>
-                <strong id="totalAssets">¥0</strong>
-              </div>
-              <div>
-                <small>FIRE達成率</small>
-                <strong id="fireRate">0%</strong>
-              </div>
-            </div>
-          </article>
-
-          <article class="panel month-panel">
-            <div class="panel-title">
-              <span>主人公ステータス</span>
-              <strong id="levelLabel">Lv.1</strong>
-            </div>
-            <p id="todayHighlight" class="highlight-text">今日の前進をひとつ積む</p>
-            <div class="xp-track" aria-label="次のレベルまで">
-              <div id="levelProgress" class="xp-fill"></div>
-            </div>
-            <div class="stat-row">
-              <div>
-                <small>次のレベルまで</small>
-                <strong id="nextLevelXp">--XP</strong>
+                <small>今日のXP</small>
+                <strong id="todayXp">0XP</strong>
               </div>
               <div>
                 <small>連続記録</small>
@@ -72,12 +60,33 @@
               </div>
             </div>
           </article>
+
+          <article class="panel focus-panel">
+            <div class="panel-title">
+              <span>FIREとの距離</span>
+              <strong id="fireDistanceHero">--年</strong>
+            </div>
+            <p id="fireShortenMessage" class="boss-message">45歳までの距離を短縮する</p>
+            <div class="progress-track thick" aria-label="FIRE達成率">
+              <div id="fireProgress" class="progress-fill"></div>
+            </div>
+            <div class="stat-row">
+              <div>
+                <small>現在予想</small>
+                <strong id="arrivalAge">--歳</strong>
+              </div>
+              <div>
+                <small>目標</small>
+                <strong id="targetAge">45歳</strong>
+              </div>
+            </div>
+          </article>
         </section>
 
         <section class="goal-strip" aria-label="ゴール進捗">
           <article class="mini-panel">
-            <span>目標年齢</span>
-            <strong id="targetAge">45歳</strong>
+            <span>現在資産</span>
+            <strong id="totalAssets">¥0</strong>
           </article>
           <article class="mini-panel">
             <span>今月の短縮</span>
@@ -92,8 +101,8 @@
             <strong id="monthlyAssetRate">--</strong>
           </article>
           <article class="mini-panel">
-            <span>今日のXP</span>
-            <strong id="todayXp">0XP</strong>
+            <span>FIRE達成率</span>
+            <strong id="fireRate">0%</strong>
           </article>
           <article class="mini-panel">
             <span>投資成長率</span>
@@ -106,6 +115,30 @@
         </section>
 
         <section class="content-grid">
+          <article class="panel journey-panel">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Journey</p>
+                <h2>過去の自分との対戦</h2>
+              </div>
+            </div>
+            <div class="compare-grid">
+              <div>
+                <h3>先月比</h3>
+                <div id="monthlyCompareList" class="compare-list"></div>
+              </div>
+              <div>
+                <h3>去年比</h3>
+                <div id="yearlyCompareList" class="compare-list"></div>
+              </div>
+            </div>
+            <div class="hero-journal">
+              <p class="eyebrow">Hero Journal</p>
+              <h3 id="journalTitle">今月の冒険記録</h3>
+              <p id="journalBody">月次更新で冒険記録が育ちます</p>
+            </div>
+          </article>
+
           <article class="panel">
             <div class="section-head">
               <div>
@@ -148,6 +181,16 @@
               </div>
             </div>
             <div id="scoreList" class="score-list"></div>
+          </article>
+
+          <article class="panel timeline-panel">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Life Trail</p>
+                <h2>人生の軌跡</h2>
+              </div>
+            </div>
+            <div id="lifeTrailList" class="life-trail-list"></div>
           </article>
         </section>
       </section>
@@ -265,11 +308,11 @@
       </section>
     </main>
 
-    <script src="app.js?v=13"></script>
+    <script src="app.js?v=14"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js?v=13");
+          navigator.serviceWorker.register("sw.js?v=14");
         });
       }
     </script>

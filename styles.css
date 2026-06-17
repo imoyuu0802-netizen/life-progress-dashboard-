@@ -1,15 +1,17 @@
 :root {
-  color-scheme: light;
-  --bg: #f6f6f3;
-  --surface: #ffffff;
-  --ink: #111111;
-  --muted: #6b6b6b;
-  --line: #deded8;
-  --soft: #efefea;
-  --accent: #111111;
-  --green: #2f7d52;
-  --blue: #3b647f;
-  --gold: #9a6f24;
+  color-scheme: dark;
+  --bg: #080a09;
+  --surface: #121512;
+  --surface-strong: #181c18;
+  --ink: #f7f4e8;
+  --muted: #a8aa9f;
+  --line: #2a302a;
+  --soft: #1b211c;
+  --accent: #f0c86a;
+  --green: #46d18b;
+  --blue: #6a8fb4;
+  --gold: #f0c86a;
+  --danger: #e16b66;
   --radius: 8px;
 }
 
@@ -21,7 +23,9 @@ body {
   margin: 0;
   min-height: 100vh;
   overflow-x: hidden;
-  background: var(--bg);
+  background:
+    radial-gradient(circle at top right, rgba(70, 209, 139, 0.13), transparent 32rem),
+    var(--bg);
   color: var(--ink);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   letter-spacing: 0;
@@ -51,7 +55,7 @@ select {
 
 .eyebrow {
   margin: 0 0 7px;
-  color: var(--muted);
+  color: var(--gold);
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -126,7 +130,7 @@ small {
   gap: 6px;
   margin: 0 0 10px;
   padding: 8px;
-  background: rgba(246, 246, 243, 0.92);
+  background: rgba(8, 10, 9, 0.88);
   backdrop-filter: blur(10px);
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -142,7 +146,7 @@ small {
 
 .view-tab.is-active {
   background: var(--ink);
-  color: #ffffff;
+  color: #10120f;
 }
 
 .view {
@@ -154,7 +158,7 @@ small {
 }
 
 .panel {
-  background: var(--surface);
+  background: var(--surface-strong);
   border: 1px solid var(--line);
   border-radius: var(--radius);
   padding: 16px;
@@ -183,18 +187,24 @@ small {
 }
 
 .focus-panel {
-  background: #111111;
-  color: #ffffff;
+  background: linear-gradient(145deg, #151912, #090b0a);
+  color: var(--ink);
+  border-color: rgba(240, 200, 106, 0.42);
+  box-shadow: 0 0 0 1px rgba(240, 200, 106, 0.08) inset;
 }
 
 .focus-panel small {
-  color: #c9c9c2;
+  color: #d8d0aa;
+}
+
+.today-panel {
+  background: linear-gradient(145deg, #102018, #101310);
+  border-color: rgba(70, 209, 139, 0.42);
 }
 
 .panel-title,
 .section-head,
 .stat-row,
-.quest-item,
 .score-item,
 .legend-item,
 .history-item {
@@ -233,11 +243,15 @@ small {
   border-radius: 999px;
 }
 
+.progress-track.thick {
+  height: 18px;
+}
+
 .progress-fill,
 .xp-fill {
   width: 0%;
   height: 100%;
-  background: #ffffff;
+  background: linear-gradient(90deg, var(--green), var(--gold));
   border-radius: inherit;
   transition: width 220ms ease;
 }
@@ -250,7 +264,7 @@ small {
 }
 
 .xp-fill {
-  background: var(--ink);
+  background: var(--green);
 }
 
 .stat-row {
@@ -280,14 +294,14 @@ small {
 
 .boss-message {
   min-height: 28px;
-  color: #ffffff;
-  font-size: 19px;
+  color: var(--ink);
+  font-size: 21px;
   line-height: 1.25;
   font-weight: 850;
 }
 
 .last-updated {
-  color: #c9c9c2;
+  color: #d8d0aa;
   font-size: 12px;
   font-weight: 700;
 }
@@ -310,7 +324,10 @@ small {
 .quest-list,
 .score-list,
 .history-list,
-.legend {
+.legend,
+.today-quest-list,
+.compare-list,
+.life-trail-list {
   display: grid;
   gap: 9px;
 }
@@ -325,6 +342,126 @@ small {
 .quest-item:first-child,
 .history-item:first-child {
   border-top: 0;
+}
+
+.today-quest-list {
+  min-height: 116px;
+}
+
+.today-empty,
+.today-quest-item,
+.compare-row,
+.trail-item {
+  border: 1px solid var(--line);
+  background: var(--soft);
+  border-radius: var(--radius);
+}
+
+.today-empty {
+  display: grid;
+  gap: 6px;
+  min-height: 104px;
+  align-content: center;
+  padding: 14px;
+}
+
+.today-empty strong {
+  font-size: 18px;
+}
+
+.today-empty span {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.today-quest-item {
+  display: grid;
+  grid-template-columns: 34px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 58px;
+  padding: 10px;
+}
+
+.today-quest-item small {
+  display: block;
+  margin-top: 3px;
+}
+
+.check-mark {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(70, 209, 139, 0.18);
+  color: var(--green);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.level-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  margin: 12px 0;
+}
+
+.level-row span,
+.level-row small {
+  font-weight: 900;
+}
+
+.top-actions {
+  margin-top: 0;
+}
+
+.quest-item {
+  display: block;
+  padding: 0;
+}
+
+.quest-item summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 62px;
+  padding: 11px 0;
+  cursor: pointer;
+  list-style: none;
+}
+
+.quest-item summary::-webkit-details-marker {
+  display: none;
+}
+
+.quest-item summary::before {
+  content: ">";
+  color: var(--gold);
+  font-weight: 900;
+  transition: transform 160ms ease;
+}
+
+.quest-item[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.quest-detail {
+  display: grid;
+  gap: 8px;
+  padding: 0 0 12px 22px;
+}
+
+.quest-detail-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
 }
 
 .quest-name,
@@ -357,7 +494,7 @@ small {
 }
 
 .delta.down {
-  color: #9b3b38;
+  color: var(--danger);
 }
 
 .quest-progress {
@@ -372,7 +509,7 @@ small {
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: var(--ink);
+  background: var(--green);
 }
 
 .asset-chart {
@@ -468,7 +605,7 @@ small {
   width: 100%;
   max-width: 26px;
   min-height: 8px;
-  background: var(--ink);
+  background: linear-gradient(180deg, var(--gold), var(--green));
   border-radius: 5px 5px 3px 3px;
 }
 
@@ -582,7 +719,7 @@ select {
   min-height: 48px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: #fbfbf8;
+  background: #0e110f;
   color: var(--ink);
   padding: 0 12px;
   outline: none;
@@ -590,7 +727,7 @@ select {
 
 input:focus,
 select:focus {
-  border-color: var(--ink);
+  border-color: var(--gold);
 }
 
 button {
@@ -598,13 +735,14 @@ button {
   border: 0;
   border-radius: var(--radius);
   background: var(--accent);
-  color: #ffffff;
+  color: #10120f;
   font-weight: 800;
   cursor: pointer;
 }
 
 button:disabled {
-  background: #b7b7b0;
+  background: #45483f;
+  color: #9a9d92;
   cursor: not-allowed;
 }
 
@@ -618,8 +756,8 @@ button:disabled {
   min-width: 58px;
   padding: 7px 9px;
   border-radius: 999px;
-  background: var(--ink);
-  color: #ffffff;
+  background: rgba(70, 209, 139, 0.18);
+  color: var(--green);
   font-size: 12px;
   font-variant-numeric: tabular-nums;
   text-align: center;
@@ -658,7 +796,84 @@ button:disabled {
   width: 0%;
   height: 100%;
   border-radius: inherit;
-  background: var(--ink);
+  background: var(--gold);
+}
+
+.journey-panel {
+  grid-column: 1 / -1;
+}
+
+.compare-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.compare-grid h3,
+.hero-journal h3 {
+  margin: 0 0 9px;
+  font-size: 16px;
+}
+
+.compare-row {
+  display: grid;
+  grid-template-columns: 72px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 9px 10px;
+}
+
+.compare-row span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.compare-row strong,
+.compare-row b {
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.compare-row b {
+  color: var(--green);
+}
+
+.muted-row b {
+  color: var(--muted);
+}
+
+.hero-journal {
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid rgba(240, 200, 106, 0.35);
+  border-radius: var(--radius);
+  background: rgba(240, 200, 106, 0.08);
+}
+
+.hero-journal p:last-child {
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.6;
+  font-weight: 700;
+}
+
+.trail-item {
+  display: grid;
+  grid-template-columns: 52px 1fr;
+  gap: 4px 10px;
+  padding: 11px 12px;
+}
+
+.trail-item strong {
+  grid-row: span 3;
+  color: var(--gold);
+}
+
+.trail-item span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
 }
 
 .settings-panel {
@@ -786,6 +1001,10 @@ button:disabled {
   }
 
   .content-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .compare-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
