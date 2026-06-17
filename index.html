@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Life Progress" />
     <title>Life Progress Dashboard</title>
     <link rel="manifest" href="manifest.webmanifest?v=5" />
-    <link rel="stylesheet" href="styles.css?v=15" />
+    <link rel="stylesheet" href="styles.css?v=16" />
   </head>
   <body>
     <main class="app-shell">
@@ -19,7 +19,7 @@
         </div>
         <div class="hero-metric">
           <span id="heroDaysToFire">--日</span>
-          <small>FIRE達成まで</small>
+          <small id="heroYearsToFire">--年</small>
         </div>
       </header>
 
@@ -43,6 +43,14 @@
             </div>
             <div class="fire-days-row">
               <div>
+                <small>資産合計</small>
+                <strong id="totalAssets">¥0</strong>
+              </div>
+              <div>
+                <small>FIRE達成率</small>
+                <strong id="fireRate">0%</strong>
+              </div>
+              <div>
                 <small>現在予想</small>
                 <strong id="arrivalAge">--歳</strong>
               </div>
@@ -60,7 +68,7 @@
           <article class="panel today-panel">
             <div class="panel-title">
               <span>今日の前進</span>
-              <strong id="todayQuestCount">0 / 3</strong>
+              <strong id="todayQuestCount">0 / 5</strong>
             </div>
             <div id="todayQuestList" class="today-quest-list"></div>
             <div class="level-row">
@@ -89,54 +97,7 @@
           </article>
         </section>
 
-        <section class="goal-strip" aria-label="ゴール進捗">
-          <article class="mini-panel">
-            <span>資産合計</span>
-            <strong id="totalAssets">¥0</strong>
-          </article>
-          <article class="mini-panel">
-            <span>投資</span>
-            <strong id="investmentAssets">¥0</strong>
-          </article>
-          <article class="mini-panel">
-            <span>前月比</span>
-            <strong id="monthlyAssetDiff">--</strong>
-          </article>
-          <article class="mini-panel">
-            <span>前月から</span>
-            <strong id="monthlyAssetRate">--</strong>
-          </article>
-          <article class="mini-panel">
-            <span>FIRE達成率</span>
-            <strong id="fireRate">0%</strong>
-          </article>
-        </section>
-
         <section class="content-grid">
-          <article class="panel journey-panel">
-            <div class="section-head">
-              <div>
-                <p class="eyebrow">Journey</p>
-                <h2>過去の自分との対戦</h2>
-              </div>
-            </div>
-            <div class="compare-grid">
-              <div>
-                <h3>先月比</h3>
-                <div id="monthlyCompareList" class="compare-list"></div>
-              </div>
-              <div>
-                <h3>去年比</h3>
-                <div id="yearlyCompareList" class="compare-list"></div>
-              </div>
-            </div>
-            <div class="hero-journal">
-              <p class="eyebrow">Hero Journal</p>
-              <h3 id="journalTitle">今月の冒険記録</h3>
-              <p id="journalBody">月次更新で冒険記録が育ちます</p>
-            </div>
-          </article>
-
           <article class="panel">
             <div class="section-head">
               <div>
@@ -175,14 +136,14 @@
       </section>
 
       <section id="view-input" class="view">
-        <section class="content-grid single-focus">
+        <section class="content-grid input-stack">
           <article class="panel daily-panel">
             <div class="section-head">
               <div>
                 <p class="eyebrow">Daily Move</p>
               <h2>今日の前進</h2>
               </div>
-              <span id="todayLimit" class="pill">0 / 3</span>
+              <span id="todayLimit" class="pill">0 / 5</span>
             </div>
             <div class="daily-status-board">
               <div>
@@ -206,6 +167,30 @@
               <button type="submit">記録</button>
             </form>
             <div id="progressHistory" class="history-list"></div>
+          </article>
+
+          <article class="panel journey-panel">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Journey</p>
+                <h2>過去の自分との対戦</h2>
+              </div>
+            </div>
+            <div class="compare-grid">
+              <div>
+                <h3>先月比</h3>
+                <div id="monthlyCompareList" class="compare-list"></div>
+              </div>
+              <div>
+                <h3>去年比</h3>
+                <div id="yearlyCompareList" class="compare-list"></div>
+              </div>
+            </div>
+            <div class="hero-journal">
+              <p class="eyebrow">Hero Journal</p>
+              <h3 id="journalTitle">今月の冒険記録</h3>
+              <p id="journalBody">月次更新で冒険記録が育ちます</p>
+            </div>
           </article>
         </section>
       </section>
@@ -303,11 +288,11 @@
       </section>
     </main>
 
-    <script src="app.js?v=15"></script>
+    <script src="app.js?v=16"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js?v=15");
+          navigator.serviceWorker.register("sw.js?v=16");
         });
       }
     </script>

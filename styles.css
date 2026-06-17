@@ -114,13 +114,6 @@ small {
   grid-template-columns: 1fr;
 }
 
-.goal-strip {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-  margin-top: 10px;
-}
-
 .view-nav {
   position: sticky;
   top: 0;
@@ -399,7 +392,7 @@ small {
 
 .today-quest-item {
   display: grid;
-  grid-template-columns: 34px 1fr auto;
+  grid-template-columns: 34px 1fr auto auto;
   align-items: center;
   gap: 10px;
   min-height: 58px;
@@ -684,6 +677,10 @@ small {
   margin-bottom: 10px;
 }
 
+.input-stack {
+  grid-template-columns: 1fr;
+}
+
 .daily-panel {
   min-height: 360px;
 }
@@ -791,6 +788,16 @@ button:disabled {
   font-size: 12px;
   font-variant-numeric: tabular-nums;
   text-align: center;
+}
+
+.delete-progress {
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid rgba(225, 107, 102, 0.35);
+  background: rgba(225, 107, 102, 0.12);
+  color: var(--danger);
+  font-size: 12px;
+  border-radius: 6px;
 }
 
 .empty-history {
@@ -1054,16 +1061,17 @@ button:disabled {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .goal-strip {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-  }
-
   .quick-actions {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
   .single-focus {
     grid-template-columns: minmax(0, 680px);
+    justify-content: center;
+  }
+
+  .input-stack {
+    grid-template-columns: minmax(0, 760px);
     justify-content: center;
   }
 

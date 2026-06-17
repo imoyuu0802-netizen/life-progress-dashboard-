@@ -1,4 +1,5 @@
 const storageKey = "life-progress-dashboard-v1";
+const dailyEntryLimit = 5;
 
 const defaultState = {
   profile: {
@@ -106,7 +107,18 @@ function migrateProgressEntries(entries) {
     entries.length === 2 &&
     entries.every((entry) => entry.date === todayKey() && sampleTexts.includes(entry.text));
 
-  return isOldSampleData ? [] : entries;
+  if (isOldSampleData) return [];
+
+  return entries.map((entry, index) => ({
+    ...entry,
+    id: entry.id || createProgressId(entry, index),
+    xp: progressXp(entry)
+  }));
+}
+
+function createProgressId(entry, index = 0) {
+  const text = String(entry.text || "").replace(/[^a-zA-Z0-9ぁ-んァ-ン一-龥]/g, "").slice(0, 18);
+  return `progress-${entry.date || "unknown"}-${index}-${text}-${progressXp(entry)}`;
 }
 
 function normalizeAssetHistory(history) {
@@ -153,6 +165,10 @@ function arrivalAge() {
 
 function daysToFire() {
   return Math.max(0, Math.ceil((remainingToFire() / annualFirePower()) * 365));
+}
+
+function yearsToFireDecimal() {
+  return daysToFire() / 365;
 }
 
 function yearsToTargetAge() {
@@ -310,11 +326,11 @@ function render() {
 
   setText("fireRate", `${rate}%`);
   setText("heroDaysToFire", `${numberFormatter.format(fireDays)}日`);
+  setText("heroYearsToFire", `約${yearsToFireDecimal().toFixed(1)}年`);
   setText("fireDistanceHero", `あと${numberFormatter.format(fireDays)}日`);
   setText("totalAssets", yen.format(total));
-  setText("investmentAssets", yen.format(state.assets.investments));
   setText("arrivalAge", `${arrivalAge()}歳`);
-  setText("fireShortenMessage", `現在${arrivalAge()}歳予想。今日から1日ずつ減らす`);
+  setText("fireShortenMessage", `約${yearsToFireDecimal().toFixed(1)}年。今日から1日ずつ減らす`);
   setText("levelLabel", `Lv.${xp.level}`);
   setText("nextLevelXp", `${xp.nextLevelXp}XP`);
   setText("streakCount", `${streak}日`);
@@ -334,11 +350,11 @@ function render() {
   document.getElementById("levelProgress").style.width = `${xp.currentLevelXp}%`;
 
   const entriesToday = todayEntries();
-  setText("todayLimit", `${entriesToday.length} / 3`);
-  setText("todayQuestCount", `${entriesToday.length} / 3`);
+  setText("todayLimit", `${entriesToday.length} / ${dailyEntryLimit}`);
+  setText("todayQuestCount", `${entriesToday.length} / ${dailyEntryLimit}`);
   setText("todayHighlight", entriesToday[0] ? `${entriesToday[0].text} +${progressXp(entriesToday[0])}XP` : "今日の前進をひとつ積む");
-  document.getElementById("progressInput").disabled = entriesToday.length >= 3;
-  document.querySelector("#progressForm button").disabled = entriesToday.length >= 3;
+  document.getElementById("progressInput").disabled = entriesToday.length >= dailyEntryLimit;
+  document.querySelector("#progressForm button").disabled = entriesToday.length >= dailyEntryLimit;
 
   renderSideHustles();
   renderAssets();
@@ -392,6 +408,7 @@ function renderTodayQuests() {
           <small>${formatEntryDate(entry.date)} 自動記録</small>
         </div>
         <b>+${progressXp(entry)}XP</b>
+        <button class="delete-progress" type="button" data-delete-progress="${escapeHtml(entry.id)}" aria-label="${escapeHtml(entry.text)}を削除">削除</button>
       </div>
     `)
     .join("");
@@ -680,6 +697,7 @@ function renderHistory() {
           <span class="history-date">${formatEntryDate(entry.date)}</span>
         </div>
         <strong class="xp-badge">+${progressXp(entry)}XP</strong>
+        <button class="delete-progress" type="button" data-delete-progress="${escapeHtml(entry.id)}" aria-label="${escapeHtml(entry.text)}を削除">削除</button>
       </div>
     `)
     .join("");
@@ -819,6 +837,7 @@ function importBackupFile(file) {
     try {
       const parsed = JSON.parse(reader.result);
       const importedState = parsed.state || parsed;
+      const progressEntries = migrateProgressEntries(importedState.progressEntries || []);
       state = {
         ...cloneDefaultState(),
         ...importedState,
@@ -826,8 +845,8 @@ function importBackupFile(file) {
         assets: { ...defaultState.assets, ...(importedState.assets || {}) },
         assetHistory: normalizeAssetHistory(importedState.assetHistory || []),
         sideHustles: importedState.sideHustles || cloneDefaultState().sideHustles,
-        totalXp: Number(importedState.totalXp) || inferTotalXp(importedState.progressEntries || []),
-        progressEntries: importedState.progressEntries || []
+        totalXp: Number(importedState.totalXp) || inferTotalXp(progressEntries),
+        progressEntries
       };
       saveState();
       render();
@@ -870,6 +889,12 @@ document.querySelectorAll("[data-view-target]").forEach((button) => {
   });
 });
 
+document.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-delete-progress]");
+  if (!button) return;
+  deleteProgress(button.dataset.deleteProgress);
+});
+
 document.getElementById("settingsForm").addEventListener("input", (event) => {
   if (!event.target.matches("[data-number-input]")) return;
   event.target.value = formatNumericInputValue(event.target.value);
@@ -891,18 +916,28 @@ document.getElementById("backupFile").addEventListener("change", (event) => {
 function addProgress(text) {
   const trimmed = text.trim();
   if (!trimmed) return false;
-  if (todayEntries().length >= 3) {
-    showDailyStatus("今日は3件まで記録済み");
+  if (todayEntries().length >= dailyEntryLimit) {
+    showDailyStatus(`今日は${dailyEntryLimit}件まで記録済み`);
     return false;
   }
 
   const xp = xpForProgress(trimmed);
-  state.progressEntries.unshift({ text: trimmed, date: todayKey(), xp });
+  state.progressEntries.unshift({ text: trimmed, date: todayKey(), xp, id: createProgressId({ text: trimmed, date: todayKey(), xp }, Date.now()) });
   state.totalXp = (Number(state.totalXp) || inferTotalXp(state.progressEntries.slice(1))) + xp;
   saveState();
   render();
   showDailyStatus(`+${xp}XP 記録しました`);
   return true;
+}
+
+function deleteProgress(id) {
+  const beforeLength = state.progressEntries.length;
+  state.progressEntries = state.progressEntries.filter((entry) => entry.id !== id);
+  if (state.progressEntries.length === beforeLength) return;
+  state.totalXp = inferTotalXp(state.progressEntries);
+  saveState();
+  render();
+  showDailyStatus("前進を削除しました");
 }
 
 function switchView(viewName) {
