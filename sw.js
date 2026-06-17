@@ -1,9 +1,9 @@
-const cacheName = "life-progress-dashboard-v12";
+const cacheName = "life-progress-dashboard-v13";
 const assets = [
   "./",
   "./index.html",
-  "./styles.css?v=12",
-  "./app.js?v=12",
+  "./styles.css?v=13",
+  "./app.js?v=13",
   "./manifest.webmanifest?v=5",
   "./icon.svg"
 ];

@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Life Progress" />
     <title>Life Progress Dashboard</title>
     <link rel="manifest" href="manifest.webmanifest?v=5" />
-    <link rel="stylesheet" href="styles.css?v=12" />
+    <link rel="stylesheet" href="styles.css?v=13" />
   </head>
   <body>
     <main class="app-shell">
@@ -84,8 +84,20 @@
             <strong id="monthlyShortening">0日</strong>
           </article>
           <article class="mini-panel">
+            <span>前月比</span>
+            <strong id="monthlyAssetDiff">--</strong>
+          </article>
+          <article class="mini-panel">
+            <span>前月から</span>
+            <strong id="monthlyAssetRate">--</strong>
+          </article>
+          <article class="mini-panel">
             <span>今日のXP</span>
             <strong id="todayXp">0XP</strong>
+          </article>
+          <article class="mini-panel">
+            <span>投資成長率</span>
+            <strong id="investmentGrowthRateView">5%</strong>
           </article>
           <article class="mini-panel">
             <span>FIREまであと</span>
@@ -212,9 +224,26 @@
               <input name="fireGoal" type="text" inputmode="numeric" data-number-input autocomplete="off" />
             </label>
             <label>
+              <span>投資成長率 / 年</span>
+              <select name="investmentGrowthRate">
+                <option value="0">0%</option>
+                <option value="3">3%</option>
+                <option value="4">4%</option>
+                <option value="5">5%</option>
+                <option value="6">6%</option>
+                <option value="7">7%</option>
+                <option value="8">8%</option>
+                <option value="10">10%</option>
+              </select>
+            </label>
+            <label>
               <span>年間増加見込み</span>
               <input name="yearlyAssetGrowth" type="text" inputmode="numeric" data-number-input autocomplete="off" />
             </label>
+            <div class="growth-preview">
+              <small>投資成長見込み / 年</small>
+              <strong id="investmentGrowthAmount">¥0</strong>
+            </div>
             <div id="sideHustleSettings" class="side-settings"></div>
             <button type="submit">反映</button>
             <p id="saveStatus" class="save-status" role="status" aria-live="polite"></p>
@@ -236,11 +265,11 @@
       </section>
     </main>
 
-    <script src="app.js?v=12"></script>
+    <script src="app.js?v=13"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js?v=12");
+          navigator.serviceWorker.register("sw.js?v=13");
         });
       }
     </script>

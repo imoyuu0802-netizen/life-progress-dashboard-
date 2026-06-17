@@ -4,6 +4,7 @@ const defaultState = {
   profile: {
     currentAge: 29,
     targetAge: 45,
+    investmentGrowthRate: 5,
     yearlyAssetGrowth: 1200000,
     fireGoal: 50000000
   },
@@ -209,11 +210,11 @@ function streakDays() {
 
 function annualFirePower() {
   const monthlyProfit = state.sideHustles.reduce((sum, item) => sum + item.profit, 0);
-  return Math.max(1, state.profile.yearlyAssetGrowth + state.assets.dividends + monthlyProfit * 12);
+  return Math.max(1, state.profile.yearlyAssetGrowth + investmentGrowthAmount() + state.assets.dividends + monthlyProfit * 12);
 }
 
 function baseAnnualFirePower() {
-  return Math.max(1, state.profile.yearlyAssetGrowth + state.assets.dividends);
+  return Math.max(1, state.profile.yearlyAssetGrowth + investmentGrowthAmount() + state.assets.dividends);
 }
 
 function fireAgeWithAnnualPower(annualPower) {
@@ -233,6 +234,23 @@ function monthlyShorteningDays() {
   const monthlyProfit = state.sideHustles.reduce((sum, item) => sum + item.profit, 0);
   const diff = state.lastMonthlyChange?.diff || 0;
   return daysShortenedByAmount(Math.max(0, monthlyProfit + diff));
+}
+
+function investmentGrowthAmount() {
+  return Math.round(state.assets.investments * ((Number(state.profile.investmentGrowthRate) || 0) / 100));
+}
+
+function monthlyAssetRateChange() {
+  const previousTotal = state.lastMonthlyChange?.previousTotal;
+  const diff = state.lastMonthlyChange?.diff;
+  if (!previousTotal || typeof diff !== "number") return null;
+  return (diff / previousTotal) * 100;
+}
+
+function formatPercent(value) {
+  if (typeof value !== "number") return "--";
+  const sign = value >= 0 ? "+" : "";
+  return `${sign}${value.toFixed(1)}%`;
 }
 
 function calcScores() {
@@ -275,10 +293,13 @@ function render() {
   setText("inputTodayXp", `${todayXp()}XP`);
   setText("targetAge", `${state.profile.targetAge}歳`);
   setText("monthlyShortening", `${monthlyShorteningDays()}日`);
+  setText("monthlyAssetDiff", formatDiff(state.lastMonthlyChange?.diff));
+  setText("monthlyAssetRate", formatPercent(monthlyAssetRateChange()));
+  setText("investmentGrowthRateView", `${Number(state.profile.investmentGrowthRate) || 0}%`);
+  setText("investmentGrowthAmount", yen.format(investmentGrowthAmount()));
   setText("monthlyProgressCount", `${monthlyProgressEntries().length}件`);
   setText("lastUpdated", `前回更新 ${formatUpdatedAt(state.lastUpdatedAt)}`);
   setText("remainingToFire", yen.format(remainingToFire()));
-  setText("monthlyAssetDiff", formatDiff(state.lastMonthlyChange?.diff));
   setText("settingsMonthlyDiff", formatDiff(state.lastMonthlyChange?.diff));
   document.getElementById("fireProgress").style.width = `${rate}%`;
   document.getElementById("levelProgress").style.width = `${xp.currentLevelXp}%`;
@@ -479,6 +500,7 @@ function hydrateSettings() {
   form.elements.cash.value = formatInputNumber(state.assets.cash);
   form.elements.dividends.value = formatInputNumber(state.assets.dividends);
   form.elements.fireGoal.value = formatInputNumber(state.profile.fireGoal);
+  form.elements.investmentGrowthRate.value = String(Number(state.profile.investmentGrowthRate) || 0);
   form.elements.yearlyAssetGrowth.value = formatInputNumber(state.profile.yearlyAssetGrowth);
   document.getElementById("sideHustleSettings").innerHTML = state.sideHustles
     .map((item, index) => `
@@ -704,6 +726,7 @@ document.getElementById("settingsForm").addEventListener("submit", (event) => {
   state.assets.cash = parseInputNumber(form.elements.cash.value);
   state.assets.dividends = parseInputNumber(form.elements.dividends.value);
   state.profile.fireGoal = Math.max(1, parseInputNumber(form.elements.fireGoal.value));
+  state.profile.investmentGrowthRate = Number(form.elements.investmentGrowthRate.value) || 0;
   state.profile.yearlyAssetGrowth = parseInputNumber(form.elements.yearlyAssetGrowth.value);
   state.sideHustles = state.sideHustles.map((item, index) => ({
     ...item,
