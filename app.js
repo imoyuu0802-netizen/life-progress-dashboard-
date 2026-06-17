@@ -14,7 +14,10 @@ const defaultState = {
     cash: 1300000,
     dividends: 96000
   },
-  assetHistory: [],
+  assetHistory: [
+    { month: "2024-12", total: 10748696, dividends: null, sideProfit: null, fireAge: null },
+    { month: "2025-12", total: 12368409, dividends: null, sideProfit: null, fireAge: null }
+  ],
   sideHustles: [
     { name: "ゲーム販売", sales: 48000, profit: 32000, previousProfit: 24000 },
     { name: "Totebell", sales: 18000, profit: 9000, previousProfit: 5000 },
@@ -83,7 +86,7 @@ function loadState() {
       ...saved,
       profile: { ...defaultState.profile, ...(saved.profile || {}) },
       assets: { ...defaultState.assets, ...(saved.assets || {}) },
-      assetHistory: normalizeAssetHistory(saved.assetHistory || []),
+      assetHistory: ensureBaselineAssetHistory(saved.assetHistory || []),
       sideHustles: saved.sideHustles || cloneDefaultState().sideHustles,
       totalXp: Number(saved.totalXp) || inferTotalXp(progressEntries),
       progressEntries
@@ -134,6 +137,23 @@ function normalizeAssetHistory(history) {
     .filter((item) => item.month && item.total >= 0)
     .sort((a, b) => a.month.localeCompare(b.month))
     .slice(-18);
+}
+
+function ensureBaselineAssetHistory(history) {
+  const baseline = normalizeAssetHistory(defaultState.assetHistory);
+  const normalized = normalizeAssetHistory(history);
+  const merged = [...baseline];
+
+  normalized.forEach((item) => {
+    const index = merged.findIndex((existing) => existing.month === item.month);
+    if (index >= 0) {
+      merged[index] = { ...merged[index], ...item };
+    } else {
+      merged.push(item);
+    }
+  });
+
+  return normalizeAssetHistory(merged);
 }
 
 function totalAssets() {
@@ -325,8 +345,6 @@ function render() {
   const fireDays = daysToFire();
 
   setText("fireRate", `${rate}%`);
-  setText("heroDaysToFire", `${numberFormatter.format(fireDays)}日`);
-  setText("heroYearsToFire", `約${yearsToFireDecimal().toFixed(1)}年`);
   setText("fireDistanceHero", `あと${numberFormatter.format(fireDays)}日（約${yearsToFireDecimal().toFixed(1)}年）`);
   setText("totalAssets", yen.format(total));
   setText("arrivalAge", `${arrivalAge()}歳`);
@@ -436,6 +454,7 @@ function renderSideHustles() {
       const diffClass = diff < 0 ? "delta down" : "delta";
       const sign = diff >= 0 ? "+" : "";
       const progress = sideQuestProgress(item, index);
+      const shortenedDays = daysShortenedByAmount(Math.max(0, item.profit));
       return `
         <details class="quest-item" ${index === 0 ? "open" : ""}>
           <summary>
@@ -445,11 +464,15 @@ function renderSideHustles() {
             </div>
             <div class="quest-values">
               <strong>${yen.format(item.profit)}</strong>
-              <span class="${diffClass}">${daysShortenedByAmount(Math.max(0, item.profit))}日短縮</span>
+              <span class="quest-shorten">
+                <small>FIRE短縮</small>
+                <b>+${shortenedDays}日</b>
+              </span>
             </div>
           </summary>
           <div class="quest-detail">
             <div class="quest-progress"><span style="width:${progress.value}%"></span></div>
+            <p class="quest-impact">この利益でFIRE到達が約${shortenedDays}日早まる</p>
             <div class="quest-detail-row">
               <span>今月売上 ${yen.format(item.sales)}</span>
               <span class="${diffClass}">前月比 ${sign}${yen.format(diff)}</span>
@@ -526,7 +549,7 @@ function monthlyComparison() {
 }
 
 function yearlyComparison() {
-  const snapshot = findSnapshot(yearAgoMonthKey()) || oldestSnapshot();
+  const snapshot = findSnapshot(yearAgoMonthKey()) || latestSnapshotInYear(Number(currentMonthKey().slice(0, 4)) - 1) || oldestSnapshot();
   if (!snapshot) {
     return {
       empty: true,
@@ -559,6 +582,12 @@ function findSnapshot(month) {
 
 function oldestSnapshot() {
   return normalizeAssetHistory(state.assetHistory || [])[0];
+}
+
+function latestSnapshotInYear(year) {
+  const snapshots = normalizeAssetHistory(state.assetHistory || [])
+    .filter((item) => item.month.startsWith(`${year}-`));
+  return snapshots[snapshots.length - 1];
 }
 
 function yearAgoMonthKey() {
@@ -851,7 +880,7 @@ function importBackupFile(file) {
         ...importedState,
         profile: { ...defaultState.profile, ...(importedState.profile || {}) },
         assets: { ...defaultState.assets, ...(importedState.assets || {}) },
-        assetHistory: normalizeAssetHistory(importedState.assetHistory || []),
+        assetHistory: ensureBaselineAssetHistory(importedState.assetHistory || []),
         sideHustles: importedState.sideHustles || cloneDefaultState().sideHustles,
         totalXp: Number(importedState.totalXp) || inferTotalXp(progressEntries),
         progressEntries

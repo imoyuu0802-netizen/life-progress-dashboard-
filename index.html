@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Life Progress" />
     <title>Life Progress Dashboard</title>
     <link rel="manifest" href="manifest.webmanifest?v=5" />
-    <link rel="stylesheet" href="styles.css?v=18" />
+    <link rel="stylesheet" href="styles.css?v=20" />
   </head>
   <body>
     <main class="app-shell">
@@ -16,10 +16,6 @@
         <div>
           <p class="eyebrow">Life Progress</p>
           <h1>45歳FIREへの冒険</h1>
-        </div>
-        <div class="hero-metric">
-          <span id="heroDaysToFire">--日</span>
-          <small id="heroYearsToFire">--年</small>
         </div>
       </header>
 
@@ -285,11 +281,11 @@
       </section>
     </main>
 
-    <script src="app.js?v=18"></script>
+    <script src="app.js?v=20"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js?v=18");
+          navigator.serviceWorker.register("sw.js?v=20");
         });
       }
     </script>
