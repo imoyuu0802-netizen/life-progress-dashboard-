@@ -12,6 +12,7 @@ const defaultState = {
     cash: 1300000,
     dividends: 96000
   },
+  assetHistory: [],
   sideHustles: [
     { name: "ゲーム販売", sales: 48000, profit: 32000, previousProfit: 24000 },
     { name: "Totebell", sales: 18000, profit: 9000, previousProfit: 5000 },
@@ -48,6 +49,17 @@ function todayKey() {
   return new Date().toISOString().slice(0, 10);
 }
 
+function currentMonthKey() {
+  return todayKey().slice(0, 7);
+}
+
+function previousMonthKey(monthKey) {
+  const [year, month] = monthKey.split("-").map(Number);
+  const previousYear = month === 1 ? year - 1 : year;
+  const previousMonth = month === 1 ? 12 : month - 1;
+  return `${previousYear}-${String(previousMonth).padStart(2, "0")}`;
+}
+
 function loadState() {
   const raw = localStorage.getItem(storageKey);
   if (!raw) return cloneDefaultState();
@@ -59,6 +71,7 @@ function loadState() {
       ...saved,
       profile: { ...defaultState.profile, ...(saved.profile || {}) },
       assets: { ...defaultState.assets, ...(saved.assets || {}) },
+      assetHistory: normalizeAssetHistory(saved.assetHistory || []),
       sideHustles: saved.sideHustles || cloneDefaultState().sideHustles,
       progressEntries: migrateProgressEntries(saved.progressEntries || [])
     };
@@ -82,6 +95,18 @@ function migrateProgressEntries(entries) {
     entries.every((entry) => entry.date === todayKey() && sampleTexts.includes(entry.text));
 
   return isOldSampleData ? [] : entries;
+}
+
+function normalizeAssetHistory(history) {
+  return history
+    .filter((item) => item && typeof item.month === "string")
+    .map((item) => ({
+      month: item.month.slice(0, 7),
+      total: Number(item.total) || 0
+    }))
+    .filter((item) => item.month && item.total >= 0)
+    .sort((a, b) => a.month.localeCompare(b.month))
+    .slice(-12);
 }
 
 function totalAssets() {
@@ -168,6 +193,7 @@ function render() {
 
   renderSideHustles();
   renderAssets();
+  renderAssetTrend();
   renderHistory();
   renderScores();
   hydrateSettings();
@@ -229,6 +255,56 @@ function renderAssets() {
       </div>
     `)
     .join("");
+}
+
+function assetTrendItems() {
+  const currentMonth = currentMonthKey();
+  let history = normalizeAssetHistory(state.assetHistory || []);
+
+  if (!history.length && state.lastMonthlyChange?.previousTotal) {
+    history = [
+      { month: previousMonthKey(currentMonth), total: state.lastMonthlyChange.previousTotal },
+      { month: currentMonth, total: totalAssets() }
+    ];
+  }
+
+  if (!history.some((item) => item.month === currentMonth)) {
+    history.push({ month: currentMonth, total: totalAssets() });
+  }
+
+  return normalizeAssetHistory(history).slice(-6);
+}
+
+function renderAssetTrend() {
+  const chart = document.getElementById("assetBarChart");
+  const note = document.getElementById("assetTrendNote");
+  const items = assetTrendItems();
+  const maxTotal = Math.max(...items.map((item) => item.total), 1);
+  const first = items[0]?.total || 0;
+  const last = items[items.length - 1]?.total || 0;
+  const diff = last - first;
+
+  setText("assetTrendDelta", items.length >= 2 ? formatDiff(diff) : "記録開始");
+  note.textContent = items.length >= 2 ? "直近の月次更新から自動で表示" : "月次更新で推移が育ちます";
+  chart.innerHTML = items
+    .map((item) => {
+      const height = Math.max(8, Math.round((item.total / maxTotal) * 100));
+      return `
+        <div class="bar-item">
+          <div class="bar-value">${yen.format(item.total)}</div>
+          <div class="bar-track">
+            <span style="height:${height}%"></span>
+          </div>
+          <strong>${formatMonthLabel(item.month)}</strong>
+        </div>
+      `;
+    })
+    .join("");
+}
+
+function formatMonthLabel(monthKey) {
+  const [, month] = monthKey.split("-");
+  return `${Number(month)}月`;
 }
 
 function renderHistory() {
@@ -378,6 +454,7 @@ function importBackupFile(file) {
         ...importedState,
         profile: { ...defaultState.profile, ...(importedState.profile || {}) },
         assets: { ...defaultState.assets, ...(importedState.assets || {}) },
+        assetHistory: normalizeAssetHistory(importedState.assetHistory || []),
         sideHustles: importedState.sideHustles || cloneDefaultState().sideHustles,
         progressEntries: importedState.progressEntries || []
       };
@@ -467,6 +544,19 @@ function switchView(viewName) {
   });
 }
 
+function recordAssetSnapshot(previousTotal, currentTotal) {
+  const month = currentMonthKey();
+  let history = normalizeAssetHistory(state.assetHistory || []);
+
+  if (!history.length && previousTotal !== currentTotal) {
+    history.push({ month: previousMonthKey(month), total: previousTotal });
+  }
+
+  history = history.filter((item) => item.month !== month);
+  history.push({ month, total: currentTotal });
+  state.assetHistory = normalizeAssetHistory(history);
+}
+
 document.getElementById("settingsForm").addEventListener("submit", (event) => {
   event.preventDefault();
   const form = event.currentTarget;
@@ -489,6 +579,7 @@ document.getElementById("settingsForm").addEventListener("submit", (event) => {
     diff: currentTotal - previousTotal,
     updatedAt: new Date().toISOString()
   };
+  recordAssetSnapshot(previousTotal, currentTotal);
   state.lastUpdatedAt = new Date().toISOString();
   saveState();
   render();

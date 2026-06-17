@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Life Progress" />
     <title>Life Progress Dashboard</title>
     <link rel="manifest" href="manifest.webmanifest?v=5" />
-    <link rel="stylesheet" href="styles.css?v=10" />
+    <link rel="stylesheet" href="styles.css?v=11" />
   </head>
   <body>
     <main class="app-shell">
@@ -112,6 +112,17 @@
               <div id="assetDonut" class="donut"></div>
               <div id="assetLegend" class="legend"></div>
             </div>
+            <div class="asset-trend" aria-label="資産推移">
+              <div class="trend-head">
+                <div>
+                  <p class="eyebrow">Asset Trend</p>
+                  <h3>資産推移</h3>
+                </div>
+                <strong id="assetTrendDelta">--</strong>
+              </div>
+              <div id="assetBarChart" class="bar-chart"></div>
+              <p id="assetTrendNote" class="trend-note">月次更新で推移が育ちます</p>
+            </div>
           </article>
 
           <article class="panel">
@@ -212,11 +223,11 @@
       </section>
     </main>
 
-    <script src="app.js?v=10"></script>
+    <script src="app.js?v=11"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js?v=10");
+          navigator.serviceWorker.register("sw.js?v=11");
         });
       }
     </script>
