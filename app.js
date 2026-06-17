@@ -327,10 +327,10 @@ function render() {
   setText("fireRate", `${rate}%`);
   setText("heroDaysToFire", `${numberFormatter.format(fireDays)}日`);
   setText("heroYearsToFire", `約${yearsToFireDecimal().toFixed(1)}年`);
-  setText("fireDistanceHero", `あと${numberFormatter.format(fireDays)}日`);
+  setText("fireDistanceHero", `あと${numberFormatter.format(fireDays)}日（約${yearsToFireDecimal().toFixed(1)}年）`);
   setText("totalAssets", yen.format(total));
   setText("arrivalAge", `${arrivalAge()}歳`);
-  setText("fireShortenMessage", `約${yearsToFireDecimal().toFixed(1)}年。今日から1日ずつ減らす`);
+  setText("fireShortenMessage", "今日が一番若い日");
   setText("levelLabel", `Lv.${xp.level}`);
   setText("nextLevelXp", `${xp.nextLevelXp}XP`);
   setText("streakCount", `${streak}日`);
@@ -346,6 +346,7 @@ function render() {
   setText("monthlyAutoLabel", `${formatCurrentMonthLabel()}として自動記録`);
   setSignedClass("monthlyAssetDiff", state.lastMonthlyChange?.diff);
   setSignedClass("monthlyAssetRate", monthlyAssetRateChange());
+  setText("fireProgressLabel", `${rate}%`);
   document.getElementById("fireProgress").style.width = `${rate}%`;
   document.getElementById("levelProgress").style.width = `${xp.currentLevelXp}%`;
 
@@ -383,6 +384,13 @@ function setSignedClass(id, value) {
 function formatShortening(days) {
   if (days >= 365) return `${(days / 365).toFixed(1)}年`;
   return `${days}日`;
+}
+
+function formatCompactYen(value) {
+  const amount = Number(value) || 0;
+  if (Math.abs(amount) >= 100000000) return `¥${(amount / 100000000).toFixed(1)}億`;
+  if (Math.abs(amount) >= 10000) return `¥${Math.round(amount / 10000)}万`;
+  return yen.format(amount);
 }
 
 function renderTodayQuests() {
@@ -665,7 +673,7 @@ function renderAssetTrend() {
       const height = Math.max(8, Math.round((item.total / maxTotal) * 100));
       return `
         <div class="bar-item">
-          <div class="bar-value">${yen.format(item.total)}</div>
+          <div class="bar-value">${formatCompactYen(item.total)}</div>
           <div class="bar-track">
             <span style="height:${height}%"></span>
           </div>

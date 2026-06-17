@@ -190,6 +190,17 @@ small {
   color: #d8d0aa;
 }
 
+.focus-panel .panel-title {
+  display: grid;
+  gap: 7px;
+}
+
+.focus-panel .panel-title strong {
+  font-size: 31px;
+  line-height: 1.05;
+  overflow-wrap: anywhere;
+}
+
 .today-panel {
   background: linear-gradient(145deg, #102018, #101310);
   border-color: rgba(70, 209, 139, 0.42);
@@ -229,6 +240,7 @@ small {
 }
 
 .progress-track {
+  position: relative;
   margin-top: 10px;
   height: 10px;
   overflow: hidden;
@@ -238,6 +250,18 @@ small {
 
 .progress-track.thick {
   height: 18px;
+}
+
+.progress-track span {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #10120f;
+  font-size: 11px;
+  font-weight: 900;
+  line-height: 1;
+  z-index: 1;
 }
 
 .progress-fill,
@@ -279,7 +303,7 @@ small {
 
 .fire-days-row {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
   margin-top: 16px;
 }
@@ -537,13 +561,13 @@ small {
 
 .asset-chart {
   display: grid;
-  grid-template-columns: 136px 1fr;
+  grid-template-columns: 116px 1fr;
   align-items: center;
   gap: 16px;
 }
 
 .donut {
-  width: 136px;
+  width: 116px;
   aspect-ratio: 1;
   border-radius: 50%;
   background: conic-gradient(var(--green) 0deg, var(--green) 180deg, var(--blue) 180deg, var(--blue) 300deg, var(--gold) 300deg);
@@ -586,7 +610,7 @@ small {
 
 .bar-chart {
   display: grid;
-  grid-template-columns: repeat(6, minmax(34px, 1fr));
+  grid-template-columns: repeat(6, minmax(42px, 1fr));
   align-items: end;
   gap: 8px;
   min-height: 156px;
@@ -594,7 +618,7 @@ small {
 
 .bar-item {
   display: grid;
-  grid-template-rows: 28px 104px 18px;
+  grid-template-rows: 34px 104px 18px;
   gap: 6px;
   min-width: 0;
   text-align: center;
@@ -605,11 +629,11 @@ small {
   min-width: 0;
   color: var(--muted);
   font-size: 10px;
+  line-height: 1.15;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .bar-track {
@@ -1050,7 +1074,11 @@ button:disabled {
   }
 
   .top-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .fire-days-row {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
   .content-grid {

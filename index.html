@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Life Progress" />
     <title>Life Progress Dashboard</title>
     <link rel="manifest" href="manifest.webmanifest?v=5" />
-    <link rel="stylesheet" href="styles.css?v=16" />
+    <link rel="stylesheet" href="styles.css?v=17" />
   </head>
   <body>
     <main class="app-shell">
@@ -40,12 +40,9 @@
             <p id="fireShortenMessage" class="boss-message">FIREまでの日数を減らす</p>
             <div class="progress-track thick" aria-label="FIRE達成率">
               <div id="fireProgress" class="progress-fill"></div>
+              <span id="fireProgressLabel">0%</span>
             </div>
             <div class="fire-days-row">
-              <div>
-                <small>資産合計</small>
-                <strong id="totalAssets">¥0</strong>
-              </div>
               <div>
                 <small>FIRE達成率</small>
                 <strong id="fireRate">0%</strong>
@@ -62,6 +59,30 @@
                 <small>今月の短縮</small>
                 <strong id="monthlyShortening">0日</strong>
               </div>
+            </div>
+          </article>
+
+          <article class="panel asset-panel">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Assets</p>
+                <h2>資産合計</h2>
+              </div>
+            </div>
+            <div class="asset-chart" aria-label="資産構成グラフ">
+              <div id="assetDonut" class="donut"></div>
+              <div id="assetLegend" class="legend"></div>
+            </div>
+            <div class="asset-trend" aria-label="資産推移">
+              <div class="trend-head">
+                <div>
+                  <p class="eyebrow">Asset Trend</p>
+                  <h3>資産推移</h3>
+                </div>
+                <strong id="assetTrendDelta">--</strong>
+              </div>
+              <div id="assetBarChart" class="bar-chart"></div>
+              <p id="assetTrendNote" class="trend-note">月次更新で推移が育ちます</p>
             </div>
           </article>
 
@@ -106,30 +127,6 @@
               </div>
             </div>
             <div id="sideHustleList" class="quest-list"></div>
-          </article>
-
-          <article class="panel">
-            <div class="section-head">
-              <div>
-                <p class="eyebrow">Assets</p>
-                <h2>資産合計</h2>
-              </div>
-            </div>
-            <div class="asset-chart" aria-label="資産構成グラフ">
-              <div id="assetDonut" class="donut"></div>
-              <div id="assetLegend" class="legend"></div>
-            </div>
-            <div class="asset-trend" aria-label="資産推移">
-              <div class="trend-head">
-                <div>
-                  <p class="eyebrow">Asset Trend</p>
-                  <h3>資産推移</h3>
-                </div>
-                <strong id="assetTrendDelta">--</strong>
-              </div>
-              <div id="assetBarChart" class="bar-chart"></div>
-              <p id="assetTrendNote" class="trend-note">月次更新で推移が育ちます</p>
-            </div>
           </article>
 
         </section>
@@ -288,11 +285,11 @@
       </section>
     </main>
 
-    <script src="app.js?v=16"></script>
+    <script src="app.js?v=17"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js?v=16");
+          navigator.serviceWorker.register("sw.js?v=17");
         });
       }
     </script>
