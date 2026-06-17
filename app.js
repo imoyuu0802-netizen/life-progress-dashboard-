@@ -20,6 +20,7 @@ const defaultState = {
   ],
   lastUpdatedAt: null,
   lastMonthlyChange: null,
+  totalXp: 0,
   progressEntries: []
 };
 
@@ -46,7 +47,15 @@ const colors = {
 };
 
 function todayKey() {
-  return new Date().toISOString().slice(0, 10);
+  return formatDateKey(new Date());
+}
+
+function formatDateKey(date) {
+  return [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, "0"),
+    String(date.getDate()).padStart(2, "0")
+  ].join("-");
 }
 
 function currentMonthKey() {
@@ -66,6 +75,7 @@ function loadState() {
 
   try {
     const saved = JSON.parse(raw);
+    const progressEntries = migrateProgressEntries(saved.progressEntries || []);
     return {
       ...cloneDefaultState(),
       ...saved,
@@ -73,7 +83,8 @@ function loadState() {
       assets: { ...defaultState.assets, ...(saved.assets || {}) },
       assetHistory: normalizeAssetHistory(saved.assetHistory || []),
       sideHustles: saved.sideHustles || cloneDefaultState().sideHustles,
-      progressEntries: migrateProgressEntries(saved.progressEntries || [])
+      totalXp: Number(saved.totalXp) || inferTotalXp(progressEntries),
+      progressEntries
     };
   } catch {
     return cloneDefaultState();
@@ -131,7 +142,7 @@ function nextOnePercentAmount() {
 
 function arrivalAge() {
   const remaining = remainingToFire();
-  const annualGrowth = Math.max(1, state.profile.yearlyAssetGrowth + state.assets.dividends);
+  const annualGrowth = annualFirePower();
   const yearsLeft = Math.ceil(remaining / annualGrowth);
   return state.profile.currentAge + yearsLeft;
 }
@@ -149,15 +160,94 @@ function todayEntries() {
   return state.progressEntries.filter((entry) => entry.date === todayKey());
 }
 
+function xpForProgress(text) {
+  if (text.includes("Totebell")) return 20;
+  if (text.includes("AI学習")) return 15;
+  if (text.includes("ゲーム出品")) return 10;
+  return 5;
+}
+
+function progressXp(entry) {
+  return Number(entry.xp) || xpForProgress(entry.text || "");
+}
+
+function inferTotalXp(entries) {
+  return entries.reduce((sum, entry) => sum + progressXp(entry), 0);
+}
+
+function todayXp() {
+  return todayEntries().reduce((sum, entry) => sum + progressXp(entry), 0);
+}
+
+function levelInfo() {
+  const totalXp = Number(state.totalXp) || inferTotalXp(state.progressEntries);
+  const level = Math.floor(totalXp / 100) + 1;
+  const currentLevelXp = totalXp % 100;
+  return {
+    totalXp,
+    level,
+    currentLevelXp,
+    nextLevelXp: 100 - currentLevelXp
+  };
+}
+
+function streakDays() {
+  const uniqueDates = [...new Set(state.progressEntries.map((entry) => entry.date))].sort().reverse();
+  if (!uniqueDates.length) return 0;
+
+  let streak = 0;
+  const cursor = new Date(`${todayKey()}T00:00:00`);
+  const dateSet = new Set(uniqueDates);
+
+  while (dateSet.has(formatDateKey(cursor))) {
+    streak += 1;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+
+  return streak;
+}
+
+function annualFirePower() {
+  const monthlyProfit = state.sideHustles.reduce((sum, item) => sum + item.profit, 0);
+  return Math.max(1, state.profile.yearlyAssetGrowth + state.assets.dividends + monthlyProfit * 12);
+}
+
+function baseAnnualFirePower() {
+  return Math.max(1, state.profile.yearlyAssetGrowth + state.assets.dividends);
+}
+
+function fireAgeWithAnnualPower(annualPower) {
+  const yearsLeft = Math.ceil(remainingToFire() / Math.max(1, annualPower));
+  return state.profile.currentAge + yearsLeft;
+}
+
+function targetShortenYears() {
+  return Math.max(0, arrivalAge() - state.profile.targetAge);
+}
+
+function daysShortenedByAmount(amount) {
+  return Math.max(0, Math.round((amount / annualFirePower()) * 365));
+}
+
+function monthlyShorteningDays() {
+  const monthlyProfit = state.sideHustles.reduce((sum, item) => sum + item.profit, 0);
+  const diff = state.lastMonthlyChange?.diff || 0;
+  return daysShortenedByAmount(Math.max(0, monthlyProfit + diff));
+}
+
 function calcScores() {
   const rate = fireRate();
   const monthlyProfit = state.sideHustles.reduce((sum, item) => sum + item.profit, 0);
   const todayCount = todayEntries().length;
+  const creativeXp = state.progressEntries
+    .filter((entry) => /Totebell|AI学習/.test(entry.text))
+    .reduce((sum, entry) => sum + progressXp(entry), 0);
+  const streak = streakDays();
 
   return [
-    { label: "自由", value: clamp(Math.round(rate * 0.75 + state.assets.dividends / 6000)) },
-    { label: "創造", value: clamp(Math.round(todayCount * 22 + monthlyProfit / 1800)) },
-    { label: "持続可能性", value: clamp(Math.round(rate * 0.45 + todayCount * 12 + 38)) }
+    { label: "自由", value: clamp(Math.round(rate * 0.7 + monthlyProfit / 2500 + state.assets.dividends / 7000)), note: "資産・副業・配当" },
+    { label: "創造", value: clamp(Math.round(todayCount * 18 + creativeXp / 12 + monthlyProfit / 3500)), note: "発信・AI・制作" },
+    { label: "持続可能性", value: clamp(Math.round(42 + streak * 8 + todayCount * 8)), note: "継続・余白・生活" }
   ];
 }
 
@@ -168,26 +258,34 @@ function clamp(value) {
 function render() {
   const total = totalAssets();
   const rate = fireRate();
-  const monthlyDividend = Math.round(state.assets.dividends / 12);
+  const xp = levelInfo();
+  const streak = streakDays();
+  const shorteningYears = targetShortenYears();
 
   setText("fireRate", `${rate}%`);
+  setText("shortenGap", `${shorteningYears}年`);
   setText("totalAssets", yen.format(total));
-  setText("fireGoal", yen.format(state.profile.fireGoal));
   setText("arrivalAge", `${arrivalAge()}歳`);
-  setText("annualDividend", yen.format(state.assets.dividends));
-  setText("monthlyDividend", yen.format(monthlyDividend));
+  setText("fireShortenMessage", `目標45歳まで、あと${shorteningYears}年短縮`);
+  setText("levelLabel", `Lv.${xp.level}`);
+  setText("nextLevelXp", `${xp.nextLevelXp}XP`);
+  setText("streakCount", `${streak}日`);
+  setText("inputStreakCount", `${streak}日`);
+  setText("todayXp", `${todayXp()}XP`);
+  setText("inputTodayXp", `${todayXp()}XP`);
+  setText("targetAge", `${state.profile.targetAge}歳`);
+  setText("monthlyShortening", `${monthlyShorteningDays()}日`);
   setText("monthlyProgressCount", `${monthlyProgressEntries().length}件`);
   setText("lastUpdated", `前回更新 ${formatUpdatedAt(state.lastUpdatedAt)}`);
   setText("remainingToFire", yen.format(remainingToFire()));
-  setText("nextOnePercent", yen.format(nextOnePercentAmount()));
-  setText("yearsToTarget", `${yearsToTargetAge()}年`);
   setText("monthlyAssetDiff", formatDiff(state.lastMonthlyChange?.diff));
   setText("settingsMonthlyDiff", formatDiff(state.lastMonthlyChange?.diff));
   document.getElementById("fireProgress").style.width = `${rate}%`;
+  document.getElementById("levelProgress").style.width = `${xp.currentLevelXp}%`;
 
   const entriesToday = todayEntries();
   setText("todayLimit", `${entriesToday.length} / 3`);
-  setText("todayHighlight", entriesToday[0]?.text || "今日の前進をひとつ積む");
+  setText("todayHighlight", entriesToday[0] ? `${entriesToday[0].text} +${progressXp(entriesToday[0])}XP` : "今日の前進をひとつ積む");
   document.getElementById("progressInput").disabled = entriesToday.length >= 3;
   document.querySelector("#progressForm button").disabled = entriesToday.length >= 3;
 
@@ -201,30 +299,57 @@ function render() {
 }
 
 function setText(id, text) {
-  document.getElementById(id).textContent = text;
+  const element = document.getElementById(id);
+  if (!element) return;
+  element.textContent = text;
 }
 
 function renderSideHustles() {
   const list = document.getElementById("sideHustleList");
   list.innerHTML = state.sideHustles
-    .map((item) => {
+    .map((item, index) => {
       const diff = item.profit - item.previousProfit;
       const diffClass = diff < 0 ? "delta down" : "delta";
       const sign = diff >= 0 ? "+" : "";
+      const progress = sideQuestProgress(item, index);
       return `
         <div class="quest-item">
           <div class="quest-name">
             <strong>${escapeHtml(item.name)}</strong>
-            <small>今月売上 ${yen.format(item.sales)}</small>
+            <small>${escapeHtml(progress.label)}</small>
+            <div class="quest-progress"><span style="width:${progress.value}%"></span></div>
           </div>
           <div class="quest-values">
             <strong>${yen.format(item.profit)}</strong>
+            <span class="${diffClass}">${daysShortenedByAmount(Math.max(0, item.profit))}日短縮</span>
             <span class="${diffClass}">前月比 ${sign}${yen.format(diff)}</span>
           </div>
         </div>
       `;
     })
     .join("");
+}
+
+function sideQuestProgress(item, index) {
+  if (index === 0) {
+    return {
+      label: `利益目標 ${numberFormatter.format(Math.min(100, Math.round((item.profit / 20000) * 100)))}%`,
+      value: clamp(Math.round((item.profit / 20000) * 100))
+    };
+  }
+
+  if (index === 1) {
+    return {
+      label: item.profit > 0 ? "初売上達成 1 / 1" : "初売上達成 0 / 1",
+      value: item.profit > 0 ? 100 : 0
+    };
+  }
+
+  const streak = streakDays();
+  return {
+    label: `7日連続学習 ${Math.min(7, streak)} / 7`,
+    value: clamp(Math.round((streak / 7) * 100))
+  };
 }
 
 function renderAssets() {
@@ -310,13 +435,19 @@ function formatMonthLabel(monthKey) {
 function renderHistory() {
   const history = document.getElementById("progressHistory");
   const entries = state.progressEntries.slice(0, 5);
+  if (!entries.length) {
+    history.innerHTML = `<div class="empty-history">まだ前進ログはありません</div>`;
+    return;
+  }
+
   history.innerHTML = entries
     .map((entry) => `
       <div class="history-item">
         <div class="history-main">
           <strong>${escapeHtml(entry.text)}</strong>
-          <span class="history-date">${entry.date}</span>
+          <span class="history-date">${formatEntryDate(entry.date)}</span>
         </div>
+        <strong class="xp-badge">+${progressXp(entry)}XP</strong>
       </div>
     `)
     .join("");
@@ -328,13 +459,18 @@ function renderScores() {
       <div class="score-item">
         <div class="score-meta">
           <strong>${score.label}</strong>
-          <small>${score.value} / 100</small>
+          <small>${score.note}</small>
         </div>
         <div class="score-bar"><span style="width:${score.value}%"></span></div>
         <strong class="score-value">${score.value}</strong>
       </div>
     `)
     .join("");
+}
+
+function formatEntryDate(dateText) {
+  const [, month, day] = dateText.split("-");
+  return `${Number(month)}/${Number(day)}`;
 }
 
 function hydrateSettings() {
@@ -456,6 +592,7 @@ function importBackupFile(file) {
         assets: { ...defaultState.assets, ...(importedState.assets || {}) },
         assetHistory: normalizeAssetHistory(importedState.assetHistory || []),
         sideHustles: importedState.sideHustles || cloneDefaultState().sideHustles,
+        totalXp: Number(importedState.totalXp) || inferTotalXp(importedState.progressEntries || []),
         progressEntries: importedState.progressEntries || []
       };
       saveState();
@@ -525,11 +662,13 @@ function addProgress(text) {
     return false;
   }
 
-  state.progressEntries.unshift({ text: trimmed, date: todayKey() });
+  const xp = xpForProgress(trimmed);
+  state.progressEntries.unshift({ text: trimmed, date: todayKey(), xp });
+  state.totalXp = (Number(state.totalXp) || inferTotalXp(state.progressEntries.slice(1))) + xp;
   saveState();
   render();
   switchView("input");
-  showDailyStatus("記録しました");
+  showDailyStatus(`+${xp}XP 記録しました`);
   return true;
 }
 

@@ -225,12 +225,24 @@ small {
   border-radius: 999px;
 }
 
-.progress-fill {
+.progress-fill,
+.xp-fill {
   width: 0%;
   height: 100%;
   background: #ffffff;
   border-radius: inherit;
   transition: width 220ms ease;
+}
+
+.xp-track {
+  height: 9px;
+  overflow: hidden;
+  background: var(--soft);
+  border-radius: 999px;
+}
+
+.xp-fill {
+  background: var(--ink);
 }
 
 .stat-row {
@@ -253,6 +265,14 @@ small {
   font-size: 23px;
   line-height: 1.25;
   font-weight: 800;
+}
+
+.boss-message {
+  min-height: 28px;
+  color: #ffffff;
+  font-size: 19px;
+  line-height: 1.25;
+  font-weight: 850;
 }
 
 .last-updated {
@@ -327,6 +347,21 @@ small {
 
 .delta.down {
   color: #9b3b38;
+}
+
+.quest-progress {
+  width: 132px;
+  height: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--soft);
+}
+
+.quest-progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--ink);
 }
 
 .asset-chart {
@@ -475,6 +510,29 @@ small {
   min-height: 360px;
 }
 
+.daily-status-board {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.daily-status-board div {
+  min-height: 64px;
+  padding: 11px 12px;
+  background: var(--soft);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.daily-status-board strong {
+  display: block;
+  margin-top: 5px;
+  font-size: 22px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
 .quick-actions {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -483,11 +541,20 @@ small {
 }
 
 .quick-actions button {
+  display: grid;
+  place-items: center;
+  gap: 3px;
   min-height: 44px;
   background: var(--soft);
   color: var(--ink);
   border: 1px solid var(--line);
   font-size: 13px;
+}
+
+.quick-actions button small {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 850;
 }
 
 .daily-status {
@@ -531,6 +598,25 @@ button:disabled {
 .history-date {
   color: var(--muted);
   font-size: 12px;
+}
+
+.xp-badge {
+  flex: 0 0 auto;
+  min-width: 58px;
+  padding: 7px 9px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: #ffffff;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.empty-history {
+  padding: 14px 0;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .score-item {

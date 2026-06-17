@@ -8,18 +8,18 @@
     <meta name="apple-mobile-web-app-title" content="Life Progress" />
     <title>Life Progress Dashboard</title>
     <link rel="manifest" href="manifest.webmanifest?v=5" />
-    <link rel="stylesheet" href="styles.css?v=11" />
+    <link rel="stylesheet" href="styles.css?v=12" />
   </head>
   <body>
     <main class="app-shell">
       <header class="hero">
         <div>
           <p class="eyebrow">Life Progress</p>
-          <h1>今日も前進中</h1>
+          <h1>45歳FIREへの冒険</h1>
         </div>
         <div class="hero-metric">
-          <span id="fireRate">0%</span>
-          <small>FIRE達成率</small>
+          <span id="shortenGap">--年</span>
+          <small>短縮したい年数</small>
         </div>
       </header>
 
@@ -33,39 +33,42 @@
         <section class="top-grid" aria-label="主要ダッシュボード">
           <article class="panel focus-panel">
             <div class="panel-title">
-              <span>総資産</span>
-              <strong id="totalAssets">¥0</strong>
+              <span>予想FIRE年齢</span>
+              <strong id="arrivalAge">--歳</strong>
             </div>
-            <p id="lastUpdated" class="last-updated">前回更新 --</p>
+            <p id="fireShortenMessage" class="boss-message">45歳までの距離を短縮する</p>
             <div class="progress-track" aria-label="FIRE達成率">
               <div id="fireProgress" class="progress-fill"></div>
             </div>
             <div class="stat-row">
               <div>
-                <small>FIRE目標額</small>
-                <strong id="fireGoal">¥0</strong>
+                <small>現在資産</small>
+                <strong id="totalAssets">¥0</strong>
               </div>
               <div>
-                <small>到達予想</small>
-                <strong id="arrivalAge">--歳</strong>
+                <small>FIRE達成率</small>
+                <strong id="fireRate">0%</strong>
               </div>
             </div>
           </article>
 
           <article class="panel month-panel">
             <div class="panel-title">
-              <span>今月の前進</span>
-              <strong id="monthlyProgressCount">0件</strong>
+              <span>主人公ステータス</span>
+              <strong id="levelLabel">Lv.1</strong>
             </div>
             <p id="todayHighlight" class="highlight-text">今日の前進をひとつ積む</p>
+            <div class="xp-track" aria-label="次のレベルまで">
+              <div id="levelProgress" class="xp-fill"></div>
+            </div>
             <div class="stat-row">
               <div>
-                <small>年間配当金</small>
-                <strong id="annualDividend">¥0</strong>
+                <small>次のレベルまで</small>
+                <strong id="nextLevelXp">--XP</strong>
               </div>
               <div>
-                <small>月間配当換算</small>
-                <strong id="monthlyDividend">¥0</strong>
+                <small>連続記録</small>
+                <strong id="streakCount">0日</strong>
               </div>
             </div>
           </article>
@@ -73,20 +76,20 @@
 
         <section class="goal-strip" aria-label="ゴール進捗">
           <article class="mini-panel">
+            <span>目標年齢</span>
+            <strong id="targetAge">45歳</strong>
+          </article>
+          <article class="mini-panel">
+            <span>今月の短縮</span>
+            <strong id="monthlyShortening">0日</strong>
+          </article>
+          <article class="mini-panel">
+            <span>今日のXP</span>
+            <strong id="todayXp">0XP</strong>
+          </article>
+          <article class="mini-panel">
             <span>FIREまであと</span>
             <strong id="remainingToFire">¥0</strong>
-          </article>
-          <article class="mini-panel">
-            <span>次の1%</span>
-            <strong id="nextOnePercent">¥0</strong>
-          </article>
-          <article class="mini-panel">
-            <span>45歳まで</span>
-            <strong id="yearsToTarget">--年</strong>
-          </article>
-          <article class="mini-panel">
-            <span>前回比</span>
-            <strong id="monthlyAssetDiff">--</strong>
           </article>
         </section>
 
@@ -95,7 +98,7 @@
             <div class="section-head">
               <div>
                 <p class="eyebrow">Side Quest</p>
-                <h2>副業進捗</h2>
+                <h2>SIDE QUEST</h2>
               </div>
             </div>
             <div id="sideHustleList" class="quest-list"></div>
@@ -143,14 +146,24 @@
             <div class="section-head">
               <div>
                 <p class="eyebrow">Daily Move</p>
-                <h2>今日の前進</h2>
+              <h2>今日の前進</h2>
               </div>
               <span id="todayLimit" class="pill">0 / 3</span>
             </div>
+            <div class="daily-status-board">
+              <div>
+                <small>今日のXP</small>
+                <strong id="inputTodayXp">0XP</strong>
+              </div>
+              <div>
+                <small>連続記録</small>
+                <strong id="inputStreakCount">0日</strong>
+              </div>
+            </div>
             <div class="quick-actions" aria-label="よく使う前進">
-              <button type="button" data-quick-progress="ゲーム出品1件">ゲーム出品</button>
-              <button type="button" data-quick-progress="Totebell投稿1件">Totebell投稿</button>
-              <button type="button" data-quick-progress="AI学習30分">AI学習</button>
+              <button type="button" data-quick-progress="ゲーム出品1件">ゲーム出品<small>+10XP</small></button>
+              <button type="button" data-quick-progress="Totebell投稿1件">Totebell<small>+20XP</small></button>
+              <button type="button" data-quick-progress="AI学習30分">AI学習<small>+15XP</small></button>
             </div>
             <p id="dailyStatus" class="daily-status" role="status" aria-live="polite"></p>
             <form id="progressForm" class="entry-form">
@@ -223,11 +236,11 @@
       </section>
     </main>
 
-    <script src="app.js?v=11"></script>
+    <script src="app.js?v=12"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js?v=11");
+          navigator.serviceWorker.register("sw.js?v=12");
         });
       }
     </script>
