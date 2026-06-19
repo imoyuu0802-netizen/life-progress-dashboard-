@@ -1,6 +1,5 @@
 const storageKey = "life-progress-dashboard-v1";
 const dailyEntryLimit = 5;
-const peerNetWorthAverage = 2800000;
 const averageRetirementAge = 65;
 
 const defaultState = {
@@ -8,6 +7,7 @@ const defaultState = {
     birthDate: "",
     currentAge: 29,
     targetAge: 45,
+    householdType: "twoPlus",
     investmentGrowthRate: 5,
     yearlyAssetGrowth: 1200000,
     fireGoal: 50000000
@@ -327,12 +327,51 @@ function monthlySideProfit() {
   return state.sideHustles.reduce((sum, item) => sum + item.profit, 0);
 }
 
-function peerLeadAmount() {
-  return totalAssets() - peerNetWorthAverage;
+function peerAssetRanking() {
+  const dataset = window.JFLEC_ASSET_DATA;
+  if (!dataset) return null;
+
+  const ageBand = Math.max(20, Math.min(70, Math.floor(currentAgeYears() / 10) * 10));
+  const householdType = state.profile.householdType === "single" ? "single" : "twoPlus";
+  const distribution = dataset.distributions[householdType]?.[ageBand];
+  if (!distribution) return null;
+
+  const amountInTenThousands = Math.max(0, totalAssets() / 10000);
+  const knownTotal = distribution.shares.reduce((sum, share) => sum + share, 0);
+  let topShare = knownTotal - distribution.shares[0];
+  let isUpperBound = false;
+
+  if (amountInTenThousands > 0) {
+    const bucketIndex = dataset.buckets.findIndex((bucket, index) => (
+      index > 0
+      && amountInTenThousands >= bucket.min
+      && (bucket.max === null || amountInTenThousands < bucket.max)
+    ));
+
+    if (bucketIndex === dataset.buckets.length - 1) {
+      topShare = distribution.shares[bucketIndex];
+      isUpperBound = true;
+    } else if (bucketIndex > 0) {
+      const bucket = dataset.buckets[bucketIndex];
+      const higherShare = distribution.shares.slice(bucketIndex + 1).reduce((sum, share) => sum + share, 0);
+      const remainingRatio = (bucket.max - amountInTenThousands) / (bucket.max - bucket.min);
+      topShare = higherShare + distribution.shares[bucketIndex] * Math.max(0, Math.min(1, remainingRatio));
+    }
+  }
+
+  return {
+    ageBand,
+    householdType,
+    sample: distribution.sample,
+    percent: Math.max(0, Math.min(100, (topShare / knownTotal) * 100)),
+    isUpperBound
+  };
 }
 
-function peerRatio() {
-  return totalAssets() / peerNetWorthAverage;
+function formatPeerPercentile(ranking) {
+  if (!ranking) return "推定 --";
+  const percent = ranking.percent < 0.1 ? "0.1%未満" : `${ranking.percent.toFixed(1)}%`;
+  return ranking.isUpperBound ? `上位${percent}以内` : `推定 上位${percent}`;
 }
 
 function retirementLeadYears() {
@@ -425,8 +464,11 @@ function render() {
   setText("totalAssets", yen.format(total));
   setText("annualDividendResult", yen.format(state.assets.dividends));
   setText("monthlySideProfitResult", yen.format(monthlySideProfit()));
-  setText("peerLead", `同年代参考値より ${formatDiff(peerLeadAmount())}`);
-  setText("peerRatio", `${peerRatio().toFixed(1)}倍`);
+  const peerRanking = peerAssetRanking();
+  const householdLabel = peerRanking?.householdType === "single" ? "単身世帯" : "二人以上世帯";
+  setText("peerBenchmarkSummary", peerRanking ? `${peerRanking.ageBand}歳代・${householdLabel}と比較` : "同年代の金融資産分布と比較");
+  setText("peerPercentile", formatPeerPercentile(peerRanking));
+  setText("peerBenchmarkNote", peerRanking ? `回答${numberFormatter.format(peerRanking.sample)}世帯 / 総資産を金融資産として階級内を均等推定` : "金融資産ベース・未回答を除く推定値");
   setText("fireShortenMessage", "今日が一番若い日");
   setText("levelLabel", `Lv.${xp.level}`);
   setText("nextLevelXp", `${xp.nextLevelXp}EXP`);
@@ -841,6 +883,7 @@ function hydrateSettings() {
   const profileForm = document.getElementById("profileForm");
   profileForm.elements.birthDate.value = state.profile.birthDate || "";
   profileForm.elements.targetAge.value = String(Number(state.profile.targetAge) || 45);
+  profileForm.elements.householdType.value = state.profile.householdType === "single" ? "single" : "twoPlus";
   profileForm.elements.birthDate.max = todayKey();
   form.elements.investments.value = formatInputNumber(state.assets.investments);
   form.elements.cash.value = formatInputNumber(state.assets.cash);
@@ -1041,10 +1084,11 @@ document.getElementById("profileForm").addEventListener("submit", (event) => {
   const form = event.currentTarget;
   state.profile.birthDate = form.elements.birthDate.value;
   state.profile.targetAge = Math.max(1, Number(form.elements.targetAge.value) || 45);
+  state.profile.householdType = form.elements.householdType.value === "single" ? "single" : "twoPlus";
   state.profile.currentAge = currentAgeYears();
   saveState();
   render();
-  showProfileStatus("生年月日を保存し、年齢を再計算しました");
+  showProfileStatus("プロフィールと資産比較条件を保存しました");
 });
 
 function addProgress(text) {

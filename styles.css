@@ -280,6 +280,21 @@ small {
   overflow-wrap: anywhere;
 }
 
+.benchmark-note {
+  margin: 12px 0 3px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.benchmark-source {
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.45;
+  text-decoration-color: rgba(168, 170, 159, 0.5);
+  text-underline-offset: 2px;
+}
+
 .panel-title,
 .section-head,
 .stat-row,

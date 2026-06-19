@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Life Progress" />
     <title>Life Progress Dashboard</title>
     <link rel="manifest" href="manifest.webmanifest?v=5" />
-    <link rel="stylesheet" href="styles.css?v=25" />
+    <link rel="stylesheet" href="styles.css?v=26" />
   </head>
   <body>
     <main class="app-shell">
@@ -68,7 +68,7 @@
             <div class="result-hero">
               <small>総資産</small>
               <strong id="totalAssets">¥0</strong>
-              <span id="peerLead">同年代参考値より --</span>
+              <span id="peerBenchmarkSummary">同年代の金融資産分布と比較</span>
             </div>
             <div class="result-grid">
               <div>
@@ -80,14 +80,16 @@
                 <strong id="monthlySideProfitResult">¥0</strong>
               </div>
               <div>
-                <small>同年代比</small>
-                <strong id="peerRatio">--倍</strong>
+                <small>同年代の資産順位</small>
+                <strong id="peerPercentile">推定 --</strong>
               </div>
               <div>
                 <small>FIREリード</small>
                 <strong id="retirementLead">--年</strong>
               </div>
             </div>
+            <p id="peerBenchmarkNote" class="benchmark-note">金融資産ベース・未回答を除く推定値</p>
+            <a class="benchmark-source" href="https://www.j-flec.go.jp/data/kakekin_2024/" target="_blank" rel="noreferrer">出典: J-FLEC「家計の金融行動に関する世論調査 2024年」をもとに独自推計</a>
           </article>
 
           <article class="panel asset-panel">
@@ -240,6 +242,13 @@
               <span>FIRE目標年齢</span>
               <input name="targetAge" type="number" inputmode="numeric" min="1" max="100" required />
             </label>
+            <label>
+              <span>資産比較の世帯区分</span>
+              <select name="householdType" required>
+                <option value="twoPlus">二人以上世帯</option>
+                <option value="single">単身世帯</option>
+              </select>
+            </label>
             <div class="current-age-card">
               <small>現在の実年齢</small>
               <strong id="currentAgeDisplay">--歳</strong>
@@ -362,13 +371,14 @@
       </section>
     </main>
 
-    <script src="firebase-config.js?v=25"></script>
-    <script src="app.js?v=25"></script>
-    <script type="module" src="firebase-sync.js?v=25"></script>
+    <script src="firebase-config.js?v=26"></script>
+    <script src="jflec-data.js?v=26"></script>
+    <script src="app.js?v=26"></script>
+    <script type="module" src="firebase-sync.js?v=26"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js?v=25");
+          navigator.serviceWorker.register("sw.js?v=26");
         });
       }
     </script>
