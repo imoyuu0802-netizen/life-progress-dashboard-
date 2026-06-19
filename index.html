@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Life Progress" />
     <title>Life Progress Dashboard</title>
     <link rel="manifest" href="manifest.webmanifest?v=5" />
-    <link rel="stylesheet" href="styles.css?v=22" />
+    <link rel="stylesheet" href="styles.css?v=23" />
   </head>
   <body>
     <main class="app-shell">
@@ -21,7 +21,7 @@
 
       <nav class="view-nav" aria-label="画面切り替え">
         <button class="view-tab is-active" type="button" data-view-target="overview">現在地</button>
-        <button class="view-tab" type="button" data-view-target="score">スコア</button>
+        <button class="view-tab" type="button" data-view-target="score">スコア・XP</button>
         <button class="view-tab" type="button" data-view-target="input">前進</button>
         <button class="view-tab" type="button" data-view-target="settings">月次</button>
       </nav>
@@ -116,6 +116,32 @@
 
         </section>
 
+        <section class="content-grid">
+          <article class="panel journey-panel">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Journey</p>
+                <h2>過去の自分との対戦</h2>
+              </div>
+            </div>
+            <div class="compare-grid">
+              <div>
+                <h3>先月比</h3>
+                <div id="monthlyCompareList" class="compare-list"></div>
+              </div>
+              <div>
+                <h3>去年比</h3>
+                <div id="yearlyCompareList" class="compare-list"></div>
+              </div>
+            </div>
+            <div class="hero-journal">
+              <p class="eyebrow">Hero Journal</p>
+              <h3 id="journalTitle">今月の冒険記録</h3>
+              <p id="journalBody">月次更新で冒険記録が育ちます</p>
+            </div>
+          </article>
+        </section>
+
       </section>
 
       <section id="view-input" class="view">
@@ -128,24 +154,7 @@
               </div>
               <span id="todayLimit" class="pill">0 / 5</span>
             </div>
-            <div class="daily-status-board">
-              <div>
-                <small>今日のXP</small>
-                <strong id="inputTodayXp">0XP</strong>
-              </div>
-              <div>
-                <small>連続記録</small>
-                <strong id="inputStreakCount">0日</strong>
-              </div>
-            </div>
             <div id="todayQuestList" class="today-quest-list"></div>
-            <div class="level-row">
-              <span id="levelLabel">Lv.1</span>
-              <div class="xp-track" aria-label="次のレベルまで">
-                <div id="levelProgress" class="xp-fill"></div>
-              </div>
-              <small id="nextLevelXp">--XP</small>
-            </div>
             <div class="quick-actions" aria-label="よく使う前進">
               <button type="button" data-quick-progress="ゲーム出品1件">ゲーム出品<small>+10XP</small></button>
               <button type="button" data-quick-progress="せどり出品1件">せどり<small>+10XP</small></button>
@@ -174,6 +183,32 @@
 
       <section id="view-score" class="view">
         <section class="content-grid single-focus">
+          <article class="panel xp-panel">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Growth Status</p>
+                <h2>XPステータス</h2>
+              </div>
+            </div>
+            <div class="daily-status-board">
+              <div>
+                <small>今日のXP</small>
+                <strong id="inputTodayXp">0XP</strong>
+              </div>
+              <div>
+                <small>連続記録</small>
+                <strong id="inputStreakCount">0日</strong>
+              </div>
+            </div>
+            <div class="level-row">
+              <span id="levelLabel">Lv.1</span>
+              <div class="xp-track" aria-label="次のレベルまで">
+                <div id="levelProgress" class="xp-fill"></div>
+              </div>
+              <small id="nextLevelXp">--XP</small>
+            </div>
+          </article>
+
           <article class="panel score-panel">
             <div class="section-head">
               <div>
@@ -184,29 +219,6 @@
             <div id="scoreList" class="score-list"></div>
           </article>
 
-          <article class="panel journey-panel">
-            <div class="section-head">
-              <div>
-                <p class="eyebrow">Journey</p>
-                <h2>過去の自分との対戦</h2>
-              </div>
-            </div>
-            <div class="compare-grid">
-              <div>
-                <h3>先月比</h3>
-                <div id="monthlyCompareList" class="compare-list"></div>
-              </div>
-              <div>
-                <h3>去年比</h3>
-                <div id="yearlyCompareList" class="compare-list"></div>
-              </div>
-            </div>
-            <div class="hero-journal">
-              <p class="eyebrow">Hero Journal</p>
-              <h3 id="journalTitle">今月の冒険記録</h3>
-              <p id="journalBody">月次更新で冒険記録が育ちます</p>
-            </div>
-          </article>
         </section>
       </section>
 
@@ -289,11 +301,11 @@
       </section>
     </main>
 
-    <script src="app.js?v=22"></script>
+    <script src="app.js?v=23"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js?v=22");
+          navigator.serviceWorker.register("sw.js?v=23");
         });
       }
     </script>
