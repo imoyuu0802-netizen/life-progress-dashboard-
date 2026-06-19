@@ -385,6 +385,22 @@ small {
   font-variant-numeric: tabular-nums;
 }
 
+.fire-days-row .shortening-cell {
+  border-color: rgba(70, 209, 139, 0.55);
+  background: rgba(70, 209, 139, 0.16);
+  box-shadow: 0 0 0 1px rgba(70, 209, 139, 0.08) inset;
+}
+
+.fire-days-row .shortening-cell small,
+.fire-days-row .shortening-cell strong {
+  color: var(--green);
+}
+
+.fire-days-row .shortening-cell strong {
+  font-size: 24px;
+  line-height: 1;
+}
+
 .highlight-text {
   min-height: 44px;
   color: var(--ink);
@@ -592,7 +608,7 @@ small {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 4px 7px;
+  padding: 6px 9px;
   border: 1px solid rgba(70, 209, 139, 0.28);
   border-radius: 999px;
   background: rgba(70, 209, 139, 0.12);
@@ -607,7 +623,7 @@ small {
 }
 
 .quest-shorten b {
-  font-size: 12px;
+  font-size: 15px;
   font-variant-numeric: tabular-nums;
 }
 
@@ -753,6 +769,11 @@ small {
   color: var(--muted);
   font-size: 11px;
   font-weight: 800;
+}
+
+.bar-item > strong {
+  font-size: 9px;
+  white-space: nowrap;
 }
 
 .trend-note {
@@ -1049,6 +1070,89 @@ button:disabled {
   gap: 10px;
 }
 
+.profile-grid,
+.auth-panel,
+.email-auth-form {
+  display: grid;
+  gap: 12px;
+}
+
+.profile-grid label,
+.email-auth-form label {
+  display: grid;
+  gap: 6px;
+}
+
+.profile-grid label span,
+.email-auth-form label span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.current-age-card {
+  display: grid;
+  gap: 5px;
+  min-height: 70px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--soft);
+}
+
+.current-age-card small {
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.current-age-card strong {
+  font-size: 24px;
+  font-variant-numeric: tabular-nums;
+}
+
+.google-sign-in {
+  background: #ffffff;
+  color: #111111;
+}
+
+.auth-actions,
+.signed-in-panel {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.auth-actions button:last-child,
+.signed-in-panel button {
+  border: 1px solid var(--line);
+  background: var(--soft);
+  color: var(--ink);
+}
+
+.signed-in-panel {
+  align-items: center;
+}
+
+.signed-in-panel div {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.signed-in-panel strong {
+  overflow-wrap: anywhere;
+}
+
+#cloudBadge.is-connected {
+  background: rgba(70, 209, 139, 0.16);
+  color: var(--green);
+}
+
+#cloudBadge.is-error {
+  background: rgba(225, 107, 102, 0.14);
+  color: var(--danger);
+}
+
 .monthly-summary {
   display: flex;
   align-items: end;
@@ -1202,6 +1306,21 @@ button:disabled {
   .settings-grid {
     grid-template-columns: repeat(5, minmax(0, 1fr));
     align-items: end;
+  }
+
+  .settings-panel {
+    grid-column: 1 / -1;
+  }
+
+  .profile-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: end;
+  }
+
+  .profile-grid .current-age-card,
+  .profile-grid button,
+  .profile-grid .save-status {
+    grid-column: 1 / -1;
   }
 
   .monthly-summary {

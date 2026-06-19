@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Life Progress" />
     <title>Life Progress Dashboard</title>
     <link rel="manifest" href="manifest.webmanifest?v=5" />
-    <link rel="stylesheet" href="styles.css?v=23" />
+    <link rel="stylesheet" href="styles.css?v=24" />
   </head>
   <body>
     <main class="app-shell">
@@ -23,7 +23,7 @@
         <button class="view-tab is-active" type="button" data-view-target="overview">現在地</button>
         <button class="view-tab" type="button" data-view-target="score">スコア・XP</button>
         <button class="view-tab" type="button" data-view-target="input">前進</button>
-        <button class="view-tab" type="button" data-view-target="settings">月次</button>
+        <button class="view-tab" type="button" data-view-target="settings">設定</button>
       </nav>
 
       <section id="view-overview" class="view is-active">
@@ -51,7 +51,7 @@
                 <small>目標</small>
                 <strong id="targetAge">45歳</strong>
               </div>
-              <div>
+              <div class="shortening-cell">
                 <small>今月の短縮</small>
                 <strong id="monthlyShortening">0日</strong>
               </div>
@@ -68,7 +68,7 @@
             <div class="result-hero">
               <small>総資産</small>
               <strong id="totalAssets">¥0</strong>
-              <span id="peerLead">29歳平均より --</span>
+              <span id="peerLead">同年代参考値より --</span>
             </div>
             <div class="result-grid">
               <div>
@@ -224,6 +224,31 @@
 
       <section id="view-settings" class="view">
         <section class="content-grid">
+        <article class="panel profile-panel">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Profile</p>
+              <h2>プロフィール設定</h2>
+            </div>
+          </div>
+          <form id="profileForm" class="profile-grid">
+            <label>
+              <span>生年月日</span>
+              <input name="birthDate" type="date" required />
+            </label>
+            <label>
+              <span>FIRE目標年齢</span>
+              <input name="targetAge" type="number" inputmode="numeric" min="1" max="100" required />
+            </label>
+            <div class="current-age-card">
+              <small>現在の実年齢</small>
+              <strong id="currentAgeDisplay">--歳</strong>
+            </div>
+            <button type="submit">プロフィールを保存</button>
+            <p id="profileStatus" class="save-status" role="status" aria-live="polite"></p>
+          </form>
+        </article>
+
         <article class="panel settings-panel">
           <div class="section-head">
             <div>
@@ -297,15 +322,52 @@
             <p id="backupStatus" class="save-status" role="status" aria-live="polite"></p>
           </div>
         </article>
+
+        <article class="panel cloud-panel">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Cloud Sync</p>
+              <h2>ログイン・データ同期</h2>
+            </div>
+            <span id="cloudBadge" class="pill">未接続</span>
+          </div>
+          <div id="signedOutPanel" class="auth-panel">
+            <button type="button" id="googleSignIn" class="google-sign-in">Googleでログイン</button>
+            <form id="emailAuthForm" class="email-auth-form">
+              <label>
+                <span>メールアドレス</span>
+                <input name="email" type="email" autocomplete="email" required />
+              </label>
+              <label>
+                <span>パスワード</span>
+                <input name="password" type="password" autocomplete="current-password" minlength="6" required />
+              </label>
+              <div class="auth-actions">
+                <button type="submit" data-auth-action="login">ログイン</button>
+                <button type="button" data-auth-action="signup">新規登録</button>
+              </div>
+            </form>
+          </div>
+          <div id="signedInPanel" class="signed-in-panel" hidden>
+            <div>
+              <small>ログイン中</small>
+              <strong id="signedInUser">--</strong>
+            </div>
+            <button type="button" id="signOutButton">ログアウト</button>
+          </div>
+          <p id="cloudStatus" class="save-status" role="status" aria-live="polite">クラウド同期は未設定です</p>
+        </article>
         </section>
       </section>
     </main>
 
-    <script src="app.js?v=23"></script>
+    <script src="firebase-config.js?v=24"></script>
+    <script src="app.js?v=24"></script>
+    <script type="module" src="firebase-sync.js?v=24"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js?v=23");
+          navigator.serviceWorker.register("sw.js?v=24");
         });
       }
     </script>

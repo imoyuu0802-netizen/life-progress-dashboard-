@@ -5,6 +5,7 @@ const averageRetirementAge = 65;
 
 const defaultState = {
   profile: {
+    birthDate: "",
     currentAge: 29,
     targetAge: 45,
     investmentGrowthRate: 5,
@@ -36,6 +37,7 @@ let currentView = localStorage.getItem("life-progress-view") || "overview";
 let saveStatusTimer = null;
 let dailyStatusTimer = null;
 let backupStatusTimer = null;
+let profileStatusTimer = null;
 
 const yen = new Intl.NumberFormat("ja-JP", {
   style: "currency",
@@ -81,21 +83,24 @@ function loadState() {
   if (!raw) return cloneDefaultState();
 
   try {
-    const saved = JSON.parse(raw);
-    const progressEntries = migrateProgressEntries(saved.progressEntries || []);
-    return {
-      ...cloneDefaultState(),
-      ...saved,
-      profile: { ...defaultState.profile, ...(saved.profile || {}) },
-      assets: { ...defaultState.assets, ...(saved.assets || {}) },
-      assetHistory: ensureBaselineAssetHistory(saved.assetHistory || []),
-      sideHustles: saved.sideHustles || cloneDefaultState().sideHustles,
-      totalXp: Number(saved.totalXp) || inferTotalXp(progressEntries),
-      progressEntries
-    };
+    return normalizeState(JSON.parse(raw));
   } catch {
     return cloneDefaultState();
   }
+}
+
+function normalizeState(saved = {}) {
+  const progressEntries = migrateProgressEntries(saved.progressEntries || []);
+  return {
+    ...cloneDefaultState(),
+    ...saved,
+    profile: { ...defaultState.profile, ...(saved.profile || {}) },
+    assets: { ...defaultState.assets, ...(saved.assets || {}) },
+    assetHistory: ensureBaselineAssetHistory(saved.assetHistory || []),
+    sideHustles: saved.sideHustles || cloneDefaultState().sideHustles,
+    totalXp: Number(saved.totalXp) || inferTotalXp(progressEntries),
+    progressEntries
+  };
 }
 
 function cloneDefaultState() {
@@ -104,6 +109,19 @@ function cloneDefaultState() {
 
 function saveState() {
   localStorage.setItem(storageKey, JSON.stringify(state));
+  window.dispatchEvent(new CustomEvent("fire-dashboard-state-saved", {
+    detail: { state: cloneState(state) }
+  }));
+}
+
+function cloneState(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
+function applyCloudState(cloudState) {
+  state = normalizeState(cloudState);
+  localStorage.setItem(storageKey, JSON.stringify(state));
+  render();
 }
 
 function migrateProgressEntries(entries) {
@@ -178,11 +196,38 @@ function nextOnePercentAmount() {
   return Math.max(0, Math.ceil(amount));
 }
 
+function birthDateValue() {
+  if (!state.profile.birthDate) return null;
+  const date = new Date(`${state.profile.birthDate}T12:00:00`);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function currentAgeDecimal(referenceDate = new Date()) {
+  const birthDate = birthDateValue();
+  if (!birthDate) return Number(state.profile.currentAge) || 29;
+  const sourceDate = new Date(referenceDate);
+  const reference = new Date(sourceDate.getFullYear(), sourceDate.getMonth(), sourceDate.getDate(), 12);
+  const birthMonth = birthDate.getMonth();
+  const birthDay = birthDate.getDate();
+  let years = reference.getFullYear() - birthDate.getFullYear();
+  let lastBirthday = new Date(reference.getFullYear(), birthMonth, birthDay, 12);
+
+  if (reference < lastBirthday) {
+    years -= 1;
+    lastBirthday = new Date(reference.getFullYear() - 1, birthMonth, birthDay, 12);
+  }
+
+  const nextBirthday = new Date(lastBirthday.getFullYear() + 1, birthMonth, birthDay, 12);
+  const fraction = (reference.getTime() - lastBirthday.getTime()) / (nextBirthday.getTime() - lastBirthday.getTime());
+  return Math.max(0, years + fraction);
+}
+
+function currentAgeYears() {
+  return Math.floor(currentAgeDecimal());
+}
+
 function arrivalAge() {
-  const remaining = remainingToFire();
-  const annualGrowth = annualFirePower();
-  const yearsLeft = Math.ceil(remaining / annualGrowth);
-  return state.profile.currentAge + yearsLeft;
+  return roundOne(currentAgeDecimal() + yearsToFireDecimal());
 }
 
 function daysToFire() {
@@ -194,7 +239,7 @@ function yearsToFireDecimal() {
 }
 
 function yearsToTargetAge() {
-  return Math.max(0, state.profile.targetAge - state.profile.currentAge);
+  return Math.max(0, state.profile.targetAge - currentAgeDecimal());
 }
 
 function monthlyProgressEntries() {
@@ -264,8 +309,8 @@ function baseAnnualFirePower() {
 }
 
 function fireAgeWithAnnualPower(annualPower) {
-  const yearsLeft = Math.ceil(remainingToFire() / Math.max(1, annualPower));
-  return state.profile.currentAge + yearsLeft;
+  const yearsLeft = remainingToFire() / Math.max(1, annualPower);
+  return roundOne(currentAgeDecimal() + yearsLeft);
 }
 
 function daysShortenedByAmount(amount) {
@@ -291,7 +336,21 @@ function peerRatio() {
 }
 
 function retirementLeadYears() {
-  return Math.max(0, averageRetirementAge - arrivalAge());
+  return roundOne(averageRetirementAge - arrivalAge());
+}
+
+function roundOne(value) {
+  return Math.round(value * 10) / 10;
+}
+
+function formatAge(value) {
+  const rounded = roundOne(Number(value) || 0);
+  return Number.isInteger(rounded) ? `${rounded}歳` : `${rounded.toFixed(1)}歳`;
+}
+
+function formatYears(value) {
+  const rounded = roundOne(Number(value) || 0);
+  return Number.isInteger(rounded) ? `${rounded}年` : `${rounded.toFixed(1)}年`;
 }
 
 function investmentGrowthAmount() {
@@ -349,10 +408,11 @@ function clamp(value) {
 function renderFireProjection() {
   const fireDays = daysToFire();
   setText("fireDistanceHero", `あと${numberFormatter.format(fireDays)}日（約${yearsToFireDecimal().toFixed(1)}年）`);
-  setText("arrivalAge", `${arrivalAge()}歳`);
+  setText("arrivalAge", formatAge(arrivalAge()));
   setText("monthlyShortening", `${monthlyShorteningDays()}日`);
   setText("investmentGrowthAmount", yen.format(investmentGrowthAmount()));
-  setText("retirementLead", `${retirementLeadYears()}年`);
+  setText("retirementLead", formatYears(retirementLeadYears()));
+  setText("currentAgeDisplay", formatAge(currentAgeYears()));
 }
 
 function render() {
@@ -365,7 +425,7 @@ function render() {
   setText("totalAssets", yen.format(total));
   setText("annualDividendResult", yen.format(state.assets.dividends));
   setText("monthlySideProfitResult", yen.format(monthlySideProfit()));
-  setText("peerLead", `29歳平均より ${formatDiff(peerLeadAmount())}`);
+  setText("peerLead", `同年代参考値より ${formatDiff(peerLeadAmount())}`);
   setText("peerRatio", `${peerRatio().toFixed(1)}倍`);
   setText("fireShortenMessage", "今日が一番若い日");
   setText("levelLabel", `Lv.${xp.level}`);
@@ -517,7 +577,7 @@ function comparisonRows(data) {
     { label: "資産", current: yen.format(totalAssets()), diff: formatDiff(data.assetDiff), value: data.assetDiff, empty: data.empty },
     { label: "年間配当", current: yen.format(state.assets.dividends), diff: formatDiff(data.dividendDiff), value: data.dividendDiff, empty: data.empty },
     { label: "副業利益", current: yen.format(monthlySideProfit()), diff: formatDiff(data.sideProfitDiff), value: data.sideProfitDiff, empty: data.empty },
-    { label: "FIRE年齢", current: `${arrivalAge()}歳`, diff: data.fireAgeDiffText, value: data.fireAgeDiffValue, empty: data.empty }
+    { label: "FIRE年齢", current: formatAge(arrivalAge()), diff: data.fireAgeDiffText, value: data.fireAgeDiffValue, empty: data.empty }
   ];
 }
 
@@ -550,7 +610,7 @@ function monthlyComparison() {
   const currentProfit = monthlySideProfit();
   const previousProfit = state.sideHustles.reduce((sum, item) => sum + item.previousProfit, 0);
   const previousSnapshot = findSnapshot(previousMonthKey(currentMonthKey()));
-  const previousFireAge = previousSnapshot?.fireAge || (arrivalAge() + Math.max(0, Math.round(monthlyShorteningDays() / 365)));
+  const previousFireAge = previousSnapshot?.fireAge || roundOne(arrivalAge() + Math.max(0, monthlyShorteningDays() / 365));
   const fireAgeDiff = arrivalAge() - previousFireAge;
 
   return {
@@ -612,8 +672,8 @@ function yearAgoMonthKey() {
 
 function formatFireAgeDiff(diff) {
   if (!diff) return "変化なし";
-  if (diff < 0) return `${Math.abs(diff)}年短縮`;
-  return `${diff}年後退`;
+  if (diff < 0) return `${formatYears(Math.abs(diff))}短縮`;
+  return `${formatYears(diff)}後退`;
 }
 
 function heroJournal() {
@@ -729,8 +789,8 @@ function renderAssetTrend() {
 }
 
 function formatMonthLabel(monthKey) {
-  const [, month] = monthKey.split("-");
-  return `${Number(month)}月`;
+  const [year, month] = monthKey.split("-");
+  return `${year}/${String(Number(month)).padStart(2, "0")}`;
 }
 
 function renderHistory() {
@@ -778,6 +838,10 @@ function formatEntryDate(dateText) {
 
 function hydrateSettings() {
   const form = document.getElementById("settingsForm");
+  const profileForm = document.getElementById("profileForm");
+  profileForm.elements.birthDate.value = state.profile.birthDate || "";
+  profileForm.elements.targetAge.value = String(Number(state.profile.targetAge) || 45);
+  profileForm.elements.birthDate.max = todayKey();
   form.elements.investments.value = formatInputNumber(state.assets.investments);
   form.elements.cash.value = formatInputNumber(state.assets.cash);
   form.elements.dividends.value = formatInputNumber(state.assets.dividends);
@@ -867,6 +931,15 @@ function showBackupStatus(message) {
   }, 2600);
 }
 
+function showProfileStatus(message) {
+  const status = document.getElementById("profileStatus");
+  status.textContent = message;
+  window.clearTimeout(profileStatusTimer);
+  profileStatusTimer = window.setTimeout(() => {
+    status.textContent = "";
+  }, 2400);
+}
+
 function exportBackup() {
   const backup = {
     app: "life-progress-dashboard",
@@ -890,16 +963,7 @@ function importBackupFile(file) {
       const parsed = JSON.parse(reader.result);
       const importedState = parsed.state || parsed;
       const progressEntries = migrateProgressEntries(importedState.progressEntries || []);
-      state = {
-        ...cloneDefaultState(),
-        ...importedState,
-        profile: { ...defaultState.profile, ...(importedState.profile || {}) },
-        assets: { ...defaultState.assets, ...(importedState.assets || {}) },
-        assetHistory: ensureBaselineAssetHistory(importedState.assetHistory || []),
-        sideHustles: importedState.sideHustles || cloneDefaultState().sideHustles,
-        totalXp: Number(importedState.totalXp) || inferTotalXp(progressEntries),
-        progressEntries
-      };
+      state = normalizeState({ ...importedState, progressEntries });
       saveState();
       render();
       switchView("settings");
@@ -970,6 +1034,17 @@ document.getElementById("backupFile").addEventListener("change", (event) => {
   if (!file) return;
   importBackupFile(file);
   event.target.value = "";
+});
+
+document.getElementById("profileForm").addEventListener("submit", (event) => {
+  event.preventDefault();
+  const form = event.currentTarget;
+  state.profile.birthDate = form.elements.birthDate.value;
+  state.profile.targetAge = Math.max(1, Number(form.elements.targetAge.value) || 45);
+  state.profile.currentAge = currentAgeYears();
+  saveState();
+  render();
+  showProfileStatus("生年月日を保存し、年齢を再計算しました");
 });
 
 function addProgress(text) {
@@ -1062,5 +1137,11 @@ document.getElementById("settingsForm").addEventListener("submit", (event) => {
   render();
   showSaveStatus();
 });
+
+window.fireDashboard = {
+  getState: () => cloneState(state),
+  applyCloudState,
+  storageKey
+};
 
 render();
