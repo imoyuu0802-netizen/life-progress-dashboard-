@@ -1109,6 +1109,22 @@ button:disabled {
   gap: 12px;
 }
 
+.profile-panel,
+.cloud-panel {
+  width: min(100%, 640px);
+  min-width: 0;
+  justify-self: center;
+}
+
+.profile-grid,
+.profile-grid label,
+.profile-grid input,
+.profile-grid select,
+.profile-grid button {
+  min-width: 0;
+  max-width: 100%;
+}
+
 .profile-grid label,
 .email-auth-form label {
   display: grid;
