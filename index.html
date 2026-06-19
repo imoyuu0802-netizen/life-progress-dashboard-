@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Life Progress" />
     <title>Life Progress Dashboard</title>
     <link rel="manifest" href="manifest.webmanifest?v=5" />
-    <link rel="stylesheet" href="styles.css?v=24" />
+    <link rel="stylesheet" href="styles.css?v=25" />
   </head>
   <body>
     <main class="app-shell">
@@ -21,7 +21,7 @@
 
       <nav class="view-nav" aria-label="画面切り替え">
         <button class="view-tab is-active" type="button" data-view-target="overview">現在地</button>
-        <button class="view-tab" type="button" data-view-target="score">スコア・XP</button>
+        <button class="view-tab" type="button" data-view-target="score">成長</button>
         <button class="view-tab" type="button" data-view-target="input">前進</button>
         <button class="view-tab" type="button" data-view-target="settings">設定</button>
       </nav>
@@ -156,10 +156,10 @@
             </div>
             <div id="todayQuestList" class="today-quest-list"></div>
             <div class="quick-actions" aria-label="よく使う前進">
-              <button type="button" data-quick-progress="ゲーム出品1件">ゲーム出品<small>+10XP</small></button>
-              <button type="button" data-quick-progress="せどり出品1件">せどり<small>+10XP</small></button>
-              <button type="button" data-quick-progress="Totebell投稿1件">Totebell<small>+20XP</small></button>
-              <button type="button" data-quick-progress="AI学習30分">AI学習<small>+15XP</small></button>
+              <button type="button" data-quick-progress="ゲーム出品1件">ゲーム出品<small>+10EXP</small></button>
+              <button type="button" data-quick-progress="せどり出品1件">せどり<small>+10EXP</small></button>
+              <button type="button" data-quick-progress="Totebell投稿1件">Totebell<small>+20EXP</small></button>
+              <button type="button" data-quick-progress="AI学習30分">AI学習<small>+15EXP</small></button>
             </div>
             <p id="dailyStatus" class="daily-status" role="status" aria-live="polite"></p>
             <form id="progressForm" class="entry-form">
@@ -187,13 +187,13 @@
             <div class="section-head">
               <div>
                 <p class="eyebrow">Growth Status</p>
-                <h2>XPステータス</h2>
+                <h2>EXPステータス</h2>
               </div>
             </div>
             <div class="daily-status-board">
               <div>
-                <small>今日のXP</small>
-                <strong id="inputTodayXp">0XP</strong>
+                <small>今日のEXP</small>
+                <strong id="inputTodayXp">0EXP</strong>
               </div>
               <div>
                 <small>連続記録</small>
@@ -205,7 +205,7 @@
               <div class="xp-track" aria-label="次のレベルまで">
                 <div id="levelProgress" class="xp-fill"></div>
               </div>
-              <small id="nextLevelXp">--XP</small>
+              <small id="nextLevelXp">--EXP</small>
             </div>
           </article>
 
@@ -223,7 +223,7 @@
       </section>
 
       <section id="view-settings" class="view">
-        <section class="content-grid">
+        <section class="content-grid settings-stack">
         <article class="panel profile-panel">
           <div class="section-head">
             <div>
@@ -247,6 +247,41 @@
             <button type="submit">プロフィールを保存</button>
             <p id="profileStatus" class="save-status" role="status" aria-live="polite"></p>
           </form>
+        </article>
+
+        <article class="panel cloud-panel">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Cloud Sync</p>
+              <h2>ログイン・データ同期</h2>
+            </div>
+            <span id="cloudBadge" class="pill">未接続</span>
+          </div>
+          <div id="signedOutPanel" class="auth-panel">
+            <button type="button" id="googleSignIn" class="google-sign-in">Googleでログイン</button>
+            <form id="emailAuthForm" class="email-auth-form">
+              <label>
+                <span>メールアドレス</span>
+                <input name="email" type="email" autocomplete="email" required />
+              </label>
+              <label>
+                <span>パスワード</span>
+                <input name="password" type="password" autocomplete="current-password" minlength="6" required />
+              </label>
+              <div class="auth-actions">
+                <button type="submit" data-auth-action="login">ログイン</button>
+                <button type="button" data-auth-action="signup">新規登録</button>
+              </div>
+            </form>
+          </div>
+          <div id="signedInPanel" class="signed-in-panel" hidden>
+            <div>
+              <small>ログイン中</small>
+              <strong id="signedInUser">--</strong>
+            </div>
+            <button type="button" id="signOutButton">ログアウト</button>
+          </div>
+          <p id="cloudStatus" class="save-status" role="status" aria-live="polite">クラウド同期は未設定です</p>
         </article>
 
         <article class="panel settings-panel">
@@ -323,51 +358,17 @@
           </div>
         </article>
 
-        <article class="panel cloud-panel">
-          <div class="section-head">
-            <div>
-              <p class="eyebrow">Cloud Sync</p>
-              <h2>ログイン・データ同期</h2>
-            </div>
-            <span id="cloudBadge" class="pill">未接続</span>
-          </div>
-          <div id="signedOutPanel" class="auth-panel">
-            <button type="button" id="googleSignIn" class="google-sign-in">Googleでログイン</button>
-            <form id="emailAuthForm" class="email-auth-form">
-              <label>
-                <span>メールアドレス</span>
-                <input name="email" type="email" autocomplete="email" required />
-              </label>
-              <label>
-                <span>パスワード</span>
-                <input name="password" type="password" autocomplete="current-password" minlength="6" required />
-              </label>
-              <div class="auth-actions">
-                <button type="submit" data-auth-action="login">ログイン</button>
-                <button type="button" data-auth-action="signup">新規登録</button>
-              </div>
-            </form>
-          </div>
-          <div id="signedInPanel" class="signed-in-panel" hidden>
-            <div>
-              <small>ログイン中</small>
-              <strong id="signedInUser">--</strong>
-            </div>
-            <button type="button" id="signOutButton">ログアウト</button>
-          </div>
-          <p id="cloudStatus" class="save-status" role="status" aria-live="polite">クラウド同期は未設定です</p>
-        </article>
         </section>
       </section>
     </main>
 
-    <script src="firebase-config.js?v=24"></script>
-    <script src="app.js?v=24"></script>
-    <script type="module" src="firebase-sync.js?v=24"></script>
+    <script src="firebase-config.js?v=25"></script>
+    <script src="app.js?v=25"></script>
+    <script type="module" src="firebase-sync.js?v=25"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js?v=24");
+          navigator.serviceWorker.register("sw.js?v=25");
         });
       }
     </script>

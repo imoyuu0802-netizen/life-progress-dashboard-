@@ -390,7 +390,7 @@ function calcScores() {
       label: "創造",
       value: clamp(Math.round(todayCount * 18 + creativeXp / 12 + monthlyProfit / 3500)),
       note: "Totebell・AI・制作",
-      detail: `今日の前進 ${todayCount}件 / 創造XP ${numberFormatter.format(Math.round(creativeXp))} / 副業利益 ${yen.format(monthlyProfit)}`
+      detail: `今日の前進 ${todayCount}件 / 創造EXP ${numberFormatter.format(Math.round(creativeXp))} / 副業利益 ${yen.format(monthlyProfit)}`
     },
     {
       label: "持続可能性",
@@ -429,9 +429,9 @@ function render() {
   setText("peerRatio", `${peerRatio().toFixed(1)}倍`);
   setText("fireShortenMessage", "今日が一番若い日");
   setText("levelLabel", `Lv.${xp.level}`);
-  setText("nextLevelXp", `${xp.nextLevelXp}XP`);
+  setText("nextLevelXp", `${xp.nextLevelXp}EXP`);
   setText("inputStreakCount", `${streak}日`);
-  setText("inputTodayXp", `${todayXp()}XP`);
+  setText("inputTodayXp", `${todayXp()}EXP`);
   setText("targetAge", `${state.profile.targetAge}歳`);
   setText("monthlyAssetDiff", formatDiff(state.lastMonthlyChange?.diff));
   setText("monthlyAssetRate", formatPercent(monthlyAssetRateChange()));
@@ -446,7 +446,7 @@ function render() {
 
   const entriesToday = todayEntries();
   setText("todayLimit", `${entriesToday.length} / ${dailyEntryLimit}`);
-  setText("todayHighlight", entriesToday[0] ? `${entriesToday[0].text} +${progressXp(entriesToday[0])}XP` : "今日の前進をひとつ積む");
+  setText("todayHighlight", entriesToday[0] ? `${entriesToday[0].text} +${progressXp(entriesToday[0])}EXP` : "今日の前進をひとつ積む");
   document.getElementById("progressInput").disabled = entriesToday.length >= dailyEntryLimit;
   document.querySelector("#progressForm button").disabled = entriesToday.length >= dailyEntryLimit;
 
@@ -494,7 +494,7 @@ function renderTodayQuests() {
     list.innerHTML = `
       <div class="today-empty">
         <strong>まだ今日の前進はありません</strong>
-        <span>1タップでXPを積む</span>
+        <span>1タップでEXPを積む</span>
       </div>
     `;
     return;
@@ -508,7 +508,7 @@ function renderTodayQuests() {
           <strong>${escapeHtml(entry.text)}</strong>
           <small>${formatEntryDate(entry.date)} 自動記録</small>
         </div>
-        <b>+${progressXp(entry)}XP</b>
+        <b>+${progressXp(entry)}EXP</b>
         <button class="delete-progress" type="button" data-delete-progress="${escapeHtml(entry.id)}" aria-label="${escapeHtml(entry.text)}を削除">削除</button>
       </div>
     `)
@@ -686,7 +686,7 @@ function heroJournal() {
 
   return {
     title: `${monthLabel}の冒険記録`,
-    body: `資産 ${formatDiff(assetDiff)}、配当 ${formatDiff(dividendDiff)}、前進 ${progressCount}件 / ${xp}XP。FIREまで${formatShortening(shortened)}短縮。着実に過去の自分を上回る1か月です。`
+    body: `資産 ${formatDiff(assetDiff)}、配当 ${formatDiff(dividendDiff)}、前進 ${progressCount}件 / ${xp}EXP。FIREまで${formatShortening(shortened)}短縮。着実に過去の自分を上回る1か月です。`
   };
 }
 
@@ -808,7 +808,7 @@ function renderHistory() {
           <strong>${escapeHtml(entry.text)}</strong>
           <span class="history-date">${formatEntryDate(entry.date)}</span>
         </div>
-        <strong class="xp-badge">+${progressXp(entry)}XP</strong>
+        <strong class="xp-badge">+${progressXp(entry)}EXP</strong>
         <button class="delete-progress" type="button" data-delete-progress="${escapeHtml(entry.id)}" aria-label="${escapeHtml(entry.text)}を削除">削除</button>
       </div>
     `)
@@ -1060,7 +1060,7 @@ function addProgress(text) {
   state.totalXp = (Number(state.totalXp) || inferTotalXp(state.progressEntries.slice(1))) + xp;
   saveState();
   render();
-  showDailyStatus(`+${xp}XP 記録しました`);
+  showDailyStatus(`+${xp}EXP 記録しました`);
   return true;
 }
 
