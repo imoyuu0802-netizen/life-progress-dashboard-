@@ -268,10 +268,6 @@ function fireAgeWithAnnualPower(annualPower) {
   return state.profile.currentAge + yearsLeft;
 }
 
-function targetShortenYears() {
-  return Math.max(0, arrivalAge() - state.profile.targetAge);
-}
-
 function daysShortenedByAmount(amount) {
   return Math.max(0, Math.round((amount / annualFirePower()) * 365));
 }
@@ -350,35 +346,35 @@ function clamp(value) {
   return Math.max(0, Math.min(100, value));
 }
 
+function renderFireProjection() {
+  const fireDays = daysToFire();
+  setText("fireDistanceHero", `あと${numberFormatter.format(fireDays)}日（約${yearsToFireDecimal().toFixed(1)}年）`);
+  setText("arrivalAge", `${arrivalAge()}歳`);
+  setText("monthlyShortening", `${monthlyShorteningDays()}日`);
+  setText("investmentGrowthAmount", yen.format(investmentGrowthAmount()));
+  setText("retirementLead", `${retirementLeadYears()}年`);
+}
+
 function render() {
   const total = totalAssets();
   const rate = fireRate();
   const xp = levelInfo();
   const streak = streakDays();
-  const shorteningYears = targetShortenYears();
-  const fireDays = daysToFire();
 
   setText("fireRate", `${rate}%`);
-  setText("fireDistanceHero", `あと${numberFormatter.format(fireDays)}日（約${yearsToFireDecimal().toFixed(1)}年）`);
   setText("totalAssets", yen.format(total));
   setText("annualDividendResult", yen.format(state.assets.dividends));
   setText("monthlySideProfitResult", yen.format(monthlySideProfit()));
   setText("peerLead", `29歳平均より ${formatDiff(peerLeadAmount())}`);
   setText("peerRatio", `${peerRatio().toFixed(1)}倍`);
-  setText("retirementLead", `${retirementLeadYears()}年`);
-  setText("arrivalAge", `${arrivalAge()}歳`);
   setText("fireShortenMessage", "今日が一番若い日");
   setText("levelLabel", `Lv.${xp.level}`);
   setText("nextLevelXp", `${xp.nextLevelXp}XP`);
-  setText("streakCount", `${streak}日`);
   setText("inputStreakCount", `${streak}日`);
-  setText("todayXp", `${todayXp()}XP`);
   setText("inputTodayXp", `${todayXp()}XP`);
   setText("targetAge", `${state.profile.targetAge}歳`);
-  setText("monthlyShortening", `${monthlyShorteningDays()}日`);
   setText("monthlyAssetDiff", formatDiff(state.lastMonthlyChange?.diff));
   setText("monthlyAssetRate", formatPercent(monthlyAssetRateChange()));
-  setText("investmentGrowthAmount", yen.format(investmentGrowthAmount()));
   setText("settingsMonthlyDiff", formatDiff(state.lastMonthlyChange?.diff));
   setText("monthlyAutoLabel", `${formatCurrentMonthLabel()}として自動記録`);
   setSignedClass("monthlyAssetDiff", state.lastMonthlyChange?.diff);
@@ -386,10 +382,10 @@ function render() {
   setText("fireProgressLabel", `${rate}%`);
   document.getElementById("fireProgress").style.width = `${rate}%`;
   document.getElementById("levelProgress").style.width = `${xp.currentLevelXp}%`;
+  renderFireProjection();
 
   const entriesToday = todayEntries();
   setText("todayLimit", `${entriesToday.length} / ${dailyEntryLimit}`);
-  setText("todayQuestCount", `${entriesToday.length} / ${dailyEntryLimit}`);
   setText("todayHighlight", entriesToday[0] ? `${entriesToday[0].text} +${progressXp(entriesToday[0])}XP` : "今日の前進をひとつ積む");
   document.getElementById("progressInput").disabled = entriesToday.length >= dailyEntryLimit;
   document.querySelector("#progressForm button").disabled = entriesToday.length >= dailyEntryLimit;
@@ -844,9 +840,9 @@ function formatUpdatedAt(value) {
   }).format(date);
 }
 
-function showSaveStatus() {
+function showSaveStatus(message = "保存しました") {
   const status = document.getElementById("saveStatus");
-  status.textContent = "保存しました";
+  status.textContent = message;
   window.clearTimeout(saveStatusTimer);
   saveStatusTimer = window.setTimeout(() => {
     status.textContent = "";
@@ -954,6 +950,13 @@ document.addEventListener("click", (event) => {
 document.getElementById("settingsForm").addEventListener("input", (event) => {
   if (!event.target.matches("[data-number-input]")) return;
   event.target.value = formatNumericInputValue(event.target.value);
+});
+
+document.getElementById("settingsForm").elements.investmentGrowthRate.addEventListener("change", (event) => {
+  state.profile.investmentGrowthRate = Number(event.target.value) || 0;
+  saveState();
+  renderFireProjection();
+  showSaveStatus(`利回り${state.profile.investmentGrowthRate}%で再計算しました`);
 });
 
 document.getElementById("exportBackup").addEventListener("click", exportBackup);

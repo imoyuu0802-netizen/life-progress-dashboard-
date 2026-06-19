@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Life Progress" />
     <title>Life Progress Dashboard</title>
     <link rel="manifest" href="manifest.webmanifest?v=5" />
-    <link rel="stylesheet" href="styles.css?v=21" />
+    <link rel="stylesheet" href="styles.css?v=22" />
   </head>
   <body>
     <main class="app-shell">
@@ -116,49 +116,6 @@
 
         </section>
 
-        <section class="content-grid">
-          <article class="panel today-panel">
-            <div class="panel-title">
-              <span>今日の前進</span>
-              <strong id="todayQuestCount">0 / 5</strong>
-            </div>
-            <div id="todayQuestList" class="today-quest-list"></div>
-            <div class="level-row">
-              <span id="levelLabel">Lv.1</span>
-              <div class="xp-track" aria-label="次のレベルまで">
-                <div id="levelProgress" class="xp-fill"></div>
-              </div>
-              <small id="nextLevelXp">--XP</small>
-            </div>
-            <div class="quick-actions top-actions" aria-label="よく使う前進">
-              <button type="button" data-quick-progress="ゲーム出品1件">ゲーム出品<small>+10XP</small></button>
-              <button type="button" data-quick-progress="せどり出品1件">せどり<small>+10XP</small></button>
-              <button type="button" data-quick-progress="Totebell投稿1件">Totebell<small>+20XP</small></button>
-              <button type="button" data-quick-progress="AI学習30分">AI学習<small>+15XP</small></button>
-            </div>
-            <div class="stat-row">
-              <div>
-                <small>今日のXP</small>
-                <strong id="todayXp">0XP</strong>
-              </div>
-              <div>
-                <small>連続記録</small>
-                <strong id="streakCount">0日</strong>
-              </div>
-            </div>
-          </article>
-
-          <article class="panel">
-            <div class="section-head">
-              <div>
-                <p class="eyebrow">Side Quest</p>
-                <h2>SIDE QUEST</h2>
-              </div>
-            </div>
-            <div id="sideHustleList" class="quest-list"></div>
-          </article>
-
-        </section>
       </section>
 
       <section id="view-input" class="view">
@@ -167,7 +124,7 @@
             <div class="section-head">
               <div>
                 <p class="eyebrow">Daily Move</p>
-              <h2>今日の前進</h2>
+                <h2>今日の前進</h2>
               </div>
               <span id="todayLimit" class="pill">0 / 5</span>
             </div>
@@ -181,6 +138,14 @@
                 <strong id="inputStreakCount">0日</strong>
               </div>
             </div>
+            <div id="todayQuestList" class="today-quest-list"></div>
+            <div class="level-row">
+              <span id="levelLabel">Lv.1</span>
+              <div class="xp-track" aria-label="次のレベルまで">
+                <div id="levelProgress" class="xp-fill"></div>
+              </div>
+              <small id="nextLevelXp">--XP</small>
+            </div>
             <div class="quick-actions" aria-label="よく使う前進">
               <button type="button" data-quick-progress="ゲーム出品1件">ゲーム出品<small>+10XP</small></button>
               <button type="button" data-quick-progress="せどり出品1件">せどり<small>+10XP</small></button>
@@ -193,6 +158,16 @@
               <button type="submit">記録</button>
             </form>
             <div id="progressHistory" class="history-list"></div>
+          </article>
+
+          <article class="panel quest-panel">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Side Quest</p>
+                <h2>SIDE QUEST</h2>
+              </div>
+            </div>
+            <div id="sideHustleList" class="quest-list"></div>
           </article>
         </section>
       </section>
@@ -314,11 +289,11 @@
       </section>
     </main>
 
-    <script src="app.js?v=21"></script>
+    <script src="app.js?v=22"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js?v=21");
+          navigator.serviceWorker.register("sw.js?v=22");
         });
       }
     </script>
