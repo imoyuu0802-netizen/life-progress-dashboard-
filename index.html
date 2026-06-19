@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Life Progress" />
     <title>Life Progress Dashboard</title>
     <link rel="manifest" href="manifest.webmanifest?v=5" />
-    <link rel="stylesheet" href="styles.css?v=27" />
+    <link rel="stylesheet" href="styles.css?v=28" />
   </head>
   <body>
     <main class="app-shell">
@@ -188,34 +188,10 @@
           <article class="panel xp-panel">
             <div class="section-head">
               <div>
-                <p class="eyebrow">Fire Base</p>
-                <h2>FIRE拠点</h2>
+                <p class="eyebrow">Growth</p>
+                <h2>スコア・XP</h2>
               </div>
-              <span id="fireBaseStage" class="pill">Stage 1</span>
-            </div>
-            <div class="base-status-board">
-              <div id="fireBaseScene" class="base-scene" data-stage="1" aria-label="EXPで成長するFIRE拠点">
-                <div class="base-moon"></div>
-                <div class="base-horizon"></div>
-                <div class="base-tent"></div>
-                <div class="base-cabin"><span></span><span></span></div>
-                <div class="base-tower"><span></span><span></span><span></span></div>
-                <div class="base-fire"><i></i><b></b></div>
-              </div>
-              <div class="base-copy">
-                <small>現在の拠点</small>
-                <strong id="fireBaseName">火種</strong>
-                <span id="fireBaseDescription">最初の一歩が灯りになる</span>
-              </div>
-            </div>
-            <div class="base-growth-row">
-              <div>
-                <small>次の発展</small>
-                <strong id="fireBaseNext">キャンプまで400EXP</strong>
-              </div>
-              <div class="base-growth-track" aria-label="次の拠点まで">
-                <span id="fireBaseProgress"></span>
-              </div>
+              <span id="levelLabel" class="pill">Lv.1</span>
             </div>
             <div class="daily-status-board">
               <div>
@@ -228,7 +204,6 @@
               </div>
             </div>
             <div class="level-row">
-              <span id="levelLabel">Lv.1</span>
               <div class="xp-track" aria-label="次のレベルまで">
                 <div id="levelProgress" class="xp-fill"></div>
               </div>
@@ -396,14 +371,14 @@
       </section>
     </main>
 
-    <script src="firebase-config.js?v=27"></script>
-    <script src="jflec-data.js?v=27"></script>
-    <script src="app.js?v=27"></script>
-    <script type="module" src="firebase-sync.js?v=27"></script>
+    <script src="firebase-config.js?v=28"></script>
+    <script src="jflec-data.js?v=28"></script>
+    <script src="app.js?v=28"></script>
+    <script type="module" src="firebase-sync.js?v=28"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js?v=27");
+          navigator.serviceWorker.register("sw.js?v=28");
         });
       }
     </script>

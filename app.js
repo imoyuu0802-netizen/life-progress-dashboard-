@@ -283,36 +283,6 @@ function levelInfo() {
   };
 }
 
-function fireBaseInfo(xp = levelInfo()) {
-  const stages = [
-    { level: 1, name: "火種", description: "最初の一歩が灯りになる" },
-    { level: 5, name: "キャンプ", description: "継続できる居場所ができた" },
-    { level: 10, name: "工房", description: "創造が成果を生み始める" },
-    { level: 15, name: "前進拠点", description: "複数の挑戦が動いている" },
-    { level: 20, name: "FIRE基地", description: "自由へ進む仕組みが整った" }
-  ];
-  let stageIndex = 0;
-  stages.forEach((stage, index) => {
-    if (xp.level >= stage.level) stageIndex = index;
-  });
-  const current = stages[stageIndex];
-  const next = stages[stageIndex + 1] || null;
-  const currentStartXp = (current.level - 1) * 100;
-  const nextStartXp = next ? (next.level - 1) * 100 : xp.totalXp;
-  const progress = next
-    ? Math.max(0, Math.min(100, ((xp.totalXp - currentStartXp) / (nextStartXp - currentStartXp)) * 100))
-    : 100;
-
-  return {
-    stage: stageIndex + 1,
-    name: current.name,
-    description: current.description,
-    nextName: next?.name || "完成",
-    nextXp: next ? Math.max(0, nextStartXp - xp.totalXp) : 0,
-    progress
-  };
-}
-
 function streakDays() {
   const uniqueDates = [...new Set(state.progressEntries.map((entry) => entry.date))].sort().reverse();
   if (!uniqueDates.length) return 0;
@@ -488,7 +458,6 @@ function render() {
   const total = totalAssets();
   const rate = fireRate();
   const xp = levelInfo();
-  const fireBase = fireBaseInfo(xp);
   const streak = streakDays();
 
   setText("fireRate", `${rate}%`);
@@ -505,10 +474,6 @@ function render() {
   setText("nextLevelXp", `${xp.nextLevelXp}EXP`);
   setText("inputStreakCount", `${streak}日`);
   setText("inputTodayXp", `${todayXp()}EXP`);
-  setText("fireBaseStage", `Stage ${fireBase.stage}`);
-  setText("fireBaseName", fireBase.name);
-  setText("fireBaseDescription", fireBase.description);
-  setText("fireBaseNext", fireBase.nextXp ? `${fireBase.nextName}まで${numberFormatter.format(fireBase.nextXp)}EXP` : "FIRE基地 完成");
   setText("targetAge", `${state.profile.targetAge}歳`);
   setText("monthlyAssetDiff", formatDiff(state.lastMonthlyChange?.diff));
   setText("monthlyAssetRate", formatPercent(monthlyAssetRateChange()));
@@ -519,10 +484,6 @@ function render() {
   setText("fireProgressLabel", `${rate}%`);
   document.getElementById("fireProgress").style.width = `${rate}%`;
   document.getElementById("levelProgress").style.width = `${xp.currentLevelXp}%`;
-  const fireBaseScene = document.getElementById("fireBaseScene");
-  fireBaseScene.dataset.stage = String(fireBase.stage);
-  fireBaseScene.style.setProperty("--base-charge", String(fireBase.progress / 100));
-  document.getElementById("fireBaseProgress").style.width = `${fireBase.progress}%`;
   renderFireProjection();
 
   const entriesToday = todayEntries();
