@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Life Progress" />
     <title>Life Progress Dashboard</title>
     <link rel="manifest" href="manifest.webmanifest?v=5" />
-    <link rel="stylesheet" href="styles.css?v=32" />
+    <link rel="stylesheet" href="styles.css?v=33" />
   </head>
   <body>
     <main class="app-shell">
@@ -40,16 +40,16 @@
             </div>
             <div class="fire-days-row">
               <div>
-                <small>FIRE達成率</small>
-                <strong id="fireRate">0%</strong>
-              </div>
-              <div>
                 <small>現在予想</small>
                 <strong id="arrivalAge">--歳</strong>
               </div>
               <div>
-                <small>目標</small>
-                <strong id="targetAge">45歳</strong>
+                <small>先月より</small>
+                <strong id="monthlyFireDelta">--</strong>
+              </div>
+              <div>
+                <small>今年の短縮</small>
+                <strong id="yearlyShortening">0日</strong>
               </div>
               <div class="shortening-cell">
                 <small>今月の短縮</small>
@@ -78,6 +78,22 @@
               <div>
                 <small>副業利益/月</small>
                 <strong id="monthlySideProfitResult">¥0</strong>
+              </div>
+              <div>
+                <small>節約/月</small>
+                <strong id="monthlySavingResult">¥0</strong>
+              </div>
+              <div>
+                <small>前年差資産</small>
+                <strong id="yearlyAssetDiffResult">--</strong>
+              </div>
+              <div>
+                <small>同年代平均との差</small>
+                <strong id="peerAverageDiff">--</strong>
+              </div>
+              <div>
+                <small>同年代比</small>
+                <strong id="peerRatio">--倍</strong>
               </div>
               <div>
                 <small>同年代の資産順位</small>
@@ -119,6 +135,17 @@
         </section>
 
         <section class="content-grid">
+          <article class="panel victory-panel">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Monthly Wins</p>
+                <h2>今月の勝利条件</h2>
+              </div>
+              <span id="victoryRate" class="pill">0%</span>
+            </div>
+            <div id="victoryList" class="victory-list"></div>
+          </article>
+
           <article class="panel quest-panel">
             <div class="section-head">
               <div>
@@ -208,16 +235,6 @@
             </div>
             <div id="todayQuestList" class="today-quest-list"></div>
             <div id="progressHistory" class="history-list"></div>
-          </article>
-
-          <article class="panel score-panel">
-            <div class="section-head">
-              <div>
-                <p class="eyebrow">Life Score</p>
-                <h2>人生スコア</h2>
-              </div>
-            </div>
-            <div id="scoreList" class="score-list"></div>
           </article>
 
         </section>
@@ -394,14 +411,14 @@
 
     <button id="backToTop" class="back-to-top" type="button" aria-label="ページ上部へ戻る" title="ページ上部へ戻る">↑</button>
 
-    <script src="firebase-config.js?v=32"></script>
-    <script src="jflec-data.js?v=32"></script>
-    <script src="app.js?v=32"></script>
-    <script type="module" src="firebase-sync.js?v=32"></script>
+    <script src="firebase-config.js?v=33"></script>
+    <script src="jflec-data.js?v=33"></script>
+    <script src="app.js?v=33"></script>
+    <script type="module" src="firebase-sync.js?v=33"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js?v=32");
+          navigator.serviceWorker.register("sw.js?v=33");
         });
       }
     </script>

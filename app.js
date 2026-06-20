@@ -473,6 +473,22 @@ function formatPeerPercentile(ranking) {
   return ranking.isUpperBound ? `上位${percent}以内` : `推定 上位${percent}`;
 }
 
+function peerAverageAssetAmount(ranking) {
+  const dataset = window.JFLEC_ASSET_DATA;
+  if (!dataset || !ranking) return null;
+  const distribution = dataset.distributions[ranking.householdType]?.[ranking.ageBand];
+  if (!distribution) return null;
+  const knownTotal = 100 - distribution.unknown;
+  if (knownTotal <= 0) return null;
+
+  const weighted = dataset.buckets.reduce((sum, bucket, index) => {
+    const midpoint = bucket.max === null ? bucket.min * 1.35 : (bucket.min + bucket.max) / 2;
+    return sum + midpoint * distribution.shares[index];
+  }, 0);
+
+  return Math.round((weighted / knownTotal) * 10000);
+}
+
 function retirementLeadYears() {
   return roundOne(averageRetirementAge - arrivalAge());
 }
@@ -516,41 +532,6 @@ function formatPercent(value) {
   return `${sign}${value.toFixed(1)}%`;
 }
 
-function calcScores() {
-  const rate = fireRate();
-  const monthlyProfit = monthlySideProfit();
-  const todayCount = todayEntries().length;
-  const creativeXp = state.progressEntries
-    .filter((entry) => /Totebell|AI学習/.test(entry.text))
-    .reduce((sum, entry) => sum + progressXp(entry), 0);
-  const streak = streakDays();
-
-  return [
-    {
-      label: "自由",
-      value: clamp(Math.round(rate * 0.7 + monthlyProfit / 2500 + state.assets.dividends / 7000)),
-      note: "資産・副業・配当",
-      detail: `FIRE達成率 ${rate}% / 副業利益 ${yen.format(monthlyProfit)} / 年間配当 ${yen.format(state.assets.dividends)}`
-    },
-    {
-      label: "創造",
-      value: clamp(Math.round(todayCount * 18 + creativeXp / 12 + monthlyProfit / 3500)),
-      note: "Totebell・AI・制作",
-      detail: `今日の前進 ${todayCount}件 / 創造EXP ${numberFormatter.format(Math.round(creativeXp))} / 副業利益 ${yen.format(monthlyProfit)}`
-    },
-    {
-      label: "持続可能性",
-      value: clamp(Math.round(42 + streak * 8 + todayCount * 8)),
-      note: "継続・余白・生活",
-      detail: `基礎点 42 / 連続記録 ${streak}日 / 今日の前進 ${todayCount}件`
-    }
-  ];
-}
-
-function clamp(value) {
-  return Math.max(0, Math.min(100, value));
-}
-
 function renderFireProjection() {
   const fireDays = daysToFire();
   setText("fireDistanceHero", `あと${numberFormatter.format(fireDays)}日（約${yearsToFireDecimal().toFixed(1)}年）`);
@@ -566,15 +547,22 @@ function render() {
   const rate = fireRate();
   const xp = levelInfo();
   const streak = streakDays();
+  const monthlySavings = outcomeTotals(outcomeEntriesFor("month")).saving;
+  const yearly = yearlyComparison();
 
   setText("fireRate", `${rate}%`);
   setText("totalAssets", yen.format(total));
   setText("annualDividendResult", yen.format(state.assets.dividends));
   setText("monthlySideProfitResult", yen.format(monthlySideProfit()));
+  setText("monthlySavingResult", yen.format(monthlySavings));
+  setText("yearlyAssetDiffResult", formatDiff(yearly.assetDiff));
   const peerRanking = peerAssetRanking();
+  const peerAverage = peerAverageAssetAmount(peerRanking);
   const householdLabel = peerRanking?.householdType === "single" ? "単身世帯" : "二人以上世帯";
   setText("peerBenchmarkSummary", peerRanking ? `${peerRanking.ageBand}歳代・${householdLabel}と比較` : "同年代の金融資産分布と比較");
   setText("peerPercentile", formatPeerPercentile(peerRanking));
+  setText("peerAverageDiff", peerAverage ? formatDiff(total - peerAverage) : "--");
+  setText("peerRatio", peerAverage ? `${roundOne(total / Math.max(1, peerAverage))}倍` : "--倍");
   setText("peerBenchmarkNote", peerRanking ? `回答${numberFormatter.format(peerRanking.sample)}世帯 / 総資産を金融資産として階級内を均等推定` : "金融資産ベース・未回答を除く推定値");
   const todayCount = todayEntries().length;
   const todayExperience = todayXp();
@@ -596,8 +584,12 @@ function render() {
   setText("monthlyAssetRate", formatPercent(monthlyAssetRateChange()));
   setText("settingsMonthlyDiff", formatDiff(state.lastMonthlyChange?.diff));
   setText("monthlyAutoLabel", `${formatCurrentMonthLabel()}として自動記録`);
+  setText("monthlyFireDelta", formatFireDaysDiff(monthlyComparison().fireAgeDiffValue));
+  setText("yearlyShortening", formatShortening(yearlyShorteningDays()));
   setSignedClass("monthlyAssetDiff", state.lastMonthlyChange?.diff);
   setSignedClass("monthlyAssetRate", monthlyAssetRateChange());
+  setSignedClass("yearlyAssetDiffResult", yearly.assetDiff);
+  setSignedClass("peerAverageDiff", peerAverage ? total - peerAverage : null);
   setText("fireProgressLabel", `${rate}%`);
   document.getElementById("fireProgress").style.width = `${rate}%`;
   document.getElementById("levelProgress").style.width = `${xp.currentLevelXp}%`;
@@ -618,8 +610,8 @@ function render() {
   renderAssetTrend();
   renderTodayQuests();
   renderJourney();
+  renderVictoryConditions();
   renderHistory();
-  renderScores();
   hydrateSettings();
   switchView(currentView);
 }
@@ -853,6 +845,55 @@ function yearlyComparison() {
   };
 }
 
+function yearlyShorteningDays() {
+  const comparison = yearlyComparison();
+  if (typeof comparison.fireAgeDiffValue === "number" && comparison.fireAgeDiffValue > 0) {
+    return Math.round(comparison.fireAgeDiffValue * 365);
+  }
+  return daysShortenedByAmount(Math.max(0, comparison.assetDiff));
+}
+
+function monthlyAiStudyMinutes() {
+  return monthlyProgressEntries().reduce((sum, entry) => {
+    if (!entry.text.includes("AI学習")) return sum;
+    const match = entry.text.match(/(\d+)\s*分/);
+    return sum + (match ? Number(match[1]) : 30);
+  }, 0);
+}
+
+function monthlyVictoryConditions() {
+  const assetDiff = state.lastMonthlyChange?.diff || diffFromSnapshot(findSnapshot(previousMonthKey(currentMonthKey())), "total", totalAssets());
+  const savings = outcomeTotals(outcomeEntriesFor("month")).saving;
+  const aiMinutes = monthlyAiStudyMinutes();
+
+  return [
+    { label: "副業利益", current: monthlySideProfit(), target: 10000, unit: "money" },
+    { label: "資産増加", current: assetDiff, target: 50000, unit: "money" },
+    { label: "節約", current: savings, target: 5000, unit: "money" },
+    { label: "AI学習", current: aiMinutes, target: 600, unit: "time" }
+  ];
+}
+
+function renderVictoryConditions() {
+  const conditions = monthlyVictoryConditions();
+  const achieved = conditions.filter((item) => item.current >= item.target).length;
+  setText("victoryRate", `${Math.round((achieved / conditions.length) * 100)}%`);
+  document.getElementById("victoryList").innerHTML = conditions
+    .map((item) => {
+      const done = item.current >= item.target;
+      const current = item.unit === "time" ? `${roundOne(item.current / 60)}時間` : yen.format(item.current);
+      const target = item.unit === "time" ? `${roundOne(item.target / 60)}時間` : yen.format(item.target);
+      return `
+        <div class="victory-row ${done ? "is-done" : ""}">
+          <span>${done ? "OK" : ""}</span>
+          <strong>${item.label}</strong>
+          <b>${current} / ${target}</b>
+        </div>
+      `;
+    })
+    .join("");
+}
+
 function diffFromSnapshot(snapshot, key, currentValue) {
   if (!snapshot || typeof snapshot[key] !== "number") return 0;
   return currentValue - snapshot[key];
@@ -883,6 +924,12 @@ function formatFireAgeDiff(diff) {
   return `${formatYears(diff)}後退`;
 }
 
+function formatFireDaysDiff(value) {
+  if (typeof value !== "number" || value === 0) return "変化なし";
+  const days = Math.round(Math.abs(value) * 365);
+  return value > 0 ? `${numberFormatter.format(days)}日短縮` : `${numberFormatter.format(days)}日後退`;
+}
+
 function heroJournal() {
   const monthLabel = `${Number(currentMonthKey().split("-")[1])}月`;
   const assetDiff = state.lastMonthlyChange?.diff || diffFromSnapshot(findSnapshot(previousMonthKey(currentMonthKey())), "total", totalAssets());
@@ -894,28 +941,6 @@ function heroJournal() {
   return {
     title: `${monthLabel}の冒険記録`,
     body: `資産 ${formatDiff(assetDiff)}、配当 ${formatDiff(dividendDiff)}、前進 ${progressCount}件 / ${xp}EXP。FIREまで${formatShortening(shortened)}短縮。着実に過去の自分を上回る1か月です。`
-  };
-}
-
-function sideQuestProgress(item, index) {
-  if (index === 0) {
-    return {
-      label: `利益目標 ${numberFormatter.format(Math.min(100, Math.round((item.profit / 20000) * 100)))}%`,
-      value: clamp(Math.round((item.profit / 20000) * 100))
-    };
-  }
-
-  if (index === 1) {
-    return {
-      label: item.profit > 0 ? "初売上達成 1 / 1" : "初売上達成 0 / 1",
-      value: item.profit > 0 ? 100 : 0
-    };
-  }
-
-  const streak = streakDays();
-  return {
-    label: `7日連続学習 ${Math.min(7, streak)} / 7`,
-    value: clamp(Math.round((streak / 7) * 100))
   };
 }
 
@@ -1017,22 +1042,6 @@ function renderHistory() {
         </div>
         <strong class="xp-badge">+${progressXp(entry)}EXP</strong>
         <button class="delete-progress" type="button" data-delete-progress="${escapeHtml(entry.id)}" aria-label="${escapeHtml(entry.text)}を削除">削除</button>
-      </div>
-    `)
-    .join("");
-}
-
-function renderScores() {
-  document.getElementById("scoreList").innerHTML = calcScores()
-    .map((score) => `
-      <div class="score-item">
-        <div class="score-meta">
-          <strong>${score.label}</strong>
-          <small>${score.note}</small>
-          <span>${escapeHtml(score.detail)}</span>
-        </div>
-        <div class="score-bar"><span style="width:${score.value}%"></span></div>
-        <strong class="score-value">${score.value}</strong>
       </div>
     `)
     .join("");

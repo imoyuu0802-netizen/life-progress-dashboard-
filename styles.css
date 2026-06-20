@@ -1256,8 +1256,62 @@ button:disabled {
   grid-column: 1 / -1;
 }
 
+.victory-panel {
+  grid-column: 1 / -1;
+}
+
 .quest-panel {
   grid-column: 1 / -1;
+}
+
+.victory-list {
+  display: grid;
+  gap: 8px;
+}
+
+.victory-row {
+  display: grid;
+  grid-template-columns: 32px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 8px 0;
+  border-top: 1px solid var(--line);
+}
+
+.victory-row:first-child {
+  border-top: 0;
+}
+
+.victory-row span {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--green);
+  font-size: 10px;
+  font-weight: 900;
+}
+
+.victory-row strong {
+  font-size: 14px;
+}
+
+.victory-row b {
+  color: var(--muted);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.victory-row.is-done span {
+  background: rgba(70, 209, 139, 0.16);
+  border-color: rgba(70, 209, 139, 0.42);
+}
+
+.victory-row.is-done b {
+  color: var(--green);
 }
 
 .compare-grid {
