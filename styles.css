@@ -119,7 +119,7 @@ small {
   top: 0;
   z-index: 5;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 6px;
   margin: 0 0 10px;
   padding: 8px;
@@ -461,15 +461,15 @@ small {
   grid-template-columns: minmax(0, 1fr);
 }
 
-.settings-stack .settings-panel {
+.settings-stack .profile-panel {
   order: 1;
 }
 
-.settings-stack .profile-panel {
+.settings-stack .cloud-panel {
   order: 2;
 }
 
-.settings-stack .cloud-panel {
+.settings-stack .backup-panel {
   order: 3;
 }
 
@@ -643,6 +643,10 @@ small {
   color: #07110b;
   border: 0;
   font-weight: 900;
+}
+
+.outcome-category-field {
+  grid-column: 1 / -1;
 }
 
 .outcome-history {
@@ -1075,6 +1079,10 @@ small {
   margin-bottom: 10px;
 }
 
+#progressDate {
+  grid-column: 1 / -1;
+}
+
 .input-stack {
   grid-template-columns: 1fr;
 }
@@ -1248,6 +1256,10 @@ button:disabled {
   grid-column: 1 / -1;
 }
 
+.quest-panel {
+  grid-column: 1 / -1;
+}
+
 .compare-grid {
   display: grid;
   gap: 14px;
@@ -1329,6 +1341,28 @@ button:disabled {
   display: grid;
   grid-template-columns: 1fr;
   gap: 10px;
+}
+
+.input-view-stack {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.monthly-input-group {
+  border-top: 1px solid var(--line);
+}
+
+.monthly-input-group summary {
+  padding: 14px 0;
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 850;
+}
+
+.monthly-fields {
+  display: grid;
+  gap: 10px;
+  padding-bottom: 14px;
 }
 
 .profile-grid,
@@ -1507,28 +1541,6 @@ button:disabled {
   border: 1px solid var(--line);
 }
 
-.side-settings {
-  display: grid;
-  gap: 10px;
-}
-
-.side-setting-card {
-  display: grid;
-  gap: 8px;
-  padding-top: 10px;
-  border-top: 1px solid var(--line);
-}
-
-.side-setting-card strong {
-  font-size: 14px;
-}
-
-.side-setting-fields {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 8px;
-}
-
 @media (min-width: 760px) {
   .app-shell {
     padding: 30px 22px 56px;
@@ -1576,14 +1588,38 @@ button:disabled {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
+  .impact-dashboard {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 28px;
+  }
+
+  .impact-period:nth-child(2) {
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  .impact-lifetime,
+  .impact-note {
+    grid-column: 1 / -1;
+  }
+
   .single-focus {
     grid-template-columns: minmax(0, 680px);
     justify-content: center;
   }
 
-  .input-stack {
+  .input-stack,
+  .input-view-stack {
     grid-template-columns: minmax(0, 760px);
     justify-content: center;
+  }
+
+  .entry-form {
+    grid-template-columns: 150px minmax(0, 1fr) 84px;
+  }
+
+  #progressDate {
+    grid-column: auto;
   }
 
   .panel {
@@ -1618,13 +1654,13 @@ button:disabled {
     grid-column: 1 / -1;
   }
 
-  .side-settings {
+  .monthly-input-group {
     grid-column: 1 / -1;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .side-setting-fields {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+  .monthly-fields {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    align-items: end;
   }
 
   .settings-grid > button {

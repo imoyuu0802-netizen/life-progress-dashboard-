@@ -26,15 +26,16 @@ const defaultState = {
     { month: "2025-12", total: 12368409, dividends: null, sideProfit: null, fireAge: null }
   ],
   sideHustles: [
-    { name: "ゲーム販売", sales: 48000, profit: 32000, previousProfit: 24000 },
-    { name: "Totebell", sales: 18000, profit: 9000, previousProfit: 5000 },
-    { name: "その他副業", sales: 12000, profit: 7000, previousProfit: 9000 }
+    { name: "ゲーム販売", sales: 0, profit: 0, previousProfit: 0 },
+    { name: "Totebell", sales: 0, profit: 0, previousProfit: 0 },
+    { name: "その他副業", sales: 0, profit: 0, previousProfit: 0 }
   ],
   lastUpdatedAt: null,
   lastMonthlyChange: null,
   totalXp: 0,
   progressEntries: [],
-  outcomeEntries: []
+  outcomeEntries: [],
+  legacyOutcomeMigrationComplete: true
 };
 
 let state = loadState();
@@ -97,6 +98,7 @@ function loadState() {
 
 function normalizeState(saved = {}) {
   const progressEntries = migrateProgressEntries(saved.progressEntries || []);
+  const outcomeMigration = migrateLegacyOutcomes(saved, normalizeOutcomeEntries(saved.outcomeEntries));
   return {
     ...cloneDefaultState(),
     ...saved,
@@ -106,14 +108,42 @@ function normalizeState(saved = {}) {
     sideHustles: normalizeSideHustles(saved.sideHustles),
     totalXp: Number(saved.totalXp) || inferTotalXp(progressEntries),
     progressEntries,
-    outcomeEntries: normalizeOutcomeEntries(saved.outcomeEntries)
+    outcomeEntries: outcomeMigration.entries,
+    legacyOutcomeMigrationComplete: outcomeMigration.complete
   };
+}
+
+function migrateLegacyOutcomes(saved, entries) {
+  if (saved.legacyOutcomeMigrationComplete) return { entries, complete: true };
+  const migrated = [...entries];
+  const month = currentMonthKey();
+  const legacyItems = Array.isArray(saved.sideHustles) ? saved.sideHustles : [];
+
+  legacyItems.forEach((item, index) => {
+    const recorded = migrated
+      .filter((entry) => entry.type === "profit" && entry.date.startsWith(month) && entry.category === item.name)
+      .reduce((totals, entry) => ({ sales: totals.sales + entry.sales, profit: totals.profit + entry.amount }), { sales: 0, profit: 0 });
+    const sales = Math.max(0, (Number(item.sales) || 0) - recorded.sales);
+    const amount = Math.max(0, (Number(item.profit) || 0) - recorded.profit);
+    if (!sales && !amount) return;
+    migrated.push({
+      id: `legacy-outcome-${month}-${index}`,
+      date: `${month}-01`,
+      type: "profit",
+      category: String(item.name || `副業${index + 1}`),
+      sales,
+      amount,
+      appliedToMonthlyTotals: false
+    });
+  });
+
+  return { entries: normalizeOutcomeEntries(migrated), complete: true };
 }
 
 function normalizeOutcomeEntries(entries) {
   if (!Array.isArray(entries)) return [];
   return entries
-    .filter((entry) => entry && ["profit", "saving"].includes(entry.type) && Number(entry.amount) > 0)
+    .filter((entry) => entry && ["profit", "saving"].includes(entry.type) && (Number(entry.amount) > 0 || Number(entry.sales) > 0))
     .map((entry, index) => ({
       id: entry.id || `outcome-${entry.date || "unknown"}-${index}`,
       date: typeof entry.date === "string" ? entry.date.slice(0, 10) : todayKey(),
@@ -286,6 +316,14 @@ function todayEntries() {
   return state.progressEntries.filter((entry) => entry.date === todayKey());
 }
 
+function progressEntriesForDate(date) {
+  return state.progressEntries.filter((entry) => entry.date === date);
+}
+
+function selectedProgressDate() {
+  return document.getElementById("progressDate")?.value || todayKey();
+}
+
 function xpForProgress(text) {
   if (text.includes("Totebell")) return 20;
   if (text.includes("AI学習")) return 15;
@@ -337,7 +375,7 @@ function streakDays() {
 }
 
 function annualFirePower() {
-  const monthlyProfit = state.sideHustles.reduce((sum, item) => sum + item.profit, 0);
+  const monthlyProfit = monthlySideProfit();
   return Math.max(1, state.profile.yearlyAssetGrowth + investmentGrowthAmount() + state.assets.dividends + monthlyProfit * 12);
 }
 
@@ -364,23 +402,28 @@ function outcomeEntriesFor(period) {
   return state.outcomeEntries;
 }
 
+function outcomeEntriesForMonth(month) {
+  return state.outcomeEntries.filter((entry) => entry.date.startsWith(month));
+}
+
 function outcomeTotals(entries) {
   return entries.reduce((totals, entry) => {
     totals[entry.type] += entry.amount;
+    totals.sales += entry.sales;
     totals.total += entry.amount;
     return totals;
-  }, { profit: 0, saving: 0, total: 0 });
+  }, { sales: 0, profit: 0, saving: 0, total: 0 });
 }
 
 function monthlyShorteningDays() {
-  const monthlyProfit = state.sideHustles.reduce((sum, item) => sum + item.profit, 0);
+  const monthlyProfit = monthlySideProfit();
   const monthlySavings = outcomeTotals(outcomeEntriesFor("month")).saving;
   const diff = state.lastMonthlyChange?.diff || 0;
   return daysShortenedByAmount(Math.max(0, monthlyProfit + monthlySavings + diff));
 }
 
-function monthlySideProfit() {
-  return state.sideHustles.reduce((sum, item) => sum + item.profit, 0);
+function monthlySideProfit(month = currentMonthKey()) {
+  return outcomeTotals(outcomeEntriesForMonth(month)).profit;
 }
 
 function peerAssetRanking() {
@@ -475,7 +518,7 @@ function formatPercent(value) {
 
 function calcScores() {
   const rate = fireRate();
-  const monthlyProfit = state.sideHustles.reduce((sum, item) => sum + item.profit, 0);
+  const monthlyProfit = monthlySideProfit();
   const todayCount = todayEntries().length;
   const creativeXp = state.progressEntries
     .filter((entry) => /Totebell|AI学習/.test(entry.text))
@@ -559,14 +602,18 @@ function render() {
   document.getElementById("fireProgress").style.width = `${rate}%`;
   document.getElementById("levelProgress").style.width = `${xp.currentLevelXp}%`;
   renderFireProjection();
+  hydrateDateInputs();
 
+  const selectedEntries = progressEntriesForDate(selectedProgressDate());
+  setText("todayLimit", `${selectedEntries.length} / ${dailyEntryLimit}`);
   const entriesToday = todayEntries();
-  setText("todayLimit", `${entriesToday.length} / ${dailyEntryLimit}`);
   setText("todayHighlight", entriesToday[0] ? `${entriesToday[0].text} +${progressXp(entriesToday[0])}EXP` : "今日の前進をひとつ積む");
-  document.getElementById("progressInput").disabled = entriesToday.length >= dailyEntryLimit;
-  document.querySelector("#progressForm button").disabled = entriesToday.length >= dailyEntryLimit;
+  document.getElementById("progressInput").disabled = selectedEntries.length >= dailyEntryLimit;
+  document.querySelector("#progressForm button").disabled = selectedEntries.length >= dailyEntryLimit;
 
   renderSideHustles();
+  renderOutcomeFormOptions();
+  renderOutcomeHistory();
   renderAssets();
   renderAssetTrend();
   renderTodayQuests();
@@ -604,13 +651,14 @@ function formatCompactYen(value) {
 
 function renderTodayQuests() {
   const list = document.getElementById("todayQuestList");
-  const entries = todayEntries();
+  const date = selectedProgressDate();
+  const entries = progressEntriesForDate(date);
 
   if (!entries.length) {
     list.innerHTML = `
       <div class="today-empty">
-        <strong>まだ今日の前進はありません</strong>
-        <span>1タップでEXPを積む</span>
+        <strong>${date === todayKey() ? "まだ今日の前進はありません" : `${formatEntryDate(date)}の前進はありません`}</strong>
+        <span>日付を選んで過去の前進も記録できます</span>
       </div>
     `;
     return;
@@ -642,12 +690,10 @@ function renderSideHustles() {
   const today = outcomeTotals(outcomeEntriesFor("today"));
   const monthEntries = outcomeTotals(outcomeEntriesFor("month"));
   const lifetime = outcomeTotals(outcomeEntriesFor("lifetime"));
-  const monthProfit = monthlySideProfit();
-  const monthTotal = monthProfit + monthEntries.saving;
 
   list.innerHTML = `
-    ${renderImpactPeriod("今日の成果", today.profit, today.saving, today.total, "today")}
-    ${renderImpactPeriod("今月累計", monthProfit, monthEntries.saving, monthTotal, "month")}
+    ${renderImpactPeriod("今日の成果", today, "today")}
+    ${renderImpactPeriod("今月累計", monthEntries, "month")}
     <div class="impact-lifetime">
       <small>人生累計（記録開始から）</small>
       <span>FIRE短縮</span>
@@ -656,18 +702,17 @@ function renderSideHustles() {
     <p class="impact-note">現在の年間増加見込み・投資成長・配当・副業利益を基準に換算</p>
   `;
 
-  renderOutcomeFormOptions();
-  renderOutcomeHistory();
 }
 
-function renderImpactPeriod(title, profit, saving, total, period) {
-  const days = exactDaysShortenedByAmount(total);
+function renderImpactPeriod(title, totals, period) {
+  const days = exactDaysShortenedByAmount(totals.total);
   return `
     <section class="impact-period ${period === "today" ? "is-today" : ""}">
       <h3>${title}</h3>
-      <div><span>副業利益</span><strong>+${yen.format(profit)}</strong></div>
-      <div><span>節約</span><strong>+${yen.format(saving)}</strong></div>
-      <div class="impact-total"><span>合計</span><strong>+${yen.format(total)}</strong></div>
+      <div><span>副業売上</span><strong>+${yen.format(totals.sales)}</strong></div>
+      <div><span>副業利益</span><strong>+${yen.format(totals.profit)}</strong></div>
+      <div><span>節約</span><strong>+${yen.format(totals.saving)}</strong></div>
+      <div class="impact-total"><span>利益＋節約</span><strong>+${yen.format(totals.total)}</strong></div>
       <div class="impact-fire"><span>FIRE短縮</span><strong>${formatImpactDays(days)}</strong></div>
     </section>
   `;
@@ -691,16 +736,17 @@ function formatLifetimeShortening(days) {
 function renderOutcomeFormOptions() {
   const form = document.getElementById("outcomeForm");
   const type = form.elements.type.value === "saving" ? "saving" : "profit";
-  form.elements.category.innerHTML = outcomeCategories[type]
+  document.getElementById("outcomeCategorySuggestions").innerHTML = outcomeCategories[type]
     .map((category) => `<option value="${escapeHtml(category)}">${escapeHtml(category)}</option>`)
     .join("");
+  form.elements.category.placeholder = type === "saving" ? "例: スタバを我慢" : "例: ゲーム販売";
   form.querySelector("[data-sales-field]").hidden = type === "saving";
   setText("outcomeAmountLabel", type === "saving" ? "節約額" : "利益");
 }
 
 function renderOutcomeHistory() {
   const container = document.getElementById("outcomeHistory");
-  const entries = [...state.outcomeEntries].sort((a, b) => b.id.localeCompare(a.id)).slice(0, 6);
+  const entries = [...state.outcomeEntries].sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id));
   if (!entries.length) {
     container.innerHTML = '<p class="outcome-empty">成果を記録すると、FIRE短縮がここに積み上がります</p>';
     return;
@@ -769,7 +815,7 @@ function signedClass(value) {
 
 function monthlyComparison() {
   const currentProfit = monthlySideProfit();
-  const previousProfit = state.sideHustles.reduce((sum, item) => sum + item.previousProfit, 0);
+  const previousProfit = monthlySideProfit(previousMonthKey(currentMonthKey()));
   const previousSnapshot = findSnapshot(previousMonthKey(currentMonthKey()));
   const previousFireAge = previousSnapshot?.fireAge || roundOne(arrivalAge() + Math.max(0, monthlyShorteningDays() / 365));
   const fireAgeDiff = arrivalAge() - previousFireAge;
@@ -1010,27 +1056,15 @@ function hydrateSettings() {
   form.elements.fireGoal.value = formatInputNumber(state.profile.fireGoal);
   form.elements.investmentGrowthRate.value = String(Number(state.profile.investmentGrowthRate) || 0);
   form.elements.yearlyAssetGrowth.value = formatInputNumber(state.profile.yearlyAssetGrowth);
-  document.getElementById("sideHustleSettings").innerHTML = state.sideHustles
-    .map((item, index) => `
-      <div class="side-setting-card">
-        <strong>${escapeHtml(item.name)}</strong>
-        <div class="side-setting-fields">
-          <label>
-            <span>今月売上</span>
-            <input name="side-${index}-sales" type="text" inputmode="numeric" data-number-input autocomplete="off" value="${formatInputNumber(item.sales)}" />
-          </label>
-          <label>
-            <span>今月利益</span>
-            <input name="side-${index}-profit" type="text" inputmode="numeric" data-number-input autocomplete="off" value="${formatInputNumber(item.profit)}" />
-          </label>
-          <label>
-            <span>前月利益</span>
-            <input name="side-${index}-previousProfit" type="text" inputmode="numeric" data-number-input autocomplete="off" value="${formatInputNumber(item.previousProfit)}" />
-          </label>
-        </div>
-      </div>
-    `)
-    .join("");
+}
+
+function hydrateDateInputs() {
+  const progressDate = document.getElementById("progressDate");
+  const outcomeDate = document.getElementById("outcomeForm").elements.date;
+  progressDate.max = todayKey();
+  outcomeDate.max = todayKey();
+  if (!progressDate.value) progressDate.value = todayKey();
+  if (!outcomeDate.value) outcomeDate.value = todayKey();
 }
 
 function formatInputNumber(value) {
@@ -1162,13 +1196,21 @@ document.getElementById("progressForm").addEventListener("submit", (event) => {
   event.preventDefault();
   const input = document.getElementById("progressInput");
   const text = input.value.trim();
-  if (!addProgress(text)) return;
+  if (!addProgress(text, selectedProgressDate())) return;
   input.value = "";
+});
+
+document.getElementById("progressDate").addEventListener("change", () => {
+  renderTodayQuests();
+  const entries = progressEntriesForDate(selectedProgressDate());
+  setText("todayLimit", `${entries.length} / ${dailyEntryLimit}`);
+  document.getElementById("progressInput").disabled = entries.length >= dailyEntryLimit;
+  document.querySelector("#progressForm button").disabled = entries.length >= dailyEntryLimit;
 });
 
 document.querySelectorAll("[data-quick-progress]").forEach((button) => {
   button.addEventListener("click", () => {
-    addProgress(button.dataset.quickProgress);
+    addProgress(button.dataset.quickProgress, selectedProgressDate());
   });
 });
 
@@ -1178,7 +1220,10 @@ document.querySelectorAll("[data-view-target]").forEach((button) => {
   });
 });
 
-document.getElementById("outcomeForm").elements.type.addEventListener("change", renderOutcomeFormOptions);
+document.getElementById("outcomeForm").elements.type.addEventListener("change", (event) => {
+  event.currentTarget.form.elements.category.value = "";
+  renderOutcomeFormOptions();
+});
 
 document.getElementById("outcomeForm").addEventListener("input", (event) => {
   if (!event.target.matches("[data-number-input]")) return;
@@ -1196,25 +1241,22 @@ document.getElementById("outcomeForm").addEventListener("submit", (event) => {
     return;
   }
 
-  const category = form.elements.category.value;
+  const category = form.elements.category.value.trim();
+  const date = form.elements.date.value || todayKey();
+  if (!category) {
+    showOutcomeStatus("内容を入力してください");
+    return;
+  }
   const entry = {
     id: `outcome-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-    date: todayKey(),
+    date,
     type,
     category,
     sales,
     amount,
-    appliedToMonthlyTotals: type === "profit"
+    appliedToMonthlyTotals: false
   };
   state.outcomeEntries.push(entry);
-
-  if (type === "profit") {
-    const sideHustle = state.sideHustles.find((item) => item.name === category);
-    if (sideHustle) {
-      sideHustle.sales += sales;
-      sideHustle.profit += amount;
-    }
-  }
 
   saveState();
   form.reset();
@@ -1279,16 +1321,17 @@ document.getElementById("profileForm").addEventListener("submit", (event) => {
   showProfileStatus("プロフィールと資産比較条件を保存しました");
 });
 
-function addProgress(text) {
+function addProgress(text, date = todayKey()) {
   const trimmed = text.trim();
   if (!trimmed) return false;
-  if (todayEntries().length >= dailyEntryLimit) {
-    showDailyStatus(`今日は${dailyEntryLimit}件まで記録済み`);
+  const entryDate = date > todayKey() ? todayKey() : date;
+  if (progressEntriesForDate(entryDate).length >= dailyEntryLimit) {
+    showDailyStatus(`${formatEntryDate(entryDate)}は${dailyEntryLimit}件まで記録済み`);
     return false;
   }
 
   const xp = xpForProgress(trimmed);
-  state.progressEntries.unshift({ text: trimmed, date: todayKey(), xp, id: createProgressId({ text: trimmed, date: todayKey(), xp }, Date.now()) });
+  state.progressEntries.unshift({ text: trimmed, date: entryDate, xp, id: createProgressId({ text: trimmed, date: entryDate, xp }, Date.now()) });
   state.totalXp = (Number(state.totalXp) || inferTotalXp(state.progressEntries.slice(1))) + xp;
   saveState();
   render();
@@ -1310,14 +1353,6 @@ function deleteOutcome(id) {
   const entry = state.outcomeEntries.find((item) => item.id === id);
   if (!entry) return;
 
-  if (entry.appliedToMonthlyTotals && entry.date.startsWith(currentMonthKey())) {
-    const sideHustle = state.sideHustles.find((item) => item.name === entry.category);
-    if (sideHustle) {
-      sideHustle.sales = Math.max(0, sideHustle.sales - entry.sales);
-      sideHustle.profit = Math.max(0, sideHustle.profit - entry.amount);
-    }
-  }
-
   state.outcomeEntries = state.outcomeEntries.filter((item) => item.id !== id);
   saveState();
   render();
@@ -1325,7 +1360,7 @@ function deleteOutcome(id) {
 }
 
 function switchView(viewName) {
-  const nextView = viewName === "input" || !document.getElementById(`view-${viewName}`) ? "score" : viewName;
+  const nextView = !document.getElementById(`view-${viewName}`) ? "overview" : viewName;
   currentView = nextView;
   localStorage.setItem("life-progress-view", nextView);
   document.querySelectorAll(".view").forEach((view) => {
@@ -1366,12 +1401,6 @@ function applySettingsFormValues(form) {
   state.profile.fireGoal = Math.max(1, parseInputNumber(form.elements.fireGoal.value));
   state.profile.investmentGrowthRate = Number(form.elements.investmentGrowthRate.value) || 0;
   state.profile.yearlyAssetGrowth = parseInputNumber(form.elements.yearlyAssetGrowth.value);
-  state.sideHustles = state.sideHustles.map((item, index) => ({
-    ...item,
-    sales: parseInputNumber(form.elements[`side-${index}-sales`].value),
-    profit: parseInputNumber(form.elements[`side-${index}-profit`].value),
-    previousProfit: parseInputNumber(form.elements[`side-${index}-previousProfit`].value)
-  }));
 }
 
 document.getElementById("settingsForm").addEventListener("submit", (event) => {

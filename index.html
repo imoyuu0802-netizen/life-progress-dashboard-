@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Life Progress" />
     <title>Life Progress Dashboard</title>
     <link rel="manifest" href="manifest.webmanifest?v=5" />
-    <link rel="stylesheet" href="styles.css?v=31" />
+    <link rel="stylesheet" href="styles.css?v=32" />
   </head>
   <body>
     <main class="app-shell">
@@ -21,7 +21,8 @@
 
       <nav class="view-nav" aria-label="画面切り替え">
         <button class="view-tab is-active" type="button" data-view-target="overview">現在地</button>
-        <button class="view-tab" type="button" data-view-target="score">成長</button>
+        <button class="view-tab" type="button" data-view-target="score">スコア・EXP</button>
+        <button class="view-tab" type="button" data-view-target="input">入力</button>
         <button class="view-tab" type="button" data-view-target="settings">設定</button>
       </nav>
 
@@ -126,30 +127,6 @@
               </div>
             </div>
             <div id="sideHustleList" class="impact-dashboard"></div>
-            <form id="outcomeForm" class="outcome-form">
-              <label>
-                <span>成果の種類</span>
-                <select name="type">
-                  <option value="profit">副業利益</option>
-                  <option value="saving">節約</option>
-                </select>
-              </label>
-              <label>
-                <span>内容</span>
-                <select name="category"></select>
-              </label>
-              <label data-sales-field>
-                <span>売上</span>
-                <input name="sales" type="text" inputmode="numeric" data-number-input autocomplete="off" placeholder="0" />
-              </label>
-              <label>
-                <span id="outcomeAmountLabel">利益</span>
-                <input name="amount" type="text" inputmode="numeric" data-number-input autocomplete="off" placeholder="0" required />
-              </label>
-              <button type="submit">成果を記録</button>
-            </form>
-            <p id="outcomeStatus" class="save-status" role="status" aria-live="polite"></p>
-            <div id="outcomeHistory" class="outcome-history"></div>
           </article>
 
           <article class="panel journey-panel">
@@ -185,7 +162,7 @@
             <div class="section-head">
               <div>
                 <p class="eyebrow">Growth</p>
-                <h2>スコア・XP</h2>
+                <h2>スコア・EXP</h2>
               </div>
               <span id="levelLabel" class="pill">Lv.1</span>
             </div>
@@ -211,11 +188,12 @@
             <div class="section-head">
               <div>
                 <p class="eyebrow">Daily Move</p>
-                <h2>今日の前進</h2>
+                <h2>前進を記録</h2>
               </div>
               <span id="todayLimit" class="pill">0 / 5</span>
             </div>
             <form id="progressForm" class="entry-form">
+              <input id="progressDate" type="date" aria-label="前進した日" required />
               <input id="progressInput" type="text" maxlength="40" placeholder="今日進めたこと" autocomplete="off" />
               <button type="submit">記録</button>
             </form>
@@ -242,6 +220,89 @@
             <div id="scoreList" class="score-list"></div>
           </article>
 
+        </section>
+      </section>
+
+      <section id="view-input" class="view">
+        <section class="content-grid input-view-stack">
+          <article class="panel outcome-input-panel">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Result Entry</p>
+                <h2>成果記録</h2>
+              </div>
+            </div>
+            <form id="outcomeForm" class="outcome-form">
+              <label>
+                <span>日付</span>
+                <input name="date" type="date" required />
+              </label>
+              <label>
+                <span>成果の種類</span>
+                <select name="type">
+                  <option value="profit">副業利益</option>
+                  <option value="saving">節約</option>
+                </select>
+              </label>
+              <label class="outcome-category-field">
+                <span>内容</span>
+                <input name="category" type="text" maxlength="30" list="outcomeCategorySuggestions" placeholder="内容を入力" required />
+                <datalist id="outcomeCategorySuggestions"></datalist>
+              </label>
+              <label data-sales-field>
+                <span>売上</span>
+                <input name="sales" type="text" inputmode="numeric" data-number-input autocomplete="off" placeholder="0" />
+              </label>
+              <label>
+                <span id="outcomeAmountLabel">利益</span>
+                <input name="amount" type="text" inputmode="numeric" data-number-input autocomplete="off" placeholder="0" required />
+              </label>
+              <button type="submit">成果を記録</button>
+            </form>
+            <p id="outcomeStatus" class="save-status" role="status" aria-live="polite"></p>
+            <div id="outcomeHistory" class="outcome-history"></div>
+          </article>
+
+          <article class="panel settings-panel">
+            <form id="settingsForm" class="settings-grid">
+              <div class="monthly-summary">
+                <div>
+                  <p class="eyebrow">Monthly Update</p>
+                  <h2>月次更新</h2>
+                  <p id="monthlyAutoLabel" class="auto-month-label">現在の日付で自動記録</p>
+                </div>
+                <div>
+                  <small>前回比</small>
+                  <strong id="settingsMonthlyDiff">--</strong>
+                </div>
+              </div>
+              <details class="monthly-input-group" open>
+                <summary>資産・配当</summary>
+                <div class="monthly-fields">
+                  <label><span>投資資産</span><input name="investments" type="text" inputmode="numeric" data-number-input autocomplete="off" /></label>
+                  <label><span>現金</span><input name="cash" type="text" inputmode="numeric" data-number-input autocomplete="off" /></label>
+                  <label><span>年間配当金</span><input name="dividends" type="text" inputmode="numeric" data-number-input autocomplete="off" /></label>
+                </div>
+              </details>
+              <details class="monthly-input-group">
+                <summary>FIRE計画</summary>
+                <div class="monthly-fields">
+                  <label><span>FIRE目標額</span><input name="fireGoal" type="text" inputmode="numeric" data-number-input autocomplete="off" /></label>
+                  <label>
+                    <span>投資成長率 / 年</span>
+                    <select name="investmentGrowthRate">
+                      <option value="0">0%</option><option value="3">3%</option><option value="4">4%</option><option value="5">5%</option>
+                      <option value="6">6%</option><option value="7">7%</option><option value="8">8%</option><option value="10">10%</option>
+                    </select>
+                  </label>
+                  <label><span>年間増加見込み</span><input name="yearlyAssetGrowth" type="text" inputmode="numeric" data-number-input autocomplete="off" /></label>
+                  <div class="growth-preview"><small>投資成長見込み / 年</small><strong id="investmentGrowthAmount">¥0</strong></div>
+                </div>
+              </details>
+              <button type="submit">月次更新を反映</button>
+              <p id="saveStatus" class="save-status" role="status" aria-live="polite"></p>
+            </form>
+          </article>
         </section>
       </section>
 
@@ -314,61 +375,7 @@
           <p id="cloudStatus" class="save-status" role="status" aria-live="polite">クラウド同期は未設定です</p>
         </article>
 
-        <article class="panel settings-panel">
-          <form id="settingsForm" class="settings-grid">
-            <div class="monthly-summary">
-              <div>
-                <p class="eyebrow">Monthly Update</p>
-                <h2>月次更新</h2>
-                <p id="monthlyAutoLabel" class="auto-month-label">現在の日付で自動記録</p>
-              </div>
-              <div>
-                <small>前回比</small>
-                <strong id="settingsMonthlyDiff">--</strong>
-              </div>
-            </div>
-            <label>
-              <span>投資資産</span>
-              <input name="investments" type="text" inputmode="numeric" data-number-input autocomplete="off" />
-            </label>
-            <label>
-              <span>現金</span>
-              <input name="cash" type="text" inputmode="numeric" data-number-input autocomplete="off" />
-            </label>
-            <label>
-              <span>年間配当金</span>
-              <input name="dividends" type="text" inputmode="numeric" data-number-input autocomplete="off" />
-            </label>
-            <label>
-              <span>FIRE目標額</span>
-              <input name="fireGoal" type="text" inputmode="numeric" data-number-input autocomplete="off" />
-            </label>
-            <label>
-              <span>投資成長率 / 年</span>
-              <select name="investmentGrowthRate">
-                <option value="0">0%</option>
-                <option value="3">3%</option>
-                <option value="4">4%</option>
-                <option value="5">5%</option>
-                <option value="6">6%</option>
-                <option value="7">7%</option>
-                <option value="8">8%</option>
-                <option value="10">10%</option>
-              </select>
-            </label>
-            <label>
-              <span>年間増加見込み</span>
-              <input name="yearlyAssetGrowth" type="text" inputmode="numeric" data-number-input autocomplete="off" />
-            </label>
-            <div class="growth-preview">
-              <small>投資成長見込み / 年</small>
-              <strong id="investmentGrowthAmount">¥0</strong>
-            </div>
-            <div id="sideHustleSettings" class="side-settings"></div>
-            <button type="submit">反映</button>
-            <p id="saveStatus" class="save-status" role="status" aria-live="polite"></p>
-          </form>
-          <div class="backup-panel">
+        <article class="panel backup-panel">
             <div>
               <p class="eyebrow">Backup</p>
               <h2>データ保護</h2>
@@ -379,7 +386,6 @@
               <input id="backupFile" type="file" accept="application/json,.json" hidden />
             </div>
             <p id="backupStatus" class="save-status" role="status" aria-live="polite"></p>
-          </div>
         </article>
 
         </section>
@@ -388,14 +394,14 @@
 
     <button id="backToTop" class="back-to-top" type="button" aria-label="ページ上部へ戻る" title="ページ上部へ戻る">↑</button>
 
-    <script src="firebase-config.js?v=31"></script>
-    <script src="jflec-data.js?v=31"></script>
-    <script src="app.js?v=31"></script>
-    <script type="module" src="firebase-sync.js?v=31"></script>
+    <script src="firebase-config.js?v=32"></script>
+    <script src="jflec-data.js?v=32"></script>
+    <script src="app.js?v=32"></script>
+    <script type="module" src="firebase-sync.js?v=32"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js?v=31");
+          navigator.serviceWorker.register("sw.js?v=32");
         });
       }
     </script>
