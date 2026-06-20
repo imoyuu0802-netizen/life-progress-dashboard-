@@ -441,20 +441,16 @@ small {
   font-variant-numeric: tabular-nums;
 }
 
-.fire-days-row .shortening-cell {
-  border-color: rgba(70, 209, 139, 0.55);
-  background: rgba(70, 209, 139, 0.16);
-  box-shadow: 0 0 0 1px rgba(70, 209, 139, 0.08) inset;
-}
-
-.fire-days-row .shortening-cell small,
-.fire-days-row .shortening-cell strong {
+.inline-shortening {
   color: var(--green);
+  font-size: 12px;
+  font-weight: 850;
 }
 
-.fire-days-row .shortening-cell strong {
-  font-size: 24px;
-  line-height: 1;
+.inline-shortening b {
+  color: var(--green);
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
 }
 
 .settings-stack {
@@ -615,7 +611,7 @@ small {
 
 .outcome-form {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: 9px;
   padding-top: 14px;
   border-top: 1px solid var(--line);
@@ -646,7 +642,7 @@ small {
 }
 
 .outcome-category-field {
-  grid-column: 1 / -1;
+  grid-column: auto;
 }
 
 .outcome-history {
@@ -1074,7 +1070,7 @@ small {
 
 .entry-form {
   display: grid;
-  grid-template-columns: 1fr 84px;
+  grid-template-columns: minmax(0, 1fr);
   gap: 8px;
   margin-bottom: 10px;
 }
@@ -1149,6 +1145,7 @@ small {
 input,
 select {
   width: 100%;
+  min-width: 0;
   min-height: 48px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -1415,6 +1412,7 @@ button:disabled {
 
 .monthly-fields {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 10px;
   padding-bottom: 14px;
 }
@@ -1621,7 +1619,7 @@ button:disabled {
   }
 
   .fire-days-row {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .content-grid {
@@ -1664,12 +1662,21 @@ button:disabled {
 
   .input-stack,
   .input-view-stack {
-    grid-template-columns: minmax(0, 760px);
+    grid-template-columns: minmax(0, 860px);
     justify-content: center;
   }
 
   .entry-form {
     grid-template-columns: 150px minmax(0, 1fr) 84px;
+  }
+
+  .outcome-form {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    align-items: end;
+  }
+
+  .outcome-category-field {
+    grid-column: span 2;
   }
 
   #progressDate {
@@ -1713,8 +1720,12 @@ button:disabled {
   }
 
   .monthly-fields {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     align-items: end;
+  }
+
+  .monthly-fields .growth-preview {
+    grid-column: 1 / -1;
   }
 
   .settings-grid > button {
