@@ -470,7 +470,7 @@ small {
 }
 
 .birth-date-field {
-  width: min(100%, 260px);
+  width: 100%;
 }
 
 .birth-date-field input {
@@ -1667,7 +1667,8 @@ button:disabled {
   }
 
   .entry-form {
-    grid-template-columns: 150px minmax(0, 1fr) 84px;
+    grid-template-columns: minmax(150px, 0.75fr) minmax(260px, 1.4fr) minmax(96px, 0.4fr);
+    align-items: end;
   }
 
   .outcome-form {
@@ -1708,7 +1709,7 @@ button:disabled {
   }
 
   .profile-grid .birth-date-field {
-    grid-column: 1 / -1;
+    grid-column: auto;
   }
 
   .monthly-summary {

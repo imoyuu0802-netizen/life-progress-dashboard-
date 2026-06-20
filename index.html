@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Life Progress" />
     <title>Life Progress Dashboard</title>
     <link rel="manifest" href="manifest.webmanifest?v=5" />
-    <link rel="stylesheet" href="styles.css?v=34" />
+    <link rel="stylesheet" href="styles.css?v=35" />
   </head>
   <body>
     <main class="app-shell">
@@ -40,17 +40,17 @@
             </div>
             <div class="fire-days-row">
               <div>
-                <small>現在予想</small>
-                <strong id="arrivalAge">--歳</strong>
-                <span class="inline-shortening">今月 <b id="monthlyShortening">0日</b> 短縮</span>
+                <small>今月の短縮</small>
+                <strong id="monthlyShortening">0日</strong>
               </div>
               <div>
                 <small>先月より</small>
                 <strong id="monthlyFireDelta">--</strong>
               </div>
               <div>
-                <small>今年の短縮</small>
-                <strong id="yearlyShortening">0日</strong>
+                <small>現在予想</small>
+                <strong id="arrivalAge">--歳</strong>
+                <span class="inline-shortening">今年 <b id="yearlyShortening">0日</b> 短縮</span>
               </div>
             </div>
           </article>
@@ -408,14 +408,14 @@
 
     <button id="backToTop" class="back-to-top" type="button" aria-label="ページ上部へ戻る" title="ページ上部へ戻る">↑</button>
 
-    <script src="firebase-config.js?v=34"></script>
-    <script src="jflec-data.js?v=34"></script>
-    <script src="app.js?v=34"></script>
-    <script type="module" src="firebase-sync.js?v=34"></script>
+    <script src="firebase-config.js?v=35"></script>
+    <script src="jflec-data.js?v=35"></script>
+    <script src="app.js?v=35"></script>
+    <script type="module" src="firebase-sync.js?v=35"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js?v=34");
+          navigator.serviceWorker.register("sw.js?v=35");
         });
       }
     </script>
