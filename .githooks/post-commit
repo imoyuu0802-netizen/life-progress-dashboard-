@@ -1,11 +1,5 @@
 #!/bin/sh
 
-REPO_ROOT=$(git rev-parse --show-toplevel)
-LOG_DIR="$REPO_ROOT/.netlify"
-LOG_FILE="$LOG_DIR/auto-publish.log"
-
-mkdir -p "$LOG_DIR"
-
-if ! "$REPO_ROOT/scripts/publish-netlify.sh" >>"$LOG_FILE" 2>&1; then
-  echo "Netlify auto publish failed. See $LOG_FILE" >&2
-fi
+# Netlifyのクレジット節約のため、自動公開は停止しています。
+# 本番へ反映するときだけ scripts/publish-netlify.sh を手動実行してください。
+exit 0

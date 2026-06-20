@@ -6,7 +6,11 @@ FIRE / Coast FIREに向けた「人生の進捗が見える」モチベーショ
 
 ## 公開URL
 
+本番（Netlify）:
 https://profound-syrniki-51a45e.netlify.app/
+
+確認用（Vercel）:
+Vercel連携後に発行される `https://<プロジェクト名>.vercel.app/` を使用します。
 
 ## 主な機能
 
@@ -19,20 +23,18 @@ https://profound-syrniki-51a45e.netlify.app/
 - スコア・XP
   - 人生スコア
   - レベル / XP / 連続記録
-- 前進
-  - 1日5件までの前進記録
-  - SIDE QUEST
+- 入力
+  - 過去日付を含む前進記録
+  - 副業売上・利益・節約の成果記録
+  - 月次資産更新
 - 設定
   - 生年月日から実年齢とFIRE予想年齢を自動計算
-  - 投資資産、現金、年間配当金、FIRE目標額、年間増加見込みの更新
-  - 投資利回り変更時の即時再計算
-  - 副業売上・利益・前月利益の更新
   - Google / メールログインとクラウド同期
   - バックアップ書き出し / 読み込み
 
 ## 運用方針
 
-- 毎日: `前進` を1タップ
+- 毎日: `スコア・EXP` で前進を1タップ
 - 月1: スプレッドシートで資産を集計
 - 月1: 集計値を `月次` に転記
 - 月1または大きく更新した日: `書き出し` でバックアップ
@@ -65,15 +67,52 @@ MacのIPアドレス確認例:
 ifconfig en0
 ```
 
-## デプロイ
+## Vercel確認用デプロイ
 
-Netlifyで公開できます。
+このリポジトリは静的HTML/CSS/JavaScriptなので、ビルド設定なしでVercelへ公開できます。
 
-1. Netlifyで新規サイトを作成
-2. このリポジトリを接続
-3. Publish directoryはルート `.` を指定
+### 1. GitHubへPush
 
-ビルドコマンドは不要です。
+このプロジェクトのGitHubリポジトリ:
+
+https://github.com/imoyuu0802-netizen/life-progress-dashboard
+
+通常はCodexが変更をコミットして、次のコマンド相当でPushします。
+
+```bash
+git push -u origin main
+```
+
+### 2. Vercelと連携
+
+1. https://vercel.com/new を開く
+2. `Continue with GitHub` でGitHubログイン
+3. `life-progress-dashboard` の右にある `Import` を押す
+4. Framework Presetは `Other` のまま
+5. Build Command、Output Directory、Install Commandは空欄のまま
+6. `Deploy` を押す
+7. 表示された `https://<プロジェクト名>.vercel.app/` を確認用URLとして使う
+
+GitHub連携後は、PushするたびにVercelが自動更新します。Netlifyへのコミット時自動公開は停止しているため、確認だけでNetlifyクレジットは消費しません。
+
+GoogleログインもVercelで使う場合は、Firebase Consoleの `Authentication > Settings > Authorized domains` に、発行された `<プロジェクト名>.vercel.app` を追加してください。
+
+### 3. スマホで確認
+
+1. Vercelの `Visit` を押してURLを開く
+2. URLをLINEやメモなどでスマホへ送る
+3. iPhone/AndroidのChromeまたはSafariで開く
+4. ホーム画面へ追加すると、次回からアプリのように開ける
+
+## Netlify本番デプロイ
+
+Netlifyは本番用として残します。クレジット節約のため、自動公開は停止済みです。
+
+本番へ反映するときだけ、プロジェクトルートで次を実行します。
+
+```bash
+./scripts/publish-netlify.sh
+```
 
 ## データ保存と同期
 
