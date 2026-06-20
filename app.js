@@ -1119,13 +1119,14 @@ function deleteProgress(id) {
 }
 
 function switchView(viewName) {
-  currentView = viewName;
-  localStorage.setItem("life-progress-view", viewName);
+  const nextView = viewName === "input" || !document.getElementById(`view-${viewName}`) ? "score" : viewName;
+  currentView = nextView;
+  localStorage.setItem("life-progress-view", nextView);
   document.querySelectorAll(".view").forEach((view) => {
-    view.classList.toggle("is-active", view.id === `view-${viewName}`);
+    view.classList.toggle("is-active", view.id === `view-${nextView}`);
   });
   document.querySelectorAll("[data-view-target]").forEach((button) => {
-    button.classList.toggle("is-active", button.dataset.viewTarget === viewName);
+    button.classList.toggle("is-active", button.dataset.viewTarget === nextView);
   });
 }
 

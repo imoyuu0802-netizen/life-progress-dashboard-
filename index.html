@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Life Progress" />
     <title>Life Progress Dashboard</title>
     <link rel="manifest" href="manifest.webmanifest?v=5" />
-    <link rel="stylesheet" href="styles.css?v=28" />
+    <link rel="stylesheet" href="styles.css?v=29" />
   </head>
   <body>
     <main class="app-shell">
@@ -22,7 +22,6 @@
       <nav class="view-nav" aria-label="画面切り替え">
         <button class="view-tab is-active" type="button" data-view-target="overview">現在地</button>
         <button class="view-tab" type="button" data-view-target="score">成長</button>
-        <button class="view-tab" type="button" data-view-target="input">前進</button>
         <button class="view-tab" type="button" data-view-target="settings">設定</button>
       </nav>
 
@@ -119,6 +118,16 @@
         </section>
 
         <section class="content-grid">
+          <article class="panel quest-panel">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Side Quest</p>
+                <h2>SIDE QUEST</h2>
+              </div>
+            </div>
+            <div id="sideHustleList" class="quest-list"></div>
+          </article>
+
           <article class="panel journey-panel">
             <div class="section-head">
               <div>
@@ -144,43 +153,6 @@
           </article>
         </section>
 
-      </section>
-
-      <section id="view-input" class="view">
-        <section class="content-grid input-stack">
-          <article class="panel daily-panel">
-            <div class="section-head">
-              <div>
-                <p class="eyebrow">Daily Move</p>
-                <h2>今日の前進</h2>
-              </div>
-              <span id="todayLimit" class="pill">0 / 5</span>
-            </div>
-            <div id="todayQuestList" class="today-quest-list"></div>
-            <div class="quick-actions" aria-label="よく使う前進">
-              <button type="button" data-quick-progress="ゲーム出品1件">ゲーム出品<small>+10EXP</small></button>
-              <button type="button" data-quick-progress="せどり出品1件">せどり<small>+10EXP</small></button>
-              <button type="button" data-quick-progress="Totebell投稿1件">Totebell<small>+20EXP</small></button>
-              <button type="button" data-quick-progress="AI学習30分">AI学習<small>+15EXP</small></button>
-            </div>
-            <p id="dailyStatus" class="daily-status" role="status" aria-live="polite"></p>
-            <form id="progressForm" class="entry-form">
-              <input id="progressInput" type="text" maxlength="40" placeholder="例: AI学習30分" autocomplete="off" />
-              <button type="submit">記録</button>
-            </form>
-            <div id="progressHistory" class="history-list"></div>
-          </article>
-
-          <article class="panel quest-panel">
-            <div class="section-head">
-              <div>
-                <p class="eyebrow">Side Quest</p>
-                <h2>SIDE QUEST</h2>
-              </div>
-            </div>
-            <div id="sideHustleList" class="quest-list"></div>
-          </article>
-        </section>
       </section>
 
       <section id="view-score" class="view">
@@ -211,6 +183,29 @@
             </div>
           </article>
 
+          <article class="panel daily-panel">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Daily Move</p>
+                <h2>今日の前進</h2>
+              </div>
+              <span id="todayLimit" class="pill">0 / 5</span>
+            </div>
+            <div id="todayQuestList" class="today-quest-list"></div>
+            <div class="quick-actions" aria-label="よく使う前進">
+              <button type="button" data-quick-progress="ゲーム出品1件">ゲーム出品<small>+10EXP</small></button>
+              <button type="button" data-quick-progress="せどり出品1件">せどり<small>+10EXP</small></button>
+              <button type="button" data-quick-progress="Totebell投稿1件">Totebell<small>+20EXP</small></button>
+              <button type="button" data-quick-progress="AI学習30分">AI学習<small>+15EXP</small></button>
+            </div>
+            <p id="dailyStatus" class="daily-status" role="status" aria-live="polite"></p>
+            <form id="progressForm" class="entry-form">
+              <input id="progressInput" type="text" maxlength="40" placeholder="例: AI学習30分" autocomplete="off" />
+              <button type="submit">記録</button>
+            </form>
+            <div id="progressHistory" class="history-list"></div>
+          </article>
+
           <article class="panel score-panel">
             <div class="section-head">
               <div>
@@ -234,7 +229,7 @@
             </div>
           </div>
           <form id="profileForm" class="profile-grid">
-            <label>
+            <label class="birth-date-field">
               <span>生年月日</span>
               <input name="birthDate" type="date" required />
             </label>
@@ -371,14 +366,14 @@
       </section>
     </main>
 
-    <script src="firebase-config.js?v=28"></script>
-    <script src="jflec-data.js?v=28"></script>
-    <script src="app.js?v=28"></script>
-    <script type="module" src="firebase-sync.js?v=28"></script>
+    <script src="firebase-config.js?v=29"></script>
+    <script src="jflec-data.js?v=29"></script>
+    <script src="app.js?v=29"></script>
+    <script type="module" src="firebase-sync.js?v=29"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js?v=28");
+          navigator.serviceWorker.register("sw.js?v=29");
         });
       }
     </script>
