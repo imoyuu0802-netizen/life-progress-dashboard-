@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Life Progress" />
     <title>Life Progress Dashboard</title>
     <link rel="manifest" href="manifest.webmanifest?v=5" />
-    <link rel="stylesheet" href="styles.css?v=30" />
+    <link rel="stylesheet" href="styles.css?v=31" />
   </head>
   <body>
     <main class="app-shell">
@@ -122,10 +122,34 @@
             <div class="section-head">
               <div>
                 <p class="eyebrow">Side Quest</p>
-                <h2>SIDE QUEST</h2>
+                <h2>FIRE短縮クエスト</h2>
               </div>
             </div>
-            <div id="sideHustleList" class="quest-list"></div>
+            <div id="sideHustleList" class="impact-dashboard"></div>
+            <form id="outcomeForm" class="outcome-form">
+              <label>
+                <span>成果の種類</span>
+                <select name="type">
+                  <option value="profit">副業利益</option>
+                  <option value="saving">節約</option>
+                </select>
+              </label>
+              <label>
+                <span>内容</span>
+                <select name="category"></select>
+              </label>
+              <label data-sales-field>
+                <span>売上</span>
+                <input name="sales" type="text" inputmode="numeric" data-number-input autocomplete="off" placeholder="0" />
+              </label>
+              <label>
+                <span id="outcomeAmountLabel">利益</span>
+                <input name="amount" type="text" inputmode="numeric" data-number-input autocomplete="off" placeholder="0" required />
+              </label>
+              <button type="submit">成果を記録</button>
+            </form>
+            <p id="outcomeStatus" class="save-status" role="status" aria-live="polite"></p>
+            <div id="outcomeHistory" class="outcome-history"></div>
           </article>
 
           <article class="panel journey-panel">
@@ -201,6 +225,8 @@
               <button type="button" data-quick-progress="せどり出品1件">せどり<small>+10EXP</small></button>
               <button type="button" data-quick-progress="Totebell投稿1件">Totebell<small>+20EXP</small></button>
               <button type="button" data-quick-progress="AI学習30分">AI学習<small>+15EXP</small></button>
+              <button type="button" data-quick-progress="読書30分">読書<small>+10EXP</small></button>
+              <button type="button" data-quick-progress="運動30分">運動<small>+10EXP</small></button>
             </div>
             <div id="todayQuestList" class="today-quest-list"></div>
             <div id="progressHistory" class="history-list"></div>
@@ -362,14 +388,14 @@
 
     <button id="backToTop" class="back-to-top" type="button" aria-label="ページ上部へ戻る" title="ページ上部へ戻る">↑</button>
 
-    <script src="firebase-config.js?v=30"></script>
-    <script src="jflec-data.js?v=30"></script>
-    <script src="app.js?v=30"></script>
-    <script type="module" src="firebase-sync.js?v=30"></script>
+    <script src="firebase-config.js?v=31"></script>
+    <script src="jflec-data.js?v=31"></script>
+    <script src="app.js?v=31"></script>
+    <script type="module" src="firebase-sync.js?v=31"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js?v=30");
+          navigator.serviceWorker.register("sw.js?v=31");
         });
       }
     </script>
