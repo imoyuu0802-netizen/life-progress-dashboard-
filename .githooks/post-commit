@@ -1,0 +1,11 @@
+#!/bin/sh
+
+REPO_ROOT=$(git rev-parse --show-toplevel)
+LOG_DIR="$REPO_ROOT/.netlify"
+LOG_FILE="$LOG_DIR/auto-publish.log"
+
+mkdir -p "$LOG_DIR"
+
+if ! "$REPO_ROOT/scripts/publish-netlify.sh" >>"$LOG_FILE" 2>&1; then
+  echo "Netlify auto publish failed. See $LOG_FILE" >&2
+fi
