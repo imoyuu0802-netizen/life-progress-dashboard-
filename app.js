@@ -97,10 +97,23 @@ function normalizeState(saved = {}) {
     profile: { ...defaultState.profile, ...(saved.profile || {}) },
     assets: { ...defaultState.assets, ...(saved.assets || {}) },
     assetHistory: ensureBaselineAssetHistory(saved.assetHistory || []),
-    sideHustles: saved.sideHustles || cloneDefaultState().sideHustles,
+    sideHustles: normalizeSideHustles(saved.sideHustles),
     totalXp: Number(saved.totalXp) || inferTotalXp(progressEntries),
     progressEntries
   };
+}
+
+function normalizeSideHustles(items) {
+  const savedItems = Array.isArray(items) ? items : [];
+  return defaultState.sideHustles.map((fallback, index) => {
+    const saved = savedItems.find((item) => item?.name === fallback.name) || savedItems[index] || {};
+    return {
+      name: fallback.name,
+      sales: Number(saved.sales) || 0,
+      profit: Number(saved.profit) || 0,
+      previousProfit: Number(saved.previousProfit) || 0
+    };
+  });
 }
 
 function cloneDefaultState() {
@@ -378,6 +391,14 @@ function retirementLeadYears() {
   return roundOne(averageRetirementAge - arrivalAge());
 }
 
+function formatRetirementComparison(value) {
+  const years = Math.abs(roundOne(value));
+  const formatted = Number.isInteger(years) ? years : years.toFixed(1);
+  if (value > 0) return `${formatted}年早い`;
+  if (value < 0) return `${formatted}年遅い`;
+  return "同じ年齢";
+}
+
 function roundOne(value) {
   return Math.round(value * 10) / 10;
 }
@@ -450,7 +471,7 @@ function renderFireProjection() {
   setText("arrivalAge", formatAge(arrivalAge()));
   setText("monthlyShortening", `${monthlyShorteningDays()}日`);
   setText("investmentGrowthAmount", yen.format(investmentGrowthAmount()));
-  setText("retirementLead", formatYears(retirementLeadYears()));
+  setText("retirementLead", formatRetirementComparison(retirementLeadYears()));
   setText("currentAgeDisplay", formatAge(currentAgeYears()));
 }
 
@@ -469,7 +490,17 @@ function render() {
   setText("peerBenchmarkSummary", peerRanking ? `${peerRanking.ageBand}歳代・${householdLabel}と比較` : "同年代の金融資産分布と比較");
   setText("peerPercentile", formatPeerPercentile(peerRanking));
   setText("peerBenchmarkNote", peerRanking ? `回答${numberFormatter.format(peerRanking.sample)}世帯 / 総資産を金融資産として階級内を均等推定` : "金融資産ベース・未回答を除く推定値");
-  setText("fireShortenMessage", "今日が一番若い日");
+  const todayCount = todayEntries().length;
+  const todayExperience = todayXp();
+  const shortening = monthlyShorteningDays();
+  setText(
+    "fireShortenMessage",
+    todayCount > 0
+      ? `今日は${todayCount}件前進・+${todayExperience}EXP`
+      : shortening > 0
+        ? `今月、FIREを${shortening}日短縮`
+        : "今日が一番若い日"
+  );
   setText("levelLabel", `Lv.${xp.level}`);
   setText("nextLevelXp", `${xp.nextLevelXp}EXP`);
   setText("inputStreakCount", `${streak}日`);
@@ -984,6 +1015,8 @@ function showProfileStatus(message) {
 }
 
 function exportBackup() {
+  applySettingsFormValues(document.getElementById("settingsForm"));
+  saveState();
   const backup = {
     app: "life-progress-dashboard",
     version: 1,
@@ -995,7 +1028,7 @@ function exportBackup() {
   link.href = URL.createObjectURL(blob);
   link.download = `life-progress-backup-${todayKey()}.json`;
   link.click();
-  URL.revokeObjectURL(link.href);
+  window.setTimeout(() => URL.revokeObjectURL(link.href), 1000);
   showBackupStatus("バックアップを書き出しました");
 }
 
@@ -1079,6 +1112,14 @@ document.getElementById("backupFile").addEventListener("change", (event) => {
   event.target.value = "";
 });
 
+const backToTopButton = document.getElementById("backToTop");
+window.addEventListener("scroll", () => {
+  backToTopButton.classList.toggle("is-visible", window.scrollY > 320);
+}, { passive: true });
+backToTopButton.addEventListener("click", () => {
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
+
 document.getElementById("profileForm").addEventListener("submit", (event) => {
   event.preventDefault();
   const form = event.currentTarget;
@@ -1153,10 +1194,7 @@ function snapshotForMonth(month, total) {
   };
 }
 
-document.getElementById("settingsForm").addEventListener("submit", (event) => {
-  event.preventDefault();
-  const form = event.currentTarget;
-  const previousTotal = totalAssets();
+function applySettingsFormValues(form) {
   state.assets.investments = parseInputNumber(form.elements.investments.value);
   state.assets.cash = parseInputNumber(form.elements.cash.value);
   state.assets.dividends = parseInputNumber(form.elements.dividends.value);
@@ -1169,6 +1207,13 @@ document.getElementById("settingsForm").addEventListener("submit", (event) => {
     profit: parseInputNumber(form.elements[`side-${index}-profit`].value),
     previousProfit: parseInputNumber(form.elements[`side-${index}-previousProfit`].value)
   }));
+}
+
+document.getElementById("settingsForm").addEventListener("submit", (event) => {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const previousTotal = totalAssets();
+  applySettingsFormValues(form);
   const currentTotal = totalAssets();
   state.lastMonthlyChange = {
     previousTotal,

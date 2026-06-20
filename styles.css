@@ -154,6 +154,34 @@ small {
   display: block;
 }
 
+.back-to-top {
+  position: fixed;
+  right: max(16px, env(safe-area-inset-right));
+  bottom: max(18px, env(safe-area-inset-bottom));
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  border: 1px solid rgba(240, 200, 106, 0.55);
+  border-radius: 50%;
+  background: #171b17;
+  color: var(--gold);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  font-size: 22px;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(10px);
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.back-to-top.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
 .panel {
   background: var(--surface-strong);
   border: 1px solid var(--line);

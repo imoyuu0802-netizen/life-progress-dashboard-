@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Life Progress" />
     <title>Life Progress Dashboard</title>
     <link rel="manifest" href="manifest.webmanifest?v=5" />
-    <link rel="stylesheet" href="styles.css?v=29" />
+    <link rel="stylesheet" href="styles.css?v=30" />
   </head>
   <body>
     <main class="app-shell">
@@ -83,8 +83,8 @@
                 <strong id="peerPercentile">推定 --</strong>
               </div>
               <div>
-                <small>FIREリード</small>
-                <strong id="retirementLead">--年</strong>
+                <small>65歳退職との比較</small>
+                <strong id="retirementLead">--年早い</strong>
               </div>
             </div>
             <p id="peerBenchmarkNote" class="benchmark-note">金融資産ベース・未回答を除く推定値</p>
@@ -191,18 +191,18 @@
               </div>
               <span id="todayLimit" class="pill">0 / 5</span>
             </div>
-            <div id="todayQuestList" class="today-quest-list"></div>
+            <form id="progressForm" class="entry-form">
+              <input id="progressInput" type="text" maxlength="40" placeholder="今日進めたこと" autocomplete="off" />
+              <button type="submit">記録</button>
+            </form>
+            <p id="dailyStatus" class="daily-status" role="status" aria-live="polite"></p>
             <div class="quick-actions" aria-label="よく使う前進">
               <button type="button" data-quick-progress="ゲーム出品1件">ゲーム出品<small>+10EXP</small></button>
               <button type="button" data-quick-progress="せどり出品1件">せどり<small>+10EXP</small></button>
               <button type="button" data-quick-progress="Totebell投稿1件">Totebell<small>+20EXP</small></button>
               <button type="button" data-quick-progress="AI学習30分">AI学習<small>+15EXP</small></button>
             </div>
-            <p id="dailyStatus" class="daily-status" role="status" aria-live="polite"></p>
-            <form id="progressForm" class="entry-form">
-              <input id="progressInput" type="text" maxlength="40" placeholder="例: AI学習30分" autocomplete="off" />
-              <button type="submit">記録</button>
-            </form>
+            <div id="todayQuestList" class="today-quest-list"></div>
             <div id="progressHistory" class="history-list"></div>
           </article>
 
@@ -289,12 +289,6 @@
         </article>
 
         <article class="panel settings-panel">
-          <div class="section-head">
-            <div>
-              <p class="eyebrow">Monthly</p>
-              <h2>月次更新</h2>
-            </div>
-          </div>
           <form id="settingsForm" class="settings-grid">
             <div class="monthly-summary">
               <div>
@@ -366,14 +360,16 @@
       </section>
     </main>
 
-    <script src="firebase-config.js?v=29"></script>
-    <script src="jflec-data.js?v=29"></script>
-    <script src="app.js?v=29"></script>
-    <script type="module" src="firebase-sync.js?v=29"></script>
+    <button id="backToTop" class="back-to-top" type="button" aria-label="ページ上部へ戻る" title="ページ上部へ戻る">↑</button>
+
+    <script src="firebase-config.js?v=30"></script>
+    <script src="jflec-data.js?v=30"></script>
+    <script src="app.js?v=30"></script>
+    <script type="module" src="firebase-sync.js?v=30"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js?v=29");
+          navigator.serviceWorker.register("sw.js?v=30");
         });
       }
     </script>
