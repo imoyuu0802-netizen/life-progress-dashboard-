@@ -10,7 +10,7 @@ FIRE / Coast FIREに向けた「人生の進捗が見える」モチベーショ
 https://profound-syrniki-51a45e.netlify.app/
 
 確認用（Vercel）:
-Vercel連携後に発行される `https://<プロジェクト名>.vercel.app/` を使用します。
+https://life-progress-dashboard.vercel.app/
 
 ## 主な機能
 
@@ -75,7 +75,7 @@ ifconfig en0
 
 このプロジェクトのGitHubリポジトリ:
 
-https://github.com/imoyuu0802-netizen/life-progress-dashboard
+https://github.com/imoyuu0802-netizen/life-progress-dashboard-
 
 通常はCodexが変更をコミットして、次のコマンド相当でPushします。
 
@@ -87,15 +87,15 @@ git push -u origin main
 
 1. https://vercel.com/new を開く
 2. `Continue with GitHub` でGitHubログイン
-3. `life-progress-dashboard` の右にある `Import` を押す
+3. `life-progress-dashboard-` の右にある `Import` を押す
 4. Framework Presetは `Other` のまま
 5. Build Command、Output Directory、Install Commandは空欄のまま
 6. `Deploy` を押す
-7. 表示された `https://<プロジェクト名>.vercel.app/` を確認用URLとして使う
+7. `https://life-progress-dashboard.vercel.app/` を確認用URLとして使う
 
 GitHub連携後は、PushするたびにVercelが自動更新します。Netlifyへのコミット時自動公開は停止しているため、確認だけでNetlifyクレジットは消費しません。
 
-GoogleログインもVercelで使う場合は、Firebase Consoleの `Authentication > Settings > Authorized domains` に、発行された `<プロジェクト名>.vercel.app` を追加してください。
+GoogleログインもVercelで使う場合は、Firebase Consoleの `Authentication > Settings > Authorized domains` に `life-progress-dashboard.vercel.app` を追加してください。
 
 ### 3. スマホで確認
 

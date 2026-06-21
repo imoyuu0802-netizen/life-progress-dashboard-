@@ -1,10 +1,28 @@
-# 固定URL化
+# 公開と確認
 
-## 最短: Netlify
+## 確認用: Vercel
 
-1. https://app.netlify.com/drop を開く
-2. このフォルダ内のファイル一式をアップロード
-3. 発行されたURLをスマホで開く
+確認URL:
+
+https://life-progress-dashboard.vercel.app/
+
+GitHubの `main` ブランチへPushすると自動で更新されます。
+
+```bash
+git push origin main
+```
+
+GitHubリポジトリ:
+
+https://github.com/imoyuu0802-netizen/life-progress-dashboard-
+
+## 本番用: Netlify
+
+Netlifyはクレジット節約のため自動公開を停止しています。本番へ反映するときだけ実行します。
+
+```bash
+./scripts/publish-netlify.sh
+```
 
 対象ファイル:
 
@@ -16,15 +34,8 @@
 - `icon.svg`
 - `netlify.toml`
 
-## GitHub Pages
-
-1. GitHubで新しいリポジトリを作る
-2. 上記ファイルをアップロード
-3. Settings > Pages で `main` branch / root を公開
-4. 表示された Pages URL を開く
-
 ## 運用メモ
 
 - 現在のデータはブラウザ内に保存される
-- スマホとPCでデータ同期はまだしない
+- Firebase設定とログインを行うまでは、スマホとPCのデータは同期しない
 - 資産明細はスプレッドシートを正にして、アプリには月1で集計値を転記する
