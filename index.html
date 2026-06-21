@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Life Progress" />
     <title>Life Progress Dashboard</title>
     <link rel="manifest" href="manifest.webmanifest?v=5" />
-    <link rel="stylesheet" href="styles.css?v=35" />
+    <link rel="stylesheet" href="styles.css?v=36" />
   </head>
   <body>
     <main class="app-shell">
@@ -43,14 +43,17 @@
                 <small>今月の短縮</small>
                 <strong id="monthlyShortening">0日</strong>
               </div>
-              <div>
-                <small>先月より</small>
-                <strong id="monthlyFireDelta">--</strong>
+              <div class="yearly-shortening">
+                <small>今年の短縮</small>
+                <strong id="yearlyShortening">0日</strong>
               </div>
               <div>
                 <small>現在予想</small>
                 <strong id="arrivalAge">--歳</strong>
-                <span class="inline-shortening">今年 <b id="yearlyShortening">0日</b> 短縮</span>
+              </div>
+              <div>
+                <small>先月より</small>
+                <strong id="monthlyFireDelta">--</strong>
               </div>
             </div>
           </article>
@@ -217,7 +220,7 @@
               <span id="todayLimit" class="pill">0 / 5</span>
             </div>
             <form id="progressForm" class="entry-form">
-              <input id="progressDate" type="date" aria-label="前進した日" required />
+              <input id="progressDate" class="date-input" type="date" aria-label="前進した日" required />
               <input id="progressInput" type="text" maxlength="40" placeholder="今日進めたこと" autocomplete="off" />
               <button type="submit">記録</button>
             </form>
@@ -249,7 +252,7 @@
             <form id="outcomeForm" class="outcome-form">
               <label>
                 <span>日付</span>
-                <input name="date" type="date" required />
+                <input class="date-input" name="date" type="date" required />
               </label>
               <label>
                 <span>成果の種類</span>
@@ -332,7 +335,7 @@
           <form id="profileForm" class="profile-grid">
             <label class="birth-date-field">
               <span>生年月日</span>
-              <input name="birthDate" type="date" required />
+              <input class="date-input" name="birthDate" type="date" required />
             </label>
             <label>
               <span>FIRE目標年齢</span>
@@ -408,14 +411,14 @@
 
     <button id="backToTop" class="back-to-top" type="button" aria-label="ページ上部へ戻る" title="ページ上部へ戻る">↑</button>
 
-    <script src="firebase-config.js?v=35"></script>
-    <script src="jflec-data.js?v=35"></script>
-    <script src="app.js?v=35"></script>
-    <script type="module" src="firebase-sync.js?v=35"></script>
+    <script src="firebase-config.js?v=36"></script>
+    <script src="jflec-data.js?v=36"></script>
+    <script src="app.js?v=36"></script>
+    <script type="module" src="firebase-sync.js?v=36"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js?v=35");
+          navigator.serviceWorker.register("sw.js?v=36");
         });
       }
     </script>
