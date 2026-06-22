@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Life Progress" />
     <title>Life Progress Dashboard</title>
     <link rel="manifest" href="manifest.webmanifest?v=5" />
-    <link rel="stylesheet" href="styles.css?v=36" />
+    <link rel="stylesheet" href="styles.css?v=37" />
   </head>
   <body>
     <main class="app-shell">
@@ -40,12 +40,20 @@
             </div>
             <div class="fire-days-row">
               <div>
-                <small>今月の短縮</small>
-                <strong id="monthlyShortening">0日</strong>
+                <small>今日の短縮</small>
+                <strong id="todayShortening">0日</strong>
               </div>
               <div class="yearly-shortening">
                 <small>今年の短縮</small>
                 <strong id="yearlyShortening">0日</strong>
+              </div>
+              <div>
+                <small>今月の短縮</small>
+                <strong id="monthlyShortening">0日</strong>
+              </div>
+              <div>
+                <small>次の1%</small>
+                <strong id="nextOnePercentAmount">--</strong>
               </div>
               <div>
                 <small>現在予想</small>
@@ -106,6 +114,13 @@
             </div>
             <p id="peerBenchmarkNote" class="benchmark-note">金融資産ベース・未回答を除く推定値</p>
             <a class="benchmark-source" href="https://www.j-flec.go.jp/data/kakekin_2024/" target="_blank" rel="noreferrer">出典: J-FLEC「家計の金融行動に関する世論調査 2024年」をもとに独自推計</a>
+            <div class="dividend-power">
+              <div class="dividend-power-head">
+                <small>配当で払えるもの</small>
+                <strong id="monthlyDividendPower">¥0/月</strong>
+              </div>
+              <div id="dividendPowerList" class="dividend-power-list"></div>
+            </div>
           </article>
 
           <article class="panel asset-panel">
@@ -411,14 +426,14 @@
 
     <button id="backToTop" class="back-to-top" type="button" aria-label="ページ上部へ戻る" title="ページ上部へ戻る">↑</button>
 
-    <script src="firebase-config.js?v=36"></script>
-    <script src="jflec-data.js?v=36"></script>
-    <script src="app.js?v=36"></script>
-    <script type="module" src="firebase-sync.js?v=36"></script>
+    <script src="firebase-config.js?v=37"></script>
+    <script src="jflec-data.js?v=37"></script>
+    <script src="app.js?v=37"></script>
+    <script type="module" src="firebase-sync.js?v=37"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js?v=36");
+          navigator.serviceWorker.register("sw.js?v=37");
         });
       }
     </script>

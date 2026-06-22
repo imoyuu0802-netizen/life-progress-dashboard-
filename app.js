@@ -261,6 +261,10 @@ function nextOnePercentAmount() {
   return Math.max(0, Math.ceil(amount));
 }
 
+function monthlyDividendAmount() {
+  return Math.floor((Number(state.assets.dividends) || 0) / 12);
+}
+
 function birthDateValue() {
   if (!state.profile.birthDate) return null;
   const date = new Date(`${state.profile.birthDate}T12:00:00`);
@@ -422,6 +426,10 @@ function monthlyShorteningDays() {
   return daysShortenedByAmount(Math.max(0, monthlyProfit + monthlySavings + diff));
 }
 
+function todayShorteningDays() {
+  return exactDaysShortenedByAmount(outcomeTotals(outcomeEntriesFor("today")).total);
+}
+
 function monthlySideProfit(month = currentMonthKey()) {
   return outcomeTotals(outcomeEntriesForMonth(month)).profit;
 }
@@ -553,6 +561,7 @@ function render() {
   setText("fireRate", `${rate}%`);
   setText("totalAssets", yen.format(total));
   setText("annualDividendResult", yen.format(state.assets.dividends));
+  setText("monthlyDividendPower", `${yen.format(monthlyDividendAmount())}/月`);
   setText("monthlySideProfitResult", yen.format(monthlySideProfit()));
   setText("monthlySavingResult", yen.format(monthlySavings));
   setText("yearlyAssetDiffResult", formatDiff(yearly.assetDiff));
@@ -585,7 +594,9 @@ function render() {
   setText("settingsMonthlyDiff", formatDiff(state.lastMonthlyChange?.diff));
   setText("monthlyAutoLabel", `${formatCurrentMonthLabel()}として自動記録`);
   setText("monthlyFireDelta", formatFireDaysDiff(monthlyComparison().fireAgeDiffValue));
+  setText("todayShortening", formatImpactDays(todayShorteningDays()));
   setText("yearlyShortening", formatShortening(yearlyShorteningDays()));
+  setText("nextOnePercentAmount", nextOnePercentAmount() ? `あと${yen.format(nextOnePercentAmount())}` : "達成済み");
   setSignedClass("monthlyAssetDiff", state.lastMonthlyChange?.diff);
   setSignedClass("monthlyAssetRate", monthlyAssetRateChange());
   setSignedClass("yearlyAssetDiffResult", yearly.assetDiff);
@@ -604,6 +615,7 @@ function render() {
   document.querySelector("#progressForm button").disabled = selectedEntries.length >= dailyEntryLimit;
 
   renderSideHustles();
+  renderDividendPower();
   renderOutcomeFormOptions();
   renderOutcomeHistory();
   renderAssets();
@@ -675,6 +687,35 @@ function setText(id, text) {
   const element = document.getElementById(id);
   if (!element) return;
   element.textContent = text;
+}
+
+function dividendPowerStatus(monthlyDividend, monthlyCost) {
+  if (monthlyDividend >= monthlyCost) return { symbol: "○", className: "is-full", label: "払える" };
+  if (monthlyDividend >= monthlyCost * 0.5) return { symbol: "△", className: "is-partial", label: "一部払える" };
+  return { symbol: "×", className: "is-low", label: "まだ遠い" };
+}
+
+function renderDividendPower() {
+  const container = document.getElementById("dividendPowerList");
+  if (!container) return;
+
+  const monthlyDividend = monthlyDividendAmount();
+  const items = [
+    { label: "Netflix", cost: 1490 },
+    { label: "スマホ代", cost: 10000 },
+    { label: "家族外食", cost: 5000 }
+  ];
+
+  container.innerHTML = items.map((item) => {
+    const status = dividendPowerStatus(monthlyDividend, item.cost);
+    return `
+      <div class="dividend-power-row ${status.className}">
+        <span>${item.label}</span>
+        <small>${yen.format(item.cost)}/月</small>
+        <strong aria-label="${status.label}">${status.symbol}</strong>
+      </div>
+    `;
+  }).join("");
 }
 
 function renderSideHustles() {
