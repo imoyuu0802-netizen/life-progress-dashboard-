@@ -543,8 +543,12 @@ small {
   order: 2;
 }
 
-.settings-stack .backup-panel {
+.settings-stack .share-panel {
   order: 3;
+}
+
+.settings-stack .backup-panel {
+  order: 4;
 }
 
 .birth-date-field {
@@ -561,6 +565,40 @@ small {
   font-size: 22px;
   line-height: 1.25;
   font-weight: 800;
+}
+
+.share-guide {
+  display: grid;
+  gap: 10px;
+}
+
+.share-guide > div {
+  display: grid;
+  gap: 5px;
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+}
+
+.share-guide > div:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.share-guide strong {
+  color: var(--ink);
+  font-size: 15px;
+}
+
+.share-guide span,
+.share-note {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+  font-weight: 750;
+}
+
+.share-note {
+  margin: 12px 0 0;
 }
 
 .boss-message {

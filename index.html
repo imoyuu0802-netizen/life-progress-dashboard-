@@ -407,6 +407,30 @@
           <p id="cloudStatus" class="save-status" role="status" aria-live="polite">クラウド同期は未設定です</p>
         </article>
 
+        <article class="panel share-panel">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Family Share</p>
+              <h2>妻と同じデータを見る</h2>
+            </div>
+          </div>
+          <div class="share-guide">
+            <div>
+              <strong>一番かんたん</strong>
+              <span>夫婦共通のアプリ用メールアドレスでログイン</span>
+            </div>
+            <div>
+              <strong>同じ内容になる条件</strong>
+              <span>2人とも同じログイン情報で開く</span>
+            </div>
+            <div>
+              <strong>避けること</strong>
+              <span>Googleアカウント本体のパスワード共有</span>
+            </div>
+          </div>
+          <p class="share-note">別々のアカウントで共有する方式は、家族スペース機能として後から追加できます。</p>
+        </article>
+
         <article class="panel backup-panel">
             <div>
               <p class="eyebrow">Backup</p>
@@ -426,14 +450,14 @@
 
     <button id="backToTop" class="back-to-top" type="button" aria-label="ページ上部へ戻る" title="ページ上部へ戻る">↑</button>
 
-    <script src="firebase-config.js?v=40"></script>
-    <script src="jflec-data.js?v=40"></script>
-    <script src="app.js?v=40"></script>
-    <script type="module" src="firebase-sync.js?v=40"></script>
+    <script src="firebase-config.js?v=41"></script>
+    <script src="jflec-data.js?v=41"></script>
+    <script src="app.js?v=41"></script>
+    <script type="module" src="firebase-sync.js?v=41"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js?v=40");
+          navigator.serviceWorker.register("sw.js?v=41");
         });
       }
     </script>
