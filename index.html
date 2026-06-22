@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Life Progress" />
     <title>Life Progress Dashboard</title>
     <link rel="manifest" href="manifest.webmanifest?v=5" />
-    <link rel="stylesheet" href="styles.css?v=37" />
+    <link rel="stylesheet" href="styles.css?v=38" />
   </head>
   <body>
     <main class="app-shell">
@@ -39,7 +39,7 @@
               <span id="fireProgressLabel">0%</span>
             </div>
             <div class="fire-days-row">
-              <div>
+              <div class="today-shortening">
                 <small>今日の短縮</small>
                 <strong id="todayShortening">0日</strong>
               </div>
@@ -116,8 +116,8 @@
             <a class="benchmark-source" href="https://www.j-flec.go.jp/data/kakekin_2024/" target="_blank" rel="noreferrer">出典: J-FLEC「家計の金融行動に関する世論調査 2024年」をもとに独自推計</a>
             <div class="dividend-power">
               <div class="dividend-power-head">
-                <small>配当で払えるもの</small>
-                <strong id="monthlyDividendPower">¥0/月</strong>
+                <small>年間配当で楽しめるもの</small>
+                <strong id="annualDividendPower">¥0/年</strong>
               </div>
               <div id="dividendPowerList" class="dividend-power-list"></div>
             </div>
@@ -426,14 +426,14 @@
 
     <button id="backToTop" class="back-to-top" type="button" aria-label="ページ上部へ戻る" title="ページ上部へ戻る">↑</button>
 
-    <script src="firebase-config.js?v=37"></script>
-    <script src="jflec-data.js?v=37"></script>
-    <script src="app.js?v=37"></script>
-    <script type="module" src="firebase-sync.js?v=37"></script>
+    <script src="firebase-config.js?v=38"></script>
+    <script src="jflec-data.js?v=38"></script>
+    <script src="app.js?v=38"></script>
+    <script type="module" src="firebase-sync.js?v=38"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js?v=37");
+          navigator.serviceWorker.register("sw.js?v=38");
         });
       }
     </script>

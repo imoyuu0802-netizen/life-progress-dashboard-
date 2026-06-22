@@ -561,7 +561,7 @@ function render() {
   setText("fireRate", `${rate}%`);
   setText("totalAssets", yen.format(total));
   setText("annualDividendResult", yen.format(state.assets.dividends));
-  setText("monthlyDividendPower", `${yen.format(monthlyDividendAmount())}/月`);
+  setText("annualDividendPower", `${yen.format(state.assets.dividends)}/年`);
   setText("monthlySideProfitResult", yen.format(monthlySideProfit()));
   setText("monthlySavingResult", yen.format(monthlySavings));
   setText("yearlyAssetDiffResult", formatDiff(yearly.assetDiff));
@@ -689,30 +689,36 @@ function setText(id, text) {
   element.textContent = text;
 }
 
-function dividendPowerStatus(monthlyDividend, monthlyCost) {
-  if (monthlyDividend >= monthlyCost) return { symbol: "○", className: "is-full", label: "払える" };
-  if (monthlyDividend >= monthlyCost * 0.5) return { symbol: "△", className: "is-partial", label: "一部払える" };
-  return { symbol: "×", className: "is-low", label: "まだ遠い" };
+function dividendPurchaseStatus(annualDividend, item) {
+  const count = Math.floor(annualDividend / item.cost);
+  if (count >= 1) return { className: "is-full", label: `年${count}${item.unit}` };
+
+  const remaining = Math.max(0, item.cost - annualDividend);
+  return {
+    className: annualDividend >= item.cost * 0.5 ? "is-partial" : "is-low",
+    label: `あと${yen.format(remaining)}`
+  };
 }
 
 function renderDividendPower() {
   const container = document.getElementById("dividendPowerList");
   if (!container) return;
 
-  const monthlyDividend = monthlyDividendAmount();
+  const annualDividend = Math.max(0, Number(state.assets.dividends) || 0);
   const items = [
-    { label: "Netflix", cost: 1490 },
-    { label: "スマホ代", cost: 10000 },
-    { label: "家族外食", cost: 5000 }
+    { label: "本・漫画", cost: 1500, unit: "冊" },
+    { label: "新作ゲーム", cost: 7000, unit: "本" },
+    { label: "家族ディナー", cost: 10000, unit: "回" },
+    { label: "温泉・週末旅行", cost: 30000, unit: "回" }
   ];
 
   container.innerHTML = items.map((item) => {
-    const status = dividendPowerStatus(monthlyDividend, item.cost);
+    const status = dividendPurchaseStatus(annualDividend, item);
     return `
       <div class="dividend-power-row ${status.className}">
         <span>${item.label}</span>
-        <small>${yen.format(item.cost)}/月</small>
-        <strong aria-label="${status.label}">${status.symbol}</strong>
+        <small>${yen.format(item.cost)}</small>
+        <strong>${status.label}</strong>
       </div>
     `;
   }).join("");
