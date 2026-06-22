@@ -706,10 +706,10 @@ function renderDividendPower() {
 
   const annualDividend = Math.max(0, Number(state.assets.dividends) || 0);
   const items = [
-    { label: "家族ディナー", cost: 10000, unit: "回" },
-    { label: "温泉・週末旅行", cost: 30000, unit: "回" },
-    { label: "国内旅行", cost: 80000, unit: "回" },
-    { label: "海外旅行", cost: 200000, unit: "回" }
+    { label: "家族ディナー", cost: 15000, unit: "回" },
+    { label: "温泉旅行 家族4人", cost: 180000, unit: "回" },
+    { label: "国内旅行 家族4人", cost: 300000, unit: "回" },
+    { label: "海外旅行 家族4人", cost: 900000, unit: "回" }
   ];
 
   container.innerHTML = items.map((item) => {
