@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Life Progress" />
     <title>Life Progress Dashboard</title>
     <link rel="manifest" href="manifest.webmanifest?v=5" />
-    <link rel="stylesheet" href="styles.css?v=45" />
+    <link rel="stylesheet" href="styles.css?v=46" />
   </head>
   <body>
     <main class="app-shell">
@@ -21,8 +21,9 @@
       </header>
 
       <nav class="view-nav" aria-label="画面切り替え">
-        <button class="view-tab is-active" type="button" data-view-target="overview">現在地</button>
-        <button class="view-tab" type="button" data-view-target="input">入力</button>
+        <button class="view-tab is-active" type="button" data-view-target="overview">ホーム</button>
+        <button class="view-tab" type="button" data-view-target="input">記録</button>
+        <button class="view-tab" type="button" data-view-target="review">振り返り</button>
       </nav>
 
       <section id="view-overview" class="view is-active">
@@ -148,7 +149,10 @@
 
         </section>
 
-        <section class="content-grid">
+      </section>
+
+      <section id="view-review" class="view">
+        <section class="content-grid review-grid">
           <article class="panel victory-panel">
             <div class="section-head">
               <div>
@@ -194,30 +198,10 @@
             </div>
           </article>
         </section>
-
       </section>
 
       <section id="view-input" class="view">
         <section class="content-grid input-view-stack">
-          <article class="panel daily-panel">
-            <div class="section-head">
-              <div>
-                <p class="eyebrow">Daily Move</p>
-                <h2>前進を記録</h2>
-              </div>
-              <span id="todayLimit" class="pill">0 / 5</span>
-            </div>
-            <form id="progressForm" class="entry-form">
-              <input id="progressDate" class="date-input" type="date" aria-label="前進した日" required />
-              <input id="progressInput" type="text" maxlength="40" placeholder="今日進めたこと" autocomplete="off" />
-              <button type="submit">記録</button>
-            </form>
-            <p id="dailyStatus" class="daily-status" role="status" aria-live="polite"></p>
-            <div id="quickActions" class="quick-actions" aria-label="よく使う前進"></div>
-            <div id="todayQuestList" class="today-quest-list"></div>
-            <div id="progressHistory" class="history-list"></div>
-          </article>
-
           <article class="panel outcome-input-panel">
             <div class="section-head">
               <div>
@@ -292,6 +276,25 @@
               <p id="saveStatus" class="save-status" role="status" aria-live="polite"></p>
             </form>
           </article>
+
+          <article class="panel daily-panel secondary-entry-panel">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Daily Move</p>
+                <h2>前進を記録</h2>
+              </div>
+              <span id="todayLimit" class="pill">0 / 5</span>
+            </div>
+            <form id="progressForm" class="entry-form">
+              <input id="progressDate" class="date-input" type="date" aria-label="前進した日" required />
+              <input id="progressInput" type="text" maxlength="40" placeholder="今日進めたこと" autocomplete="off" />
+              <button type="submit">記録</button>
+            </form>
+            <p id="dailyStatus" class="daily-status" role="status" aria-live="polite"></p>
+            <div id="quickActions" class="quick-actions" aria-label="よく使う前進"></div>
+            <div id="todayQuestList" class="today-quest-list"></div>
+            <div id="progressHistory" class="history-list"></div>
+          </article>
         </section>
       </section>
 
@@ -338,7 +341,7 @@
           </div>
           <details class="customization-group" open>
             <summary>ワンタップ前進</summary>
-            <p class="customization-note">よく行う前進を登録すると、入力画面から1タップで記録できます。</p>
+            <p class="customization-note">よく行う前進を登録すると、記録画面から1タップで記録できます。</p>
             <div id="quickActionSettingsList" class="custom-settings-list"></div>
             <form id="quickActionForm" class="custom-add-form">
               <label><span>表示名</span><input name="label" maxlength="16" placeholder="例：資格勉強" required /></label>
@@ -353,6 +356,25 @@
             <form id="dividendGoalForm" class="custom-add-form reward-add-form">
               <label><span>叶えたいこと</span><input name="label" maxlength="24" placeholder="例：旅行" required /></label>
               <label><span>必要金額</span><input name="cost" type="text" inputmode="numeric" data-number-input placeholder="100,000" required /></label>
+              <button type="submit">追加</button>
+            </form>
+          </details>
+          <details class="customization-group">
+            <summary>今月の勝利条件</summary>
+            <p class="customization-note">今月達成したい成果を、種類と目標値で設定できます。</p>
+            <div id="victoryGoalSettingsList" class="custom-settings-list"></div>
+            <form id="victoryGoalForm" class="custom-add-form victory-add-form">
+              <label><span>表示名</span><input name="label" maxlength="20" placeholder="例：副業1万円" required /></label>
+              <label>
+                <span>種類</span>
+                <select name="metric" required>
+                  <option value="profit">副業利益</option>
+                  <option value="saving">節約</option>
+                  <option value="assetGrowth">資産増加</option>
+                  <option value="progressCount">前進回数</option>
+                </select>
+              </label>
+              <label><span>目標値</span><input name="target" type="text" inputmode="numeric" data-number-input placeholder="10,000" required /></label>
               <button type="submit">追加</button>
             </form>
           </details>
@@ -413,14 +435,14 @@
 
     <button id="backToTop" class="back-to-top" type="button" aria-label="ページ上部へ戻る" title="ページ上部へ戻る">↑</button>
 
-    <script src="firebase-config.js?v=45"></script>
-    <script src="jflec-data.js?v=45"></script>
-    <script src="app.js?v=45"></script>
-    <script type="module" src="firebase-sync.js?v=45"></script>
+    <script src="firebase-config.js?v=46"></script>
+    <script src="jflec-data.js?v=46"></script>
+    <script src="app.js?v=46"></script>
+    <script type="module" src="firebase-sync.js?v=46"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js?v=45");
+          navigator.serviceWorker.register("sw.js?v=46");
         });
       }
     </script>

@@ -45,6 +45,11 @@ const defaultState = {
     { id: "reward-daytrip", label: "日帰りのお出かけ", cost: 30000 },
     { id: "reward-trip", label: "旅行", cost: 150000 }
   ],
+  victoryGoals: [
+    { id: "victory-profit", label: "副業利益", metric: "profit", target: 10000 },
+    { id: "victory-asset", label: "資産増加", metric: "assetGrowth", target: 50000 },
+    { id: "victory-saving", label: "節約", metric: "saving", target: 5000 }
+  ],
   legacyOutcomeMigrationComplete: true
 };
 
@@ -121,6 +126,7 @@ function normalizeState(saved = {}) {
     outcomeEntries: outcomeMigration.entries,
     quickActions: normalizeQuickActions(saved.quickActions),
     dividendGoals: normalizeDividendGoals(saved.dividendGoals),
+    victoryGoals: normalizeVictoryGoals(saved.victoryGoals),
     legacyOutcomeMigrationComplete: outcomeMigration.complete
   };
 }
@@ -201,6 +207,20 @@ function normalizeDividendGoals(items) {
       id: String(item.id || `reward-${index}-${String(item.label).slice(0, 12)}`),
       label: String(item.label).trim().slice(0, 24),
       cost: Math.max(1, Math.round(Number(item.cost) || 0))
+    }));
+}
+
+function normalizeVictoryGoals(items) {
+  const source = Array.isArray(items) ? items : defaultState.victoryGoals;
+  const validMetrics = ["profit", "saving", "assetGrowth", "progressCount"];
+  return source
+    .filter((item) => item && String(item.label || "").trim() && validMetrics.includes(item.metric) && Number(item.target) > 0)
+    .slice(0, 8)
+    .map((item, index) => ({
+      id: String(item.id || `victory-${index}-${String(item.label).slice(0, 12)}`),
+      label: String(item.label).trim().slice(0, 20),
+      metric: item.metric,
+      target: Math.max(1, Math.round(Number(item.target) || 0))
     }));
 }
 
@@ -720,6 +740,7 @@ function renderQuickActions() {
 function renderCustomizationSettings() {
   const quickList = document.getElementById("quickActionSettingsList");
   const rewardList = document.getElementById("dividendGoalSettingsList");
+  const victoryList = document.getElementById("victoryGoalSettingsList");
 
   quickList.innerHTML = state.quickActions.length
     ? state.quickActions.map((item) => `
@@ -740,6 +761,25 @@ function renderCustomizationSettings() {
       </div>
     `).join("")
     : '<p class="custom-empty">配当で叶えたいことは未設定です</p>';
+
+  victoryList.innerHTML = state.victoryGoals.length
+    ? state.victoryGoals.map((item) => `
+      <div class="custom-setting-row victory-setting-row" data-victory-setting="${escapeHtml(item.id)}">
+        <label><span>表示名</span><input data-victory-field="label" value="${escapeHtml(item.label)}" maxlength="20" /></label>
+        <label>
+          <span>種類</span>
+          <select data-victory-field="metric">
+            <option value="profit" ${item.metric === "profit" ? "selected" : ""}>副業利益</option>
+            <option value="saving" ${item.metric === "saving" ? "selected" : ""}>節約</option>
+            <option value="assetGrowth" ${item.metric === "assetGrowth" ? "selected" : ""}>資産増加</option>
+            <option value="progressCount" ${item.metric === "progressCount" ? "selected" : ""}>前進回数</option>
+          </select>
+        </label>
+        <label><span>目標値</span><input data-victory-field="target" type="text" inputmode="numeric" data-number-input value="${formatInputNumber(item.target)}" /></label>
+        <button class="delete-custom-item" type="button" data-delete-victory-goal="${escapeHtml(item.id)}">削除</button>
+      </div>
+    `).join("")
+    : '<p class="custom-empty">今月の勝利条件は未設定です</p>';
 }
 
 function renderSideHustles() {
@@ -924,36 +964,33 @@ function yearlyShorteningDays() {
   return daysShortenedByAmount(Math.max(0, comparison.assetDiff));
 }
 
-function monthlyAiStudyMinutes() {
-  return monthlyProgressEntries().reduce((sum, entry) => {
-    if (!entry.text.includes("AI学習")) return sum;
-    const match = entry.text.match(/(\d+)\s*分/);
-    return sum + (match ? Number(match[1]) : 30);
-  }, 0);
+function victoryMetricValue(metric) {
+  const assetDiff = state.lastMonthlyChange?.diff || diffFromSnapshot(findSnapshot(previousMonthKey(currentMonthKey())), "total", totalAssets());
+  const savings = outcomeTotals(outcomeEntriesFor("month")).saving;
+  if (metric === "profit") return monthlySideProfit();
+  if (metric === "saving") return savings;
+  if (metric === "assetGrowth") return assetDiff;
+  if (metric === "progressCount") return monthlyProgressEntries().length;
+  return 0;
 }
 
 function monthlyVictoryConditions() {
-  const assetDiff = state.lastMonthlyChange?.diff || diffFromSnapshot(findSnapshot(previousMonthKey(currentMonthKey())), "total", totalAssets());
-  const savings = outcomeTotals(outcomeEntriesFor("month")).saving;
-  const aiMinutes = monthlyAiStudyMinutes();
-
-  return [
-    { label: "副業利益", current: monthlySideProfit(), target: 10000, unit: "money" },
-    { label: "資産増加", current: assetDiff, target: 50000, unit: "money" },
-    { label: "節約", current: savings, target: 5000, unit: "money" },
-    { label: "AI学習", current: aiMinutes, target: 600, unit: "time" }
-  ];
+  return state.victoryGoals.map((goal) => ({
+    ...goal,
+    current: victoryMetricValue(goal.metric),
+    unit: goal.metric === "progressCount" ? "count" : "money"
+  }));
 }
 
 function renderVictoryConditions() {
   const conditions = monthlyVictoryConditions();
   const achieved = conditions.filter((item) => item.current >= item.target).length;
-  setText("victoryRate", `${Math.round((achieved / conditions.length) * 100)}%`);
-  document.getElementById("victoryList").innerHTML = conditions
+  setText("victoryRate", conditions.length ? `${Math.round((achieved / conditions.length) * 100)}%` : "未設定");
+  document.getElementById("victoryList").innerHTML = conditions.length ? conditions
     .map((item) => {
       const done = item.current >= item.target;
-      const current = item.unit === "time" ? `${roundOne(item.current / 60)}時間` : yen.format(item.current);
-      const target = item.unit === "time" ? `${roundOne(item.target / 60)}時間` : yen.format(item.target);
+      const current = item.unit === "count" ? `${numberFormatter.format(item.current)}回` : yen.format(item.current);
+      const target = item.unit === "count" ? `${numberFormatter.format(item.target)}回` : yen.format(item.target);
       return `
         <div class="victory-row ${done ? "is-done" : ""}">
           <span>${done ? "OK" : ""}</span>
@@ -962,7 +999,7 @@ function renderVictoryConditions() {
         </div>
       `;
     })
-    .join("");
+    .join("") : '<p class="outcome-empty">設定で今月の勝利条件を追加できます</p>';
 }
 
 function diffFromSnapshot(snapshot, key, currentValue) {
@@ -1517,6 +1554,58 @@ document.getElementById("dividendGoalForm").addEventListener("submit", (event) =
   showCustomizationStatus("配当目標を追加しました");
 });
 
+document.getElementById("victoryGoalSettingsList").addEventListener("input", (event) => {
+  if (!event.target.matches("[data-number-input]")) return;
+  event.target.value = formatNumericInputValue(event.target.value);
+});
+
+document.getElementById("victoryGoalSettingsList").addEventListener("change", (event) => {
+  const row = event.target.closest("[data-victory-setting]");
+  if (!row || !event.target.matches("[data-victory-field]")) return;
+  const item = state.victoryGoals.find((goal) => goal.id === row.dataset.victorySetting);
+  if (!item) return;
+  const field = event.target.dataset.victoryField;
+  const value = event.target.value.trim();
+  if ((field === "target" && parseInputNumber(value) <= 0) || (field === "label" && !value)) {
+    render();
+    showCustomizationStatus("名称と1以上の目標値を入力してください");
+    return;
+  }
+  item[field] = field === "target" ? parseInputNumber(value) : value;
+  state.victoryGoals = normalizeVictoryGoals(state.victoryGoals);
+  saveState();
+  render();
+  showCustomizationStatus("勝利条件を更新しました");
+});
+
+document.getElementById("victoryGoalForm").addEventListener("input", (event) => {
+  if (!event.target.matches("[data-number-input]")) return;
+  event.target.value = formatNumericInputValue(event.target.value);
+});
+
+document.getElementById("victoryGoalForm").addEventListener("submit", (event) => {
+  event.preventDefault();
+  if (state.victoryGoals.length >= 8) {
+    showCustomizationStatus("勝利条件は8件までです");
+    return;
+  }
+  const form = event.currentTarget;
+  const label = form.elements.label.value.trim();
+  const target = parseInputNumber(form.elements.target.value);
+  if (!label || target <= 0) return;
+  state.victoryGoals.push({
+    id: `victory-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    label,
+    metric: form.elements.metric.value,
+    target
+  });
+  state.victoryGoals = normalizeVictoryGoals(state.victoryGoals);
+  saveState();
+  form.reset();
+  render();
+  showCustomizationStatus("勝利条件を追加しました");
+});
+
 document.getElementById("customizationPanel").addEventListener("click", (event) => {
   const quickButton = event.target.closest("[data-delete-quick-action]");
   if (quickButton) {
@@ -1528,11 +1617,20 @@ document.getElementById("customizationPanel").addEventListener("click", (event) 
   }
 
   const rewardButton = event.target.closest("[data-delete-dividend-goal]");
-  if (!rewardButton) return;
-  state.dividendGoals = state.dividendGoals.filter((item) => item.id !== rewardButton.dataset.deleteDividendGoal);
+  if (rewardButton) {
+    state.dividendGoals = state.dividendGoals.filter((item) => item.id !== rewardButton.dataset.deleteDividendGoal);
+    saveState();
+    render();
+    showCustomizationStatus("配当目標を削除しました");
+    return;
+  }
+
+  const victoryButton = event.target.closest("[data-delete-victory-goal]");
+  if (!victoryButton) return;
+  state.victoryGoals = state.victoryGoals.filter((item) => item.id !== victoryButton.dataset.deleteVictoryGoal);
   saveState();
   render();
-  showCustomizationStatus("配当目標を削除しました");
+  showCustomizationStatus("勝利条件を削除しました");
 });
 
 function deleteProgress(id) {
