@@ -423,7 +423,7 @@ function monthlyShorteningDays() {
   const monthlyProfit = monthlySideProfit();
   const monthlySavings = outcomeTotals(outcomeEntriesFor("month")).saving;
   const diff = state.lastMonthlyChange?.diff || 0;
-  return daysShortenedByAmount(Math.max(0, monthlyProfit + monthlySavings + diff));
+  return exactDaysShortenedByAmount(Math.max(0, monthlyProfit + monthlySavings + diff));
 }
 
 function todayShorteningDays() {
@@ -544,7 +544,7 @@ function renderFireProjection() {
   const fireDays = daysToFire();
   setText("fireDistanceHero", `あと${numberFormatter.format(fireDays)}日（約${yearsToFireDecimal().toFixed(1)}年）`);
   setText("arrivalAge", formatAge(arrivalAge()));
-  setText("monthlyShortening", `${monthlyShorteningDays()}日`);
+  setText("monthlyShortening", formatShortening(monthlyShorteningDays()));
   setText("investmentGrowthAmount", yen.format(investmentGrowthAmount()));
   setText("retirementLead", formatRetirementComparison(retirementLeadYears()));
   setText("currentAgeDisplay", formatAge(currentAgeYears()));
@@ -581,7 +581,7 @@ function render() {
     todayCount > 0
       ? `今日は${todayCount}件前進・+${todayExperience}EXP`
       : shortening > 0
-        ? `今月、FIREを${shortening}日短縮`
+        ? `今月、FIREを${formatShortening(shortening)}短縮`
         : "今日が一番若い日"
   );
   setText("levelLabel", `Lv.${xp.level}`);
@@ -642,8 +642,9 @@ function setSignedClass(id, value) {
 }
 
 function formatShortening(days) {
+  if (days < 1) return formatImpactDays(days);
   if (days >= 365) return `${(days / 365).toFixed(1)}年`;
-  return `${days}日`;
+  return `${Math.round(days)}日`;
 }
 
 function formatCompactYen(value) {
@@ -707,9 +708,9 @@ function renderDividendPower() {
   const annualDividend = Math.max(0, Number(state.assets.dividends) || 0);
   const items = [
     { label: "家族ディナー", cost: 15000, unit: "回" },
-    { label: "温泉旅行 家族4人", cost: 180000, unit: "回" },
-    { label: "国内旅行 家族4人", cost: 300000, unit: "回" },
-    { label: "海外旅行 家族4人", cost: 900000, unit: "回" }
+    { label: "道内旅行", cost: 60000, unit: "回" },
+    { label: "国内旅行（航空券込）", cost: 150000, unit: "回" },
+    { label: "海外旅行（航空券込）", cost: 600000, unit: "回" }
   ];
 
   container.innerHTML = items.map((item) => {
@@ -758,8 +759,16 @@ function renderImpactPeriod(title, totals, period) {
 }
 
 function formatImpactDays(days) {
-  if (days === 0) return "0日";
-  if (days < 0.1) return "0.1日未満";
+  if (!Number.isFinite(days) || days <= 0) return "0分";
+  if (days < 1) {
+    const rawMinutes = days * 24 * 60;
+    if (rawMinutes < 1) return "1分未満";
+    const totalMinutes = Math.round(rawMinutes);
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    if (!hours) return `${minutes}分`;
+    return minutes ? `${hours}時間${minutes}分` : `${hours}時間`;
+  }
   return `${days.toFixed(1)}日`;
 }
 

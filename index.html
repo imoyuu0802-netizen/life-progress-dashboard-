@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Life Progress" />
     <title>Life Progress Dashboard</title>
     <link rel="manifest" href="manifest.webmanifest?v=5" />
-    <link rel="stylesheet" href="styles.css?v=40" />
+    <link rel="stylesheet" href="styles.css?v=43" />
   </head>
   <body>
     <main class="app-shell">
@@ -41,7 +41,7 @@
             <div class="fire-days-row">
               <div class="today-shortening">
                 <small>今日の短縮</small>
-                <strong id="todayShortening">0日</strong>
+                <strong id="todayShortening">0分</strong>
               </div>
               <div class="yearly-shortening">
                 <small>今年の短縮</small>
@@ -450,14 +450,14 @@
 
     <button id="backToTop" class="back-to-top" type="button" aria-label="ページ上部へ戻る" title="ページ上部へ戻る">↑</button>
 
-    <script src="firebase-config.js?v=42"></script>
-    <script src="jflec-data.js?v=42"></script>
-    <script src="app.js?v=42"></script>
-    <script type="module" src="firebase-sync.js?v=42"></script>
+    <script src="firebase-config.js?v=43"></script>
+    <script src="jflec-data.js?v=43"></script>
+    <script src="app.js?v=43"></script>
+    <script type="module" src="firebase-sync.js?v=43"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js?v=42");
+          navigator.serviceWorker.register("sw.js?v=43");
         });
       }
     </script>
