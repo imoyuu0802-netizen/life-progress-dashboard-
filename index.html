@@ -8,22 +8,22 @@
     <meta name="apple-mobile-web-app-title" content="Life Progress" />
     <title>Life Progress Dashboard</title>
     <link rel="manifest" href="manifest.webmanifest?v=5" />
-    <link rel="stylesheet" href="styles.css?v=43" />
+    <link rel="stylesheet" href="styles.css?v=44" />
   </head>
   <body>
     <main class="app-shell">
       <header class="hero">
         <div>
           <p class="eyebrow">Life Progress</p>
-          <h1>45歳FIREへの冒険</h1>
+          <h1>FIREへの冒険</h1>
         </div>
+        <button class="settings-trigger" type="button" data-view-target="settings" aria-label="設定を開く" title="設定">⚙</button>
       </header>
 
       <nav class="view-nav" aria-label="画面切り替え">
         <button class="view-tab is-active" type="button" data-view-target="overview">現在地</button>
         <button class="view-tab" type="button" data-view-target="score">スコア・EXP</button>
         <button class="view-tab" type="button" data-view-target="input">入力</button>
-        <button class="view-tab" type="button" data-view-target="settings">設定</button>
       </nav>
 
       <section id="view-overview" class="view is-active">
@@ -240,14 +240,7 @@
               <button type="submit">記録</button>
             </form>
             <p id="dailyStatus" class="daily-status" role="status" aria-live="polite"></p>
-            <div class="quick-actions" aria-label="よく使う前進">
-              <button type="button" data-quick-progress="ゲーム出品1件">ゲーム出品<small>+10EXP</small></button>
-              <button type="button" data-quick-progress="せどり出品1件">せどり<small>+10EXP</small></button>
-              <button type="button" data-quick-progress="Totebell投稿1件">Totebell<small>+20EXP</small></button>
-              <button type="button" data-quick-progress="AI学習30分">AI学習<small>+15EXP</small></button>
-              <button type="button" data-quick-progress="読書30分">読書<small>+10EXP</small></button>
-              <button type="button" data-quick-progress="運動30分">運動<small>+10EXP</small></button>
-            </div>
+            <div id="quickActions" class="quick-actions" aria-label="よく使う前進"></div>
             <div id="todayQuestList" class="today-quest-list"></div>
             <div id="progressHistory" class="history-list"></div>
           </article>
@@ -280,10 +273,6 @@
                 <span>内容</span>
                 <input name="category" type="text" maxlength="30" list="outcomeCategorySuggestions" placeholder="内容を入力" required />
                 <datalist id="outcomeCategorySuggestions"></datalist>
-              </label>
-              <label data-sales-field>
-                <span>売上</span>
-                <input name="sales" type="text" inputmode="numeric" data-number-input autocomplete="off" placeholder="0" />
               </label>
               <label>
                 <span id="outcomeAmountLabel">利益</span>
@@ -372,6 +361,37 @@
           </form>
         </article>
 
+        <article id="customizationPanel" class="panel customization-panel">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Customize</p>
+              <h2>自分用にカスタマイズ</h2>
+            </div>
+          </div>
+          <details class="customization-group" open>
+            <summary>ワンタップ前進</summary>
+            <p class="customization-note">よく行う前進を登録すると、スコア・EXP画面から1タップで記録できます。</p>
+            <div id="quickActionSettingsList" class="custom-settings-list"></div>
+            <form id="quickActionForm" class="custom-add-form">
+              <label><span>表示名</span><input name="label" maxlength="16" placeholder="例：資格勉強" required /></label>
+              <label><span>記録内容</span><input name="text" maxlength="40" placeholder="例：資格勉強を30分した" required /></label>
+              <label class="compact-field"><span>EXP</span><input name="xp" type="number" inputmode="numeric" min="1" max="100" value="10" required /></label>
+              <button type="submit">追加</button>
+            </form>
+          </details>
+          <details class="customization-group">
+            <summary>配当で叶えたいこと</summary>
+            <p class="customization-note">欲しいものや体験を金額と一緒に登録できます。</p>
+            <div id="dividendGoalSettingsList" class="custom-settings-list"></div>
+            <form id="dividendGoalForm" class="custom-add-form reward-add-form">
+              <label><span>叶えたいこと</span><input name="label" maxlength="24" placeholder="例：旅行" required /></label>
+              <label><span>必要金額</span><input name="cost" type="text" inputmode="numeric" data-number-input placeholder="100,000" required /></label>
+              <button type="submit">追加</button>
+            </form>
+          </details>
+          <p id="customizationStatus" class="save-status" role="status" aria-live="polite"></p>
+        </article>
+
         <article class="panel cloud-panel">
           <div class="section-head">
             <div>
@@ -407,30 +427,6 @@
           <p id="cloudStatus" class="save-status" role="status" aria-live="polite">クラウド同期は未設定です</p>
         </article>
 
-        <article class="panel share-panel">
-          <div class="section-head">
-            <div>
-              <p class="eyebrow">Family Share</p>
-              <h2>妻と同じデータを見る</h2>
-            </div>
-          </div>
-          <div class="share-guide">
-            <div>
-              <strong>一番かんたん</strong>
-              <span>夫婦共通のアプリ用メールアドレスでログイン</span>
-            </div>
-            <div>
-              <strong>同じ内容になる条件</strong>
-              <span>2人とも同じログイン情報で開く</span>
-            </div>
-            <div>
-              <strong>避けること</strong>
-              <span>Googleアカウント本体のパスワード共有</span>
-            </div>
-          </div>
-          <p class="share-note">別々のアカウントで共有する方式は、家族スペース機能として後から追加できます。</p>
-        </article>
-
         <article class="panel backup-panel">
             <div>
               <p class="eyebrow">Backup</p>
@@ -450,14 +446,14 @@
 
     <button id="backToTop" class="back-to-top" type="button" aria-label="ページ上部へ戻る" title="ページ上部へ戻る">↑</button>
 
-    <script src="firebase-config.js?v=43"></script>
-    <script src="jflec-data.js?v=43"></script>
-    <script src="app.js?v=43"></script>
-    <script type="module" src="firebase-sync.js?v=43"></script>
+    <script src="firebase-config.js?v=44"></script>
+    <script src="jflec-data.js?v=44"></script>
+    <script src="app.js?v=44"></script>
+    <script type="module" src="firebase-sync.js?v=44"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js?v=43");
+          navigator.serviceWorker.register("sw.js?v=44");
         });
       }
     </script>

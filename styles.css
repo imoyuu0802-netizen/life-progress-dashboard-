@@ -46,11 +46,29 @@ select {
 
 .hero {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
   gap: 16px;
   min-height: 118px;
   padding: 12px 2px 18px;
+}
+
+.settings-trigger {
+  flex: 0 0 44px;
+  width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--soft);
+  color: var(--ink);
+  font-size: 21px;
+  line-height: 1;
+}
+
+.settings-trigger.is-active {
+  background: var(--ink);
+  color: #10120f;
 }
 
 .eyebrow {
@@ -119,7 +137,7 @@ small {
   top: 0;
   z-index: 5;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 6px;
   margin: 0 0 10px;
   padding: 8px;
@@ -543,12 +561,8 @@ small {
   order: 2;
 }
 
-.settings-stack .share-panel {
-  order: 3;
-}
-
 .settings-stack .backup-panel {
-  order: 4;
+  order: 3;
 }
 
 .birth-date-field {
@@ -565,40 +579,6 @@ small {
   font-size: 22px;
   line-height: 1.25;
   font-weight: 800;
-}
-
-.share-guide {
-  display: grid;
-  gap: 10px;
-}
-
-.share-guide > div {
-  display: grid;
-  gap: 5px;
-  padding: 12px 0;
-  border-top: 1px solid var(--line);
-}
-
-.share-guide > div:first-child {
-  border-top: 0;
-  padding-top: 0;
-}
-
-.share-guide strong {
-  color: var(--ink);
-  font-size: 15px;
-}
-
-.share-guide span,
-.share-note {
-  color: var(--muted);
-  font-size: 13px;
-  line-height: 1.55;
-  font-weight: 750;
-}
-
-.share-note {
-  margin: 12px 0 0;
 }
 
 .boss-message {
@@ -1260,6 +1240,105 @@ small {
   font-weight: 850;
 }
 
+.quick-actions-empty,
+.custom-empty {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 12px;
+  color: var(--muted);
+  background: var(--soft);
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  font-size: 12px;
+  text-align: center;
+}
+
+.customization-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.customization-group {
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+}
+
+.customization-group summary {
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 850;
+}
+
+.customization-note {
+  margin: 8px 0 10px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.custom-settings-list {
+  display: grid;
+  gap: 8px;
+}
+
+.custom-setting-row,
+.custom-add-form {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr) 74px 58px;
+  gap: 8px;
+  align-items: end;
+}
+
+.reward-setting-row,
+.reward-add-form {
+  grid-template-columns: minmax(0, 1.2fr) minmax(120px, 0.8fr) 58px;
+}
+
+.custom-setting-row {
+  padding: 10px;
+  background: var(--soft);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.custom-setting-row label,
+.custom-add-form label {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.custom-setting-row label span,
+.custom-add-form label span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.custom-setting-row input,
+.custom-add-form input,
+.custom-add-form button,
+.delete-custom-item {
+  min-height: 42px;
+}
+
+.custom-add-form {
+  margin-top: 10px;
+}
+
+.custom-add-form button {
+  background: var(--green);
+  color: #07100b;
+}
+
+.delete-custom-item {
+  padding: 0 8px;
+  background: transparent;
+  color: var(--danger);
+  border: 1px solid var(--danger);
+  font-size: 12px;
+}
+
 .daily-status {
   min-height: 20px;
   margin-bottom: 8px;
@@ -1753,6 +1832,40 @@ button:disabled {
   background: var(--soft);
   color: var(--ink);
   border: 1px solid var(--line);
+}
+
+@media (max-width: 759px) {
+  .custom-setting-row,
+  .custom-add-form,
+  .reward-setting-row,
+  .reward-add-form {
+    grid-template-columns: minmax(0, 1fr) minmax(88px, 0.45fr);
+  }
+
+  .custom-setting-row label:nth-child(2),
+  .custom-add-form label:nth-child(2) {
+    grid-column: 1 / -1;
+  }
+
+  .custom-setting-row .compact-field,
+  .custom-add-form .compact-field {
+    grid-column: 1;
+  }
+
+  .custom-setting-row .delete-custom-item,
+  .custom-add-form button {
+    grid-column: 2;
+  }
+
+  .reward-setting-row label:nth-child(1),
+  .reward-add-form label:nth-child(1) {
+    grid-column: 1 / -1;
+  }
+
+  .reward-setting-row label:nth-child(2),
+  .reward-add-form label:nth-child(2) {
+    grid-column: 1;
+  }
 }
 
 @media (min-width: 760px) {

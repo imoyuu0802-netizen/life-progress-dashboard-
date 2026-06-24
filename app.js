@@ -2,8 +2,8 @@ const storageKey = "life-progress-dashboard-v1";
 const dailyEntryLimit = 5;
 const averageRetirementAge = 65;
 const outcomeCategories = {
-  profit: ["ゲーム販売", "Totebell", "その他副業"],
-  saving: ["スタバを我慢", "外食を減らした", "固定費削減", "その他の節約"]
+  profit: ["商品販売", "コンテンツ販売", "受託・サービス", "その他副業"],
+  saving: ["買い物を見送った", "外食を減らした", "固定費削減", "その他の節約"]
 };
 
 const defaultState = {
@@ -26,8 +26,8 @@ const defaultState = {
     { month: "2025-12", total: 12368409, dividends: null, sideProfit: null, fireAge: null }
   ],
   sideHustles: [
-    { name: "ゲーム販売", sales: 0, profit: 0, previousProfit: 0 },
-    { name: "Totebell", sales: 0, profit: 0, previousProfit: 0 },
+    { name: "商品販売", sales: 0, profit: 0, previousProfit: 0 },
+    { name: "コンテンツ販売", sales: 0, profit: 0, previousProfit: 0 },
     { name: "その他副業", sales: 0, profit: 0, previousProfit: 0 }
   ],
   lastUpdatedAt: null,
@@ -35,6 +35,17 @@ const defaultState = {
   totalXp: 0,
   progressEntries: [],
   outcomeEntries: [],
+  quickActions: [
+    { id: "quick-learning", label: "学習30分", text: "学習30分", xp: 10 },
+    { id: "quick-exercise", label: "運動30分", text: "運動30分", xp: 10 },
+    { id: "quick-side-work", label: "副業作業", text: "副業作業を進めた", xp: 15 },
+    { id: "quick-reading", label: "読書30分", text: "読書30分", xp: 10 }
+  ],
+  dividendGoals: [
+    { id: "reward-dinner", label: "特別なディナー", cost: 15000 },
+    { id: "reward-daytrip", label: "日帰りのお出かけ", cost: 30000 },
+    { id: "reward-trip", label: "旅行", cost: 150000 }
+  ],
   legacyOutcomeMigrationComplete: true
 };
 
@@ -44,6 +55,7 @@ let saveStatusTimer = null;
 let dailyStatusTimer = null;
 let backupStatusTimer = null;
 let profileStatusTimer = null;
+let customizationStatusTimer = null;
 let outcomeStatusTimer = null;
 
 const yen = new Intl.NumberFormat("ja-JP", {
@@ -109,6 +121,8 @@ function normalizeState(saved = {}) {
     totalXp: Number(saved.totalXp) || inferTotalXp(progressEntries),
     progressEntries,
     outcomeEntries: outcomeMigration.entries,
+    quickActions: normalizeQuickActions(saved.quickActions),
+    dividendGoals: normalizeDividendGoals(saved.dividendGoals),
     legacyOutcomeMigrationComplete: outcomeMigration.complete
   };
 }
@@ -166,6 +180,31 @@ function normalizeSideHustles(items) {
       previousProfit: Number(saved.previousProfit) || 0
     };
   });
+}
+
+function normalizeQuickActions(items) {
+  const source = Array.isArray(items) ? items : defaultState.quickActions;
+  return source
+    .filter((item) => item && String(item.label || item.text || "").trim())
+    .slice(0, 8)
+    .map((item, index) => ({
+      id: String(item.id || `quick-${index}-${String(item.label || item.text).slice(0, 12)}`),
+      label: String(item.label || item.text).trim().slice(0, 16),
+      text: String(item.text || item.label).trim().slice(0, 40),
+      xp: Math.min(100, Math.max(1, Number(item.xp) || 5))
+    }));
+}
+
+function normalizeDividendGoals(items) {
+  const source = Array.isArray(items) ? items : defaultState.dividendGoals;
+  return source
+    .filter((item) => item && String(item.label || "").trim() && Number(item.cost) > 0)
+    .slice(0, 8)
+    .map((item, index) => ({
+      id: String(item.id || `reward-${index}-${String(item.label).slice(0, 12)}`),
+      label: String(item.label).trim().slice(0, 24),
+      cost: Math.max(1, Math.round(Number(item.cost) || 0))
+    }));
 }
 
 function cloneDefaultState() {
@@ -329,10 +368,8 @@ function selectedProgressDate() {
 }
 
 function xpForProgress(text) {
-  if (text.includes("Totebell")) return 20;
-  if (text.includes("AI学習")) return 15;
-  if (text.includes("ゲーム出品")) return 10;
-  if (text.includes("せどり")) return 10;
+  if (text.includes("学習")) return 10;
+  if (text.includes("副業")) return 15;
   if (text.includes("読書")) return 10;
   if (text.includes("運動")) return 10;
   return 5;
@@ -616,6 +653,8 @@ function render() {
 
   renderSideHustles();
   renderDividendPower();
+  renderQuickActions();
+  renderCustomizationSettings();
   renderOutcomeFormOptions();
   renderOutcomeHistory();
   renderAssets();
@@ -706,15 +745,15 @@ function renderDividendPower() {
   if (!container) return;
 
   const annualDividend = Math.max(0, Number(state.assets.dividends) || 0);
-  const items = [
-    { label: "家族ディナー", cost: 15000, unit: "回" },
-    { label: "道内旅行", cost: 60000, unit: "回" },
-    { label: "国内旅行（航空券込）", cost: 150000, unit: "回" },
-    { label: "海外旅行（航空券込）", cost: 600000, unit: "回" }
-  ];
+  const items = state.dividendGoals;
+
+  if (!items.length) {
+    container.innerHTML = '<p class="outcome-empty">設定で「配当で叶えたいこと」を追加できます</p>';
+    return;
+  }
 
   container.innerHTML = items.map((item) => {
-    const status = dividendPurchaseStatus(annualDividend, item);
+    const status = dividendPurchaseStatus(annualDividend, { ...item, unit: "回" });
     return `
       <div class="dividend-power-row ${status.className}">
         <span>${item.label}</span>
@@ -723,6 +762,49 @@ function renderDividendPower() {
       </div>
     `;
   }).join("");
+}
+
+function renderQuickActions() {
+  const container = document.getElementById("quickActions");
+  if (!state.quickActions.length) {
+    container.innerHTML = '<p class="quick-actions-empty">設定でワンタップ前進を追加できます</p>';
+    return;
+  }
+
+  container.innerHTML = state.quickActions
+    .map((item) => `
+      <button type="button" data-quick-action-id="${escapeHtml(item.id)}">
+        ${escapeHtml(item.label)}
+        <small>+${item.xp}EXP</small>
+      </button>
+    `)
+    .join("");
+}
+
+function renderCustomizationSettings() {
+  const quickList = document.getElementById("quickActionSettingsList");
+  const rewardList = document.getElementById("dividendGoalSettingsList");
+
+  quickList.innerHTML = state.quickActions.length
+    ? state.quickActions.map((item) => `
+      <div class="custom-setting-row" data-quick-setting="${escapeHtml(item.id)}">
+        <label><span>表示名</span><input data-quick-field="label" value="${escapeHtml(item.label)}" maxlength="16" /></label>
+        <label><span>記録内容</span><input data-quick-field="text" value="${escapeHtml(item.text)}" maxlength="40" /></label>
+        <label class="compact-field"><span>EXP</span><input data-quick-field="xp" type="number" inputmode="numeric" min="1" max="100" value="${item.xp}" /></label>
+        <button class="delete-custom-item" type="button" data-delete-quick-action="${escapeHtml(item.id)}">削除</button>
+      </div>
+    `).join("")
+    : '<p class="custom-empty">ワンタップ前進は未設定です</p>';
+
+  rewardList.innerHTML = state.dividendGoals.length
+    ? state.dividendGoals.map((item) => `
+      <div class="custom-setting-row reward-setting-row" data-reward-setting="${escapeHtml(item.id)}">
+        <label><span>叶えたいこと</span><input data-reward-field="label" value="${escapeHtml(item.label)}" maxlength="24" /></label>
+        <label><span>必要金額</span><input data-reward-field="cost" type="text" inputmode="numeric" data-number-input value="${formatInputNumber(item.cost)}" /></label>
+        <button class="delete-custom-item" type="button" data-delete-dividend-goal="${escapeHtml(item.id)}">削除</button>
+      </div>
+    `).join("")
+    : '<p class="custom-empty">配当で叶えたいことは未設定です</p>';
 }
 
 function renderSideHustles() {
@@ -749,7 +831,6 @@ function renderImpactPeriod(title, totals, period) {
   return `
     <section class="impact-period ${period === "today" ? "is-today" : ""}">
       <h3>${title}</h3>
-      <div><span>副業売上</span><strong>+${yen.format(totals.sales)}</strong></div>
       <div><span>副業利益</span><strong>+${yen.format(totals.profit)}</strong></div>
       <div><span>節約</span><strong>+${yen.format(totals.saving)}</strong></div>
       <div class="impact-total"><span>利益＋節約</span><strong>+${yen.format(totals.total)}</strong></div>
@@ -787,8 +868,7 @@ function renderOutcomeFormOptions() {
   document.getElementById("outcomeCategorySuggestions").innerHTML = outcomeCategories[type]
     .map((category) => `<option value="${escapeHtml(category)}">${escapeHtml(category)}</option>`)
     .join("");
-  form.elements.category.placeholder = type === "saving" ? "例: スタバを我慢" : "例: ゲーム販売";
-  form.querySelector("[data-sales-field]").hidden = type === "saving";
+  form.elements.category.placeholder = type === "saving" ? "例: 買い物を見送った" : "例: 商品販売";
   setText("outcomeAmountLabel", type === "saving" ? "節約額" : "利益");
 }
 
@@ -1201,6 +1281,15 @@ function showProfileStatus(message) {
   }, 2400);
 }
 
+function showCustomizationStatus(message) {
+  const status = document.getElementById("customizationStatus");
+  status.textContent = message;
+  window.clearTimeout(customizationStatusTimer);
+  customizationStatusTimer = window.setTimeout(() => {
+    status.textContent = "";
+  }, 2400);
+}
+
 function showOutcomeStatus(message) {
   const status = document.getElementById("outcomeStatus");
   status.textContent = message;
@@ -1273,12 +1362,6 @@ document.getElementById("progressDate").addEventListener("change", () => {
   document.querySelector("#progressForm button").disabled = entries.length >= dailyEntryLimit;
 });
 
-document.querySelectorAll("[data-quick-progress]").forEach((button) => {
-  button.addEventListener("click", () => {
-    addProgress(button.dataset.quickProgress, selectedProgressDate());
-  });
-});
-
 document.querySelectorAll("[data-view-target]").forEach((button) => {
   button.addEventListener("click", () => {
     switchView(button.dataset.viewTarget);
@@ -1300,7 +1383,6 @@ document.getElementById("outcomeForm").addEventListener("submit", (event) => {
   const form = event.currentTarget;
   const type = form.elements.type.value === "saving" ? "saving" : "profit";
   const amount = parseInputNumber(form.elements.amount.value);
-  const sales = type === "profit" ? parseInputNumber(form.elements.sales.value) : 0;
   if (amount <= 0) {
     showOutcomeStatus(type === "profit" ? "利益を入力してください" : "節約額を入力してください");
     return;
@@ -1317,7 +1399,7 @@ document.getElementById("outcomeForm").addEventListener("submit", (event) => {
     date,
     type,
     category,
-    sales,
+    sales: 0,
     amount,
     appliedToMonthlyTotals: false
   };
@@ -1386,7 +1468,7 @@ document.getElementById("profileForm").addEventListener("submit", (event) => {
   showProfileStatus("プロフィールと資産比較条件を保存しました");
 });
 
-function addProgress(text, date = todayKey()) {
+function addProgress(text, date = todayKey(), xpOverride = null) {
   const trimmed = text.trim();
   if (!trimmed) return false;
   const entryDate = date > todayKey() ? todayKey() : date;
@@ -1395,7 +1477,7 @@ function addProgress(text, date = todayKey()) {
     return false;
   }
 
-  const xp = xpForProgress(trimmed);
+  const xp = Number(xpOverride) > 0 ? Math.min(100, Math.round(Number(xpOverride))) : xpForProgress(trimmed);
   state.progressEntries.unshift({ text: trimmed, date: entryDate, xp, id: createProgressId({ text: trimmed, date: entryDate, xp }, Date.now()) });
   state.totalXp = (Number(state.totalXp) || inferTotalXp(state.progressEntries.slice(1))) + xp;
   saveState();
@@ -1403,6 +1485,128 @@ function addProgress(text, date = todayKey()) {
   showDailyStatus(`+${xp}EXP 記録しました`);
   return true;
 }
+
+document.getElementById("quickActions").addEventListener("click", (event) => {
+  const button = event.target.closest("[data-quick-action-id]");
+  if (!button) return;
+  const item = state.quickActions.find((action) => action.id === button.dataset.quickActionId);
+  if (!item) return;
+  addProgress(item.text, selectedProgressDate(), item.xp);
+});
+
+document.getElementById("quickActionSettingsList").addEventListener("change", (event) => {
+  const row = event.target.closest("[data-quick-setting]");
+  if (!row || !event.target.matches("[data-quick-field]")) return;
+  const item = state.quickActions.find((action) => action.id === row.dataset.quickSetting);
+  if (!item) return;
+  const field = event.target.dataset.quickField;
+  const value = event.target.value.trim();
+  if (field !== "xp" && !value) {
+    render();
+    showCustomizationStatus("表示名と記録内容は空欄にできません");
+    return;
+  }
+  item[field] = field === "xp"
+    ? Math.min(100, Math.max(1, Number(event.target.value) || 5))
+    : value;
+  state.quickActions = normalizeQuickActions(state.quickActions);
+  saveState();
+  render();
+  showCustomizationStatus("ワンタップ前進を更新しました");
+});
+
+document.getElementById("dividendGoalSettingsList").addEventListener("input", (event) => {
+  if (!event.target.matches("[data-number-input]")) return;
+  event.target.value = formatNumericInputValue(event.target.value);
+});
+
+document.getElementById("dividendGoalSettingsList").addEventListener("change", (event) => {
+  const row = event.target.closest("[data-reward-setting]");
+  if (!row || !event.target.matches("[data-reward-field]")) return;
+  const item = state.dividendGoals.find((goal) => goal.id === row.dataset.rewardSetting);
+  if (!item) return;
+  const field = event.target.dataset.rewardField;
+  const value = event.target.value.trim();
+  if ((field === "cost" && parseInputNumber(value) <= 0) || (field === "label" && !value)) {
+    render();
+    showCustomizationStatus("名称と1円以上の金額を入力してください");
+    return;
+  }
+  item[field] = field === "cost" ? parseInputNumber(value) : value;
+  state.dividendGoals = normalizeDividendGoals(state.dividendGoals);
+  saveState();
+  render();
+  showCustomizationStatus("配当目標を更新しました");
+});
+
+document.getElementById("quickActionForm").addEventListener("submit", (event) => {
+  event.preventDefault();
+  if (state.quickActions.length >= 8) {
+    showCustomizationStatus("ワンタップ前進は8件までです");
+    return;
+  }
+  const form = event.currentTarget;
+  const label = form.elements.label.value.trim();
+  const text = form.elements.text.value.trim() || label;
+  if (!label || !text) return;
+  state.quickActions.push({
+    id: `quick-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    label,
+    text,
+    xp: Math.min(100, Math.max(1, Number(form.elements.xp.value) || 5))
+  });
+  state.quickActions = normalizeQuickActions(state.quickActions);
+  saveState();
+  form.reset();
+  form.elements.xp.value = "10";
+  render();
+  showCustomizationStatus("ワンタップ前進を追加しました");
+});
+
+document.getElementById("dividendGoalForm").addEventListener("input", (event) => {
+  if (!event.target.matches("[data-number-input]")) return;
+  event.target.value = formatNumericInputValue(event.target.value);
+});
+
+document.getElementById("dividendGoalForm").addEventListener("submit", (event) => {
+  event.preventDefault();
+  if (state.dividendGoals.length >= 8) {
+    showCustomizationStatus("配当目標は8件までです");
+    return;
+  }
+  const form = event.currentTarget;
+  const label = form.elements.label.value.trim();
+  const cost = parseInputNumber(form.elements.cost.value);
+  if (!label || cost <= 0) return;
+  state.dividendGoals.push({
+    id: `reward-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    label,
+    cost
+  });
+  state.dividendGoals = normalizeDividendGoals(state.dividendGoals);
+  saveState();
+  form.reset();
+  render();
+  showCustomizationStatus("配当目標を追加しました");
+});
+
+document.getElementById("customizationPanel").addEventListener("click", (event) => {
+  const quickButton = event.target.closest("[data-delete-quick-action]");
+  if (quickButton) {
+    state.quickActions = state.quickActions.filter((item) => item.id !== quickButton.dataset.deleteQuickAction);
+    saveState();
+    render();
+    showCustomizationStatus("ワンタップ前進を削除しました");
+    return;
+  }
+
+  const rewardButton = event.target.closest("[data-delete-dividend-goal]");
+  if (!rewardButton) return;
+  state.dividendGoals = state.dividendGoals.filter((item) => item.id !== rewardButton.dataset.deleteDividendGoal);
+  saveState();
+  render();
+  showCustomizationStatus("配当目標を削除しました");
+});
 
 function deleteProgress(id) {
   const beforeLength = state.progressEntries.length;
