@@ -32,14 +32,13 @@ const defaultState = {
   ],
   lastUpdatedAt: null,
   lastMonthlyChange: null,
-  totalXp: 0,
   progressEntries: [],
   outcomeEntries: [],
   quickActions: [
-    { id: "quick-learning", label: "学習30分", text: "学習30分", xp: 10 },
-    { id: "quick-exercise", label: "運動30分", text: "運動30分", xp: 10 },
-    { id: "quick-side-work", label: "副業作業", text: "副業作業を進めた", xp: 15 },
-    { id: "quick-reading", label: "読書30分", text: "読書30分", xp: 10 }
+    { id: "quick-learning", label: "学習30分", text: "学習30分" },
+    { id: "quick-exercise", label: "運動30分", text: "運動30分" },
+    { id: "quick-side-work", label: "副業作業", text: "副業作業を進めた" },
+    { id: "quick-reading", label: "読書30分", text: "読書30分" }
   ],
   dividendGoals: [
     { id: "reward-dinner", label: "特別なディナー", cost: 15000 },
@@ -118,7 +117,6 @@ function normalizeState(saved = {}) {
     assets: { ...defaultState.assets, ...(saved.assets || {}) },
     assetHistory: ensureBaselineAssetHistory(saved.assetHistory || []),
     sideHustles: normalizeSideHustles(saved.sideHustles),
-    totalXp: Number(saved.totalXp) || inferTotalXp(progressEntries),
     progressEntries,
     outcomeEntries: outcomeMigration.entries,
     quickActions: normalizeQuickActions(saved.quickActions),
@@ -190,8 +188,7 @@ function normalizeQuickActions(items) {
     .map((item, index) => ({
       id: String(item.id || `quick-${index}-${String(item.label || item.text).slice(0, 12)}`),
       label: String(item.label || item.text).trim().slice(0, 16),
-      text: String(item.text || item.label).trim().slice(0, 40),
-      xp: Math.min(100, Math.max(1, Number(item.xp) || 5))
+      text: String(item.text || item.label).trim().slice(0, 40)
     }));
 }
 
@@ -238,14 +235,13 @@ function migrateProgressEntries(entries) {
 
   return entries.map((entry, index) => ({
     ...entry,
-    id: entry.id || createProgressId(entry, index),
-    xp: progressXp(entry)
+    id: entry.id || createProgressId(entry, index)
   }));
 }
 
 function createProgressId(entry, index = 0) {
   const text = String(entry.text || "").replace(/[^a-zA-Z0-9ぁ-んァ-ン一-龥]/g, "").slice(0, 18);
-  return `progress-${entry.date || "unknown"}-${index}-${text}-${progressXp(entry)}`;
+  return `progress-${entry.date || "unknown"}-${index}-${text}`;
 }
 
 function normalizeAssetHistory(history) {
@@ -365,54 +361,6 @@ function progressEntriesForDate(date) {
 
 function selectedProgressDate() {
   return document.getElementById("progressDate")?.value || todayKey();
-}
-
-function xpForProgress(text) {
-  if (text.includes("学習")) return 10;
-  if (text.includes("副業")) return 15;
-  if (text.includes("読書")) return 10;
-  if (text.includes("運動")) return 10;
-  return 5;
-}
-
-function progressXp(entry) {
-  return Number(entry.xp) || xpForProgress(entry.text || "");
-}
-
-function inferTotalXp(entries) {
-  return entries.reduce((sum, entry) => sum + progressXp(entry), 0);
-}
-
-function todayXp() {
-  return todayEntries().reduce((sum, entry) => sum + progressXp(entry), 0);
-}
-
-function levelInfo() {
-  const totalXp = Number(state.totalXp) || inferTotalXp(state.progressEntries);
-  const level = Math.floor(totalXp / 100) + 1;
-  const currentLevelXp = totalXp % 100;
-  return {
-    totalXp,
-    level,
-    currentLevelXp,
-    nextLevelXp: 100 - currentLevelXp
-  };
-}
-
-function streakDays() {
-  const uniqueDates = [...new Set(state.progressEntries.map((entry) => entry.date))].sort().reverse();
-  if (!uniqueDates.length) return 0;
-
-  let streak = 0;
-  const cursor = new Date(`${todayKey()}T00:00:00`);
-  const dateSet = new Set(uniqueDates);
-
-  while (dateSet.has(formatDateKey(cursor))) {
-    streak += 1;
-    cursor.setDate(cursor.getDate() - 1);
-  }
-
-  return streak;
 }
 
 function annualFirePower() {
@@ -590,8 +538,6 @@ function renderFireProjection() {
 function render() {
   const total = totalAssets();
   const rate = fireRate();
-  const xp = levelInfo();
-  const streak = streakDays();
   const monthlySavings = outcomeTotals(outcomeEntriesFor("month")).saving;
   const yearly = yearlyComparison();
 
@@ -611,20 +557,15 @@ function render() {
   setText("peerRatio", peerAverage ? `${roundOne(total / Math.max(1, peerAverage))}倍` : "--倍");
   setText("peerBenchmarkNote", peerRanking ? `回答${numberFormatter.format(peerRanking.sample)}世帯 / 総資産を金融資産として階級内を均等推定` : "金融資産ベース・未回答を除く推定値");
   const todayCount = todayEntries().length;
-  const todayExperience = todayXp();
   const shortening = monthlyShorteningDays();
   setText(
     "fireShortenMessage",
     todayCount > 0
-      ? `今日は${todayCount}件前進・+${todayExperience}EXP`
+      ? `今日は${todayCount}件前進`
       : shortening > 0
         ? `今月、FIREを${formatShortening(shortening)}短縮`
         : "今日が一番若い日"
   );
-  setText("levelLabel", `Lv.${xp.level}`);
-  setText("nextLevelXp", `${xp.nextLevelXp}EXP`);
-  setText("inputStreakCount", `${streak}日`);
-  setText("inputTodayXp", `${todayXp()}EXP`);
   setText("targetAge", `${state.profile.targetAge}歳`);
   setText("monthlyAssetDiff", formatDiff(state.lastMonthlyChange?.diff));
   setText("monthlyAssetRate", formatPercent(monthlyAssetRateChange()));
@@ -640,14 +581,11 @@ function render() {
   setSignedClass("peerAverageDiff", peerAverage ? total - peerAverage : null);
   setText("fireProgressLabel", `${rate}%`);
   document.getElementById("fireProgress").style.width = `${rate}%`;
-  document.getElementById("levelProgress").style.width = `${xp.currentLevelXp}%`;
   renderFireProjection();
   hydrateDateInputs();
 
   const selectedEntries = progressEntriesForDate(selectedProgressDate());
   setText("todayLimit", `${selectedEntries.length} / ${dailyEntryLimit}`);
-  const entriesToday = todayEntries();
-  setText("todayHighlight", entriesToday[0] ? `${entriesToday[0].text} +${progressXp(entriesToday[0])}EXP` : "今日の前進をひとつ積む");
   document.getElementById("progressInput").disabled = selectedEntries.length >= dailyEntryLimit;
   document.querySelector("#progressForm button").disabled = selectedEntries.length >= dailyEntryLimit;
 
@@ -716,7 +654,6 @@ function renderTodayQuests() {
           <strong>${escapeHtml(entry.text)}</strong>
           <small>${formatEntryDate(entry.date)} 自動記録</small>
         </div>
-        <b>+${progressXp(entry)}EXP</b>
         <button class="delete-progress" type="button" data-delete-progress="${escapeHtml(entry.id)}" aria-label="${escapeHtml(entry.text)}を削除">削除</button>
       </div>
     `)
@@ -775,7 +712,6 @@ function renderQuickActions() {
     .map((item) => `
       <button type="button" data-quick-action-id="${escapeHtml(item.id)}">
         ${escapeHtml(item.label)}
-        <small>+${item.xp}EXP</small>
       </button>
     `)
     .join("");
@@ -790,7 +726,6 @@ function renderCustomizationSettings() {
       <div class="custom-setting-row" data-quick-setting="${escapeHtml(item.id)}">
         <label><span>表示名</span><input data-quick-field="label" value="${escapeHtml(item.label)}" maxlength="16" /></label>
         <label><span>記録内容</span><input data-quick-field="text" value="${escapeHtml(item.text)}" maxlength="40" /></label>
-        <label class="compact-field"><span>EXP</span><input data-quick-field="xp" type="number" inputmode="numeric" min="1" max="100" value="${item.xp}" /></label>
         <button class="delete-custom-item" type="button" data-delete-quick-action="${escapeHtml(item.id)}">削除</button>
       </div>
     `).join("")
@@ -1071,12 +1006,11 @@ function heroJournal() {
   const assetDiff = state.lastMonthlyChange?.diff || diffFromSnapshot(findSnapshot(previousMonthKey(currentMonthKey())), "total", totalAssets());
   const dividendDiff = diffFromSnapshot(findSnapshot(previousMonthKey(currentMonthKey())), "dividends", state.assets.dividends);
   const progressCount = monthlyProgressEntries().length;
-  const xp = monthlyProgressEntries().reduce((sum, entry) => sum + progressXp(entry), 0);
   const shortened = monthlyShorteningDays();
 
   return {
     title: `${monthLabel}の冒険記録`,
-    body: `資産 ${formatDiff(assetDiff)}、配当 ${formatDiff(dividendDiff)}、前進 ${progressCount}件 / ${xp}EXP。FIREまで${formatShortening(shortened)}短縮。着実に過去の自分を上回る1か月です。`
+    body: `資産 ${formatDiff(assetDiff)}、配当 ${formatDiff(dividendDiff)}、前進 ${progressCount}件。FIREまで${formatShortening(shortened)}短縮。着実に過去の自分を上回る1か月です。`
   };
 }
 
@@ -1176,7 +1110,6 @@ function renderHistory() {
           <strong>${escapeHtml(entry.text)}</strong>
           <span class="history-date">${formatEntryDate(entry.date)}</span>
         </div>
-        <strong class="xp-badge">+${progressXp(entry)}EXP</strong>
         <button class="delete-progress" type="button" data-delete-progress="${escapeHtml(entry.id)}" aria-label="${escapeHtml(entry.text)}を削除">削除</button>
       </div>
     `)
@@ -1468,7 +1401,7 @@ document.getElementById("profileForm").addEventListener("submit", (event) => {
   showProfileStatus("プロフィールと資産比較条件を保存しました");
 });
 
-function addProgress(text, date = todayKey(), xpOverride = null) {
+function addProgress(text, date = todayKey()) {
   const trimmed = text.trim();
   if (!trimmed) return false;
   const entryDate = date > todayKey() ? todayKey() : date;
@@ -1477,12 +1410,10 @@ function addProgress(text, date = todayKey(), xpOverride = null) {
     return false;
   }
 
-  const xp = Number(xpOverride) > 0 ? Math.min(100, Math.round(Number(xpOverride))) : xpForProgress(trimmed);
-  state.progressEntries.unshift({ text: trimmed, date: entryDate, xp, id: createProgressId({ text: trimmed, date: entryDate, xp }, Date.now()) });
-  state.totalXp = (Number(state.totalXp) || inferTotalXp(state.progressEntries.slice(1))) + xp;
+  state.progressEntries.unshift({ text: trimmed, date: entryDate, id: createProgressId({ text: trimmed, date: entryDate }, Date.now()) });
   saveState();
   render();
-  showDailyStatus(`+${xp}EXP 記録しました`);
+  showDailyStatus("前進を記録しました");
   return true;
 }
 
@@ -1491,7 +1422,7 @@ document.getElementById("quickActions").addEventListener("click", (event) => {
   if (!button) return;
   const item = state.quickActions.find((action) => action.id === button.dataset.quickActionId);
   if (!item) return;
-  addProgress(item.text, selectedProgressDate(), item.xp);
+  addProgress(item.text, selectedProgressDate());
 });
 
 document.getElementById("quickActionSettingsList").addEventListener("change", (event) => {
@@ -1501,14 +1432,12 @@ document.getElementById("quickActionSettingsList").addEventListener("change", (e
   if (!item) return;
   const field = event.target.dataset.quickField;
   const value = event.target.value.trim();
-  if (field !== "xp" && !value) {
+  if (!value) {
     render();
     showCustomizationStatus("表示名と記録内容は空欄にできません");
     return;
   }
-  item[field] = field === "xp"
-    ? Math.min(100, Math.max(1, Number(event.target.value) || 5))
-    : value;
+  item[field] = value;
   state.quickActions = normalizeQuickActions(state.quickActions);
   saveState();
   render();
@@ -1552,13 +1481,11 @@ document.getElementById("quickActionForm").addEventListener("submit", (event) =>
   state.quickActions.push({
     id: `quick-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
     label,
-    text,
-    xp: Math.min(100, Math.max(1, Number(form.elements.xp.value) || 5))
+    text
   });
   state.quickActions = normalizeQuickActions(state.quickActions);
   saveState();
   form.reset();
-  form.elements.xp.value = "10";
   render();
   showCustomizationStatus("ワンタップ前進を追加しました");
 });
@@ -1612,7 +1539,6 @@ function deleteProgress(id) {
   const beforeLength = state.progressEntries.length;
   state.progressEntries = state.progressEntries.filter((entry) => entry.id !== id);
   if (state.progressEntries.length === beforeLength) return;
-  state.totalXp = inferTotalXp(state.progressEntries);
   saveState();
   render();
   showDailyStatus("前進を削除しました");

@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Life Progress" />
     <title>Life Progress Dashboard</title>
     <link rel="manifest" href="manifest.webmanifest?v=5" />
-    <link rel="stylesheet" href="styles.css?v=44" />
+    <link rel="stylesheet" href="styles.css?v=45" />
   </head>
   <body>
     <main class="app-shell">
@@ -22,7 +22,6 @@
 
       <nav class="view-nav" aria-label="画面切り替え">
         <button class="view-tab is-active" type="button" data-view-target="overview">現在地</button>
-        <button class="view-tab" type="button" data-view-target="score">スコア・EXP</button>
         <button class="view-tab" type="button" data-view-target="input">入力</button>
       </nav>
 
@@ -198,34 +197,8 @@
 
       </section>
 
-      <section id="view-score" class="view">
-        <section class="content-grid single-focus">
-          <article class="panel xp-panel">
-            <div class="section-head">
-              <div>
-                <p class="eyebrow">Growth</p>
-                <h2>スコア・EXP</h2>
-              </div>
-              <span id="levelLabel" class="pill">Lv.1</span>
-            </div>
-            <div class="daily-status-board">
-              <div>
-                <small>今日のEXP</small>
-                <strong id="inputTodayXp">0EXP</strong>
-              </div>
-              <div>
-                <small>連続記録</small>
-                <strong id="inputStreakCount">0日</strong>
-              </div>
-            </div>
-            <div class="level-row">
-              <div class="xp-track" aria-label="次のレベルまで">
-                <div id="levelProgress" class="xp-fill"></div>
-              </div>
-              <small id="nextLevelXp">--EXP</small>
-            </div>
-          </article>
-
+      <section id="view-input" class="view">
+        <section class="content-grid input-view-stack">
           <article class="panel daily-panel">
             <div class="section-head">
               <div>
@@ -245,11 +218,6 @@
             <div id="progressHistory" class="history-list"></div>
           </article>
 
-        </section>
-      </section>
-
-      <section id="view-input" class="view">
-        <section class="content-grid input-view-stack">
           <article class="panel outcome-input-panel">
             <div class="section-head">
               <div>
@@ -370,12 +338,11 @@
           </div>
           <details class="customization-group" open>
             <summary>ワンタップ前進</summary>
-            <p class="customization-note">よく行う前進を登録すると、スコア・EXP画面から1タップで記録できます。</p>
+            <p class="customization-note">よく行う前進を登録すると、入力画面から1タップで記録できます。</p>
             <div id="quickActionSettingsList" class="custom-settings-list"></div>
             <form id="quickActionForm" class="custom-add-form">
               <label><span>表示名</span><input name="label" maxlength="16" placeholder="例：資格勉強" required /></label>
               <label><span>記録内容</span><input name="text" maxlength="40" placeholder="例：資格勉強を30分した" required /></label>
-              <label class="compact-field"><span>EXP</span><input name="xp" type="number" inputmode="numeric" min="1" max="100" value="10" required /></label>
               <button type="submit">追加</button>
             </form>
           </details>
@@ -446,14 +413,14 @@
 
     <button id="backToTop" class="back-to-top" type="button" aria-label="ページ上部へ戻る" title="ページ上部へ戻る">↑</button>
 
-    <script src="firebase-config.js?v=44"></script>
-    <script src="jflec-data.js?v=44"></script>
-    <script src="app.js?v=44"></script>
-    <script type="module" src="firebase-sync.js?v=44"></script>
+    <script src="firebase-config.js?v=45"></script>
+    <script src="jflec-data.js?v=45"></script>
+    <script src="app.js?v=45"></script>
+    <script type="module" src="firebase-sync.js?v=45"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js?v=44");
+          navigator.serviceWorker.register("sw.js?v=45");
         });
       }
     </script>

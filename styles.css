@@ -137,7 +137,7 @@ small {
   top: 0;
   z-index: 5;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 6px;
   margin: 0 0 10px;
   padding: 8px;
@@ -421,7 +421,6 @@ small {
 .panel-title,
 .section-head,
 .stat-row,
-.score-item,
 .legend-item,
 .history-item {
   display: flex;
@@ -477,24 +476,12 @@ small {
   z-index: 1;
 }
 
-.progress-fill,
-.xp-fill {
+.progress-fill {
   width: 0%;
   height: 100%;
   background: linear-gradient(90deg, var(--green), var(--gold));
   border-radius: inherit;
   transition: width 220ms ease;
-}
-
-.xp-track {
-  height: 9px;
-  overflow: hidden;
-  background: var(--soft);
-  border-radius: 999px;
-}
-
-.xp-fill {
-  background: var(--green);
 }
 
 .stat-row {
@@ -611,7 +598,6 @@ small {
 }
 
 .quest-list,
-.score-list,
 .history-list,
 .legend,
 .today-quest-list,
@@ -875,19 +861,6 @@ small {
   background: rgba(70, 209, 139, 0.18);
   color: var(--green);
   font-size: 11px;
-  font-weight: 900;
-}
-
-.level-row {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: 10px;
-  margin: 12px 0;
-}
-
-.level-row span,
-.level-row small {
   font-weight: 900;
 }
 
@@ -1162,8 +1135,7 @@ small {
   background: var(--ink);
 }
 
-.legend-item strong,
-.score-value {
+.legend-item strong {
   font-variant-numeric: tabular-nums;
 }
 
@@ -1193,29 +1165,6 @@ small {
   min-height: 360px;
 }
 
-.daily-status-board {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-  margin-bottom: 10px;
-}
-
-.daily-status-board div {
-  min-height: 64px;
-  padding: 11px 12px;
-  background: var(--soft);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-}
-
-.daily-status-board strong {
-  display: block;
-  margin-top: 5px;
-  font-size: 22px;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-}
-
 .quick-actions {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1232,12 +1181,6 @@ small {
   color: var(--ink);
   border: 1px solid var(--line);
   font-size: 13px;
-}
-
-.quick-actions button small {
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 850;
 }
 
 .quick-actions-empty,
@@ -1284,7 +1227,7 @@ small {
 .custom-setting-row,
 .custom-add-form {
   display: grid;
-  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr) 74px 58px;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr) 58px;
   gap: 8px;
   align-items: end;
 }
@@ -1422,18 +1365,6 @@ button:disabled {
   font-size: 12px;
 }
 
-.xp-badge {
-  flex: 0 0 auto;
-  min-width: 58px;
-  padding: 7px 9px;
-  border-radius: 999px;
-  background: rgba(70, 209, 139, 0.18);
-  color: var(--green);
-  font-size: 12px;
-  font-variant-numeric: tabular-nums;
-  text-align: center;
-}
-
 .delete-progress {
   min-height: 32px;
   padding: 0 10px;
@@ -1449,45 +1380,6 @@ button:disabled {
   color: var(--muted);
   font-size: 13px;
   font-weight: 700;
-}
-
-.score-item {
-  gap: 12px;
-}
-
-.score-meta {
-  min-width: 0;
-  flex: 1;
-}
-
-.score-meta strong {
-  display: block;
-  font-size: 15px;
-}
-
-.score-meta span {
-  display: block;
-  margin-top: 5px;
-  color: var(--muted);
-  font-size: 11px;
-  line-height: 1.45;
-  font-weight: 700;
-}
-
-.score-bar {
-  flex: 1;
-  height: 9px;
-  overflow: hidden;
-  border-radius: 999px;
-  background: var(--soft);
-}
-
-.score-bar span {
-  display: block;
-  width: 0%;
-  height: 100%;
-  border-radius: inherit;
-  background: var(--gold);
 }
 
 .journey-panel {
