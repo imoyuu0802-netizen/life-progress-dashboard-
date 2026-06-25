@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Life Progress" />
     <title>Life Progress Dashboard</title>
     <link rel="manifest" href="manifest.webmanifest?v=5" />
-    <link rel="stylesheet" href="styles.css?v=46" />
+    <link rel="stylesheet" href="styles.css?v=47" />
   </head>
   <body>
     <main class="app-shell">
@@ -22,8 +22,8 @@
 
       <nav class="view-nav" aria-label="画面切り替え">
         <button class="view-tab is-active" type="button" data-view-target="overview">ホーム</button>
-        <button class="view-tab" type="button" data-view-target="input">記録</button>
         <button class="view-tab" type="button" data-view-target="review">振り返り</button>
+        <button class="view-tab" type="button" data-view-target="input">記録</button>
       </nav>
 
       <section id="view-overview" class="view is-active">
@@ -153,6 +153,16 @@
 
       <section id="view-review" class="view">
         <section class="content-grid review-grid">
+          <article class="panel quest-panel">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Side Quest</p>
+                <h2>FIRE短縮クエスト</h2>
+              </div>
+            </div>
+            <div id="sideHustleList" class="impact-dashboard"></div>
+          </article>
+
           <article class="panel victory-panel">
             <div class="section-head">
               <div>
@@ -162,16 +172,6 @@
               <span id="victoryRate" class="pill">0%</span>
             </div>
             <div id="victoryList" class="victory-list"></div>
-          </article>
-
-          <article class="panel quest-panel">
-            <div class="section-head">
-              <div>
-                <p class="eyebrow">Side Quest</p>
-                <h2>FIRE短縮クエスト</h2>
-              </div>
-            </div>
-            <div id="sideHustleList" class="impact-dashboard"></div>
           </article>
 
           <article class="panel journey-panel">
@@ -435,14 +435,14 @@
 
     <button id="backToTop" class="back-to-top" type="button" aria-label="ページ上部へ戻る" title="ページ上部へ戻る">↑</button>
 
-    <script src="firebase-config.js?v=46"></script>
-    <script src="jflec-data.js?v=46"></script>
-    <script src="app.js?v=46"></script>
-    <script type="module" src="firebase-sync.js?v=46"></script>
+    <script src="firebase-config.js?v=47"></script>
+    <script src="jflec-data.js?v=47"></script>
+    <script src="app.js?v=47"></script>
+    <script type="module" src="firebase-sync.js?v=47"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js?v=46");
+          navigator.serviceWorker.register("sw.js?v=47");
         });
       }
     </script>
