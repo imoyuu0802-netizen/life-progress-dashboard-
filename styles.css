@@ -1,17 +1,17 @@
 :root {
-  color-scheme: dark;
-  --bg: #080a09;
-  --surface: #121512;
-  --surface-strong: #181c18;
-  --ink: #f7f4e8;
-  --muted: #a8aa9f;
-  --line: #2a302a;
-  --soft: #1b211c;
-  --accent: #f0c86a;
-  --green: #46d18b;
-  --blue: #6a8fb4;
-  --gold: #f0c86a;
-  --danger: #e16b66;
+  color-scheme: light;
+  --bg: #f5f5f7;
+  --surface: #ffffff;
+  --surface-strong: #ffffff;
+  --ink: #111111;
+  --muted: #6e6e73;
+  --line: #e5e5ea;
+  --soft: #f2f2f7;
+  --accent: #007aff;
+  --green: #0a8f55;
+  --blue: #007aff;
+  --gold: #b7791f;
+  --danger: #d70015;
   --radius: 8px;
 }
 
@@ -23,9 +23,7 @@ body {
   margin: 0;
   min-height: 100vh;
   overflow-x: hidden;
-  background:
-    radial-gradient(circle at top right, rgba(70, 209, 139, 0.13), transparent 32rem),
-    var(--bg);
+  background: var(--bg);
   color: var(--ink);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   letter-spacing: 0;
@@ -60,7 +58,7 @@ select {
   padding: 0;
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: var(--soft);
+  background: rgba(255, 255, 255, 0.76);
   color: var(--ink);
   font-size: 21px;
   line-height: 1;
@@ -68,12 +66,12 @@ select {
 
 .settings-trigger.is-active {
   background: var(--ink);
-  color: #10120f;
+  color: #ffffff;
 }
 
 .eyebrow {
   margin: 0 0 7px;
-  color: var(--gold);
+  color: var(--muted);
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -230,14 +228,14 @@ small {
 }
 
 .focus-panel {
-  background: linear-gradient(145deg, #151912, #090b0a);
+  background: var(--surface);
   color: var(--ink);
-  border-color: rgba(240, 200, 106, 0.42);
-  box-shadow: 0 0 0 1px rgba(240, 200, 106, 0.08) inset;
+  border-color: transparent;
+  box-shadow: 0 18px 46px rgba(0, 0, 0, 0.08);
 }
 
 .focus-panel small {
-  color: #d8d0aa;
+  color: var(--muted);
 }
 
 .focus-panel .panel-title {
@@ -263,67 +261,82 @@ small {
 
 .fire-countdown-head {
   display: grid;
-  gap: 8px;
-  margin-bottom: 10px;
+  gap: 12px;
+  margin-bottom: 14px;
+  justify-items: center;
+  text-align: center;
 }
 
 .fire-countdown-head span {
-  color: rgba(255, 255, 255, 0.72);
-  font-size: 14px;
+  color: var(--muted);
+  font-size: 15px;
   font-weight: 850;
 }
 
 .fire-countdown-head strong {
-  color: var(--gold);
-  font-size: clamp(31px, 8.7vw, 72px);
+  color: var(--ink);
+  font-size: clamp(40px, 10vw, 86px);
   font-variant-numeric: tabular-nums;
   letter-spacing: 0;
-  line-height: 1.04;
+  line-height: 1.02;
   overflow: hidden;
   text-overflow: clip;
-  text-shadow: 0 0 18px rgba(240, 200, 106, 0.2);
-  white-space: nowrap;
+  text-shadow: none;
+  white-space: pre-line;
 }
 
 .daily-fire-summary {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-  margin: 16px 0 8px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  margin: 24px 0 14px;
 }
 
 .daily-fire-summary div {
   display: grid;
   gap: 6px;
   min-width: 0;
-  min-height: 76px;
-  padding: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  min-height: 98px;
+  padding: 18px;
+  border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--soft);
 }
 
 .daily-fire-summary small {
-  color: rgba(255, 255, 255, 0.64);
-  font-size: 12px;
+  color: var(--muted);
+  font-size: 13px;
   font-weight: 850;
 }
 
 .daily-fire-summary strong {
   align-self: end;
-  font-size: clamp(17px, 4.5vw, 28px);
+  font-size: clamp(32px, 9vw, 56px);
   font-variant-numeric: tabular-nums;
-  line-height: 1.08;
+  line-height: 0.98;
   overflow-wrap: anywhere;
 }
 
-.daily-fire-summary .today-shortening {
-  border-color: rgba(70, 209, 139, 0.34);
-  background: rgba(70, 209, 139, 0.11);
+.daily-fire-summary span {
+  color: var(--muted);
+  font-size: 17px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
 }
 
+.daily-fire-summary .today-change strong,
+.daily-fire-summary .today-change span,
 .daily-fire-summary .today-shortening strong {
   color: var(--green);
+}
+
+.daily-fire-summary .is-minus {
+  color: var(--danger);
+}
+
+.focus-panel .progress-track,
+.focus-panel .fire-days-row {
+  display: none;
 }
 
 .today-panel {
@@ -331,9 +344,33 @@ small {
   border-color: rgba(70, 209, 139, 0.42);
 }
 
-.result-panel {
-  background: linear-gradient(145deg, #101611, #0b0d0b);
-  border-color: rgba(70, 209, 139, 0.36);
+.result-panel,
+.today-breakdown-panel {
+  background: var(--surface);
+  border-color: transparent;
+}
+
+.breakdown-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.breakdown-grid div {
+  display: grid;
+  gap: 6px;
+  min-height: 78px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--soft);
+}
+
+.breakdown-grid strong {
+  align-self: end;
+  font-size: 22px;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
 }
 
 .result-hero {
@@ -1796,16 +1833,8 @@ button:disabled {
 }
 
 @media (max-width: 759px) {
-  .daily-fire-summary {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .daily-fire-summary div:first-child {
-    grid-column: 1 / -1;
-  }
-
   .fire-countdown-head strong {
-    font-size: clamp(27px, 8.2vw, 36px);
+    font-size: clamp(31px, 9.1vw, 40px);
   }
 
   .custom-setting-row,

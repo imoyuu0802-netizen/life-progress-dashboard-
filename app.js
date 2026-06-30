@@ -2,8 +2,19 @@ const storageKey = "life-progress-dashboard-v1";
 const dailyEntryLimit = 5;
 const averageRetirementAge = 65;
 const outcomeCategories = {
+  market: ["投資評価額", "株式", "投資信託", "暗号資産", "その他市場"],
   profit: ["商品販売", "コンテンツ販売", "受託・サービス", "その他副業"],
+  dividend: ["株式配当", "投信分配金", "利息", "その他配当"],
+  spending: ["食費", "外食", "交通", "固定費", "その他支出"],
   saving: ["買い物を見送った", "外食を減らした", "固定費削減", "その他の節約"]
+};
+
+const outcomeTypeLabels = {
+  market: "市場",
+  profit: "副業",
+  dividend: "配当",
+  spending: "支出",
+  saving: "節約"
 };
 
 const defaultState = {
@@ -163,14 +174,14 @@ function migrateLegacyOutcomes(saved, entries) {
 function normalizeOutcomeEntries(entries) {
   if (!Array.isArray(entries)) return [];
   return entries
-    .filter((entry) => entry && ["profit", "saving"].includes(entry.type) && (Number(entry.amount) > 0 || Number(entry.sales) > 0))
+    .filter((entry) => entry && Object.hasOwn(outcomeCategories, entry.type) && (Number(entry.amount) !== 0 || Number(entry.sales) > 0))
     .map((entry, index) => ({
       id: entry.id || `outcome-${entry.date || "unknown"}-${index}`,
       date: typeof entry.date === "string" ? entry.date.slice(0, 10) : todayKey(),
       type: entry.type,
-      category: String(entry.category || (entry.type === "profit" ? "その他副業" : "その他の節約")),
+      category: String(entry.category || outcomeCategories[entry.type]?.at(-1) || "その他"),
       sales: entry.type === "profit" ? Math.max(0, Number(entry.sales) || 0) : 0,
-      amount: Math.max(0, Number(entry.amount) || 0),
+      amount: entry.type === "market" ? Number(entry.amount) || 0 : Math.max(0, Number(entry.amount) || 0),
       appliedToMonthlyTotals: Boolean(entry.appliedToMonthlyTotals)
     }));
 }
@@ -411,6 +422,10 @@ function exactDaysShortenedByAmount(amount) {
   return Math.max(0, (Math.max(0, Number(amount) || 0) / annualFirePower()) * 365);
 }
 
+function signedDaysShortenedByAmount(amount) {
+  return ((Number(amount) || 0) / annualFirePower()) * 365;
+}
+
 function outcomeEntriesFor(period) {
   if (period === "today") return state.outcomeEntries.filter((entry) => entry.date === todayKey());
   if (period === "month") return state.outcomeEntries.filter((entry) => entry.date.startsWith(currentMonthKey()));
@@ -423,11 +438,20 @@ function outcomeEntriesForMonth(month) {
 
 function outcomeTotals(entries) {
   return entries.reduce((totals, entry) => {
+    if (!Object.hasOwn(totals, entry.type)) totals[entry.type] = 0;
     totals[entry.type] += entry.amount;
     totals.sales += entry.sales;
-    totals.total += entry.amount;
+    totals.total += outcomeContribution(entry);
     return totals;
-  }, { sales: 0, profit: 0, saving: 0, total: 0 });
+  }, { sales: 0, market: 0, profit: 0, dividend: 0, spending: 0, saving: 0, total: 0 });
+}
+
+function outcomeContribution(entry) {
+  const rawAmount = Number(entry.amount) || 0;
+  const amount = Math.max(0, rawAmount);
+  if (entry.type === "market") return rawAmount;
+  if (entry.type === "spending") return -amount;
+  return amount;
 }
 
 function monthlyShorteningDays() {
@@ -438,7 +462,7 @@ function monthlyShorteningDays() {
 }
 
 function todayShorteningDays() {
-  return exactDaysShortenedByAmount(outcomeTotals(outcomeEntriesFor("today")).total);
+  return signedDaysShortenedByAmount(outcomeTotals(outcomeEntriesFor("today")).total);
 }
 
 function monthlySideProfit(month = currentMonthKey()) {
@@ -551,6 +575,33 @@ function formatPercent(value) {
   return `${sign}${value.toFixed(1)}%`;
 }
 
+function formatPrecisePercent(value) {
+  if (typeof value !== "number" || !Number.isFinite(value)) return "+0.00%";
+  const sign = value >= 0 ? "+" : "";
+  return `${sign}${value.toFixed(2)}%`;
+}
+
+function formatSignedYen(value) {
+  const amount = Number(value) || 0;
+  const prefix = amount >= 0 ? "+" : "-";
+  return `${prefix}${yen.format(Math.abs(amount))}`;
+}
+
+function setSignedText(id, value, text = formatSignedYen(value)) {
+  setText(id, text);
+  setSignedClass(id, Number(value) || 0);
+}
+
+function todayAssetChange() {
+  return outcomeTotals(outcomeEntriesFor("today")).total;
+}
+
+function todayAssetChangeRate() {
+  const total = totalAssets();
+  if (!total) return 0;
+  return (todayAssetChange() / total) * 100;
+}
+
 function padClock(value) {
   return String(value).padStart(2, "0");
 }
@@ -562,7 +613,7 @@ function formatFireCountdown(totalSeconds) {
   const hours = Math.floor(rest / 3600);
   const minutes = Math.floor((rest % 3600) / 60);
   const remainingSeconds = rest % 60;
-  return `${numberFormatter.format(days)}日 ${padClock(hours)}:${padClock(minutes)}:${padClock(remainingSeconds)}`;
+  return `${numberFormatter.format(days)}日\n${padClock(hours)}時間${padClock(minutes)}分${padClock(remainingSeconds)}秒`;
 }
 
 function updateFireCountdown() {
@@ -585,11 +636,19 @@ function render() {
   const total = totalAssets();
   const rate = fireRate();
   const monthlySavings = outcomeTotals(outcomeEntriesFor("month")).saving;
+  const todayTotals = outcomeTotals(outcomeEntriesFor("today"));
+  const todayChange = todayTotals.total;
   const yearly = yearlyComparison();
 
   setText("fireRate", `${rate}%`);
   setText("totalAssets", yen.format(total));
   setText("heroTotalAssets", yen.format(total));
+  setSignedText("heroTodayAssetChange", todayChange);
+  setSignedText("heroTodayAssetRate", todayChange, `(${formatPrecisePercent(todayAssetChangeRate())})`);
+  setSignedText("todayMarketChange", todayTotals.market);
+  setSignedText("todayProfitChange", todayTotals.profit);
+  setSignedText("todayDividendChange", todayTotals.dividend);
+  setSignedText("todaySpendingChange", -todayTotals.spending);
   setText("annualDividendResult", yen.format(state.assets.dividends));
   setText("annualDividendPower", `${yen.format(state.assets.dividends)}/年`);
   const sideProfit = monthlySideProfit();
@@ -610,7 +669,7 @@ function render() {
   setText(
     "fireShortenMessage",
     todayImpact > 0
-      ? `今日、FIREを${formatImpactDays(todayImpact)}短縮`
+      ? `今日、自由まで${formatSignedImpact(todayImpact)}近づいた`
       : shortening > 0
         ? `今月、FIREを${formatShortening(shortening)}短縮`
         : "今日が一番若い日"
@@ -621,7 +680,7 @@ function render() {
   setText("settingsMonthlyDiff", formatDiff(state.lastMonthlyChange?.diff));
   setText("monthlyAutoLabel", `${formatCurrentMonthLabel()}として自動記録`);
   setText("monthlyFireDelta", formatFireDaysDiff(monthlyComparison().fireAgeDiffValue));
-  setText("todayShortening", `+${formatImpactDays(todayShorteningDays())}`);
+  setSignedText("todayShortening", todayImpact, formatSignedImpact(todayImpact));
   setText("yearlyShortening", formatShortening(yearlyShorteningDays()));
   setText("nextOnePercentAmount", nextOnePercentAmount() ? `あと${yen.format(nextOnePercentAmount())}` : "達成済み");
   setSignedClass("monthlyAssetDiff", state.lastMonthlyChange?.diff);
@@ -857,6 +916,13 @@ function formatImpactDays(days) {
   return `${days.toFixed(1)}日`;
 }
 
+function formatSignedImpact(days) {
+  const value = Number(days) || 0;
+  if (!value) return "+0分";
+  const prefix = value > 0 ? "+" : "-";
+  return `${prefix}${formatImpactDays(Math.abs(value))}`;
+}
+
 function formatLifetimeShortening(days) {
   if (days < 30) return formatImpactDays(days);
   const totalMonths = Math.floor(days / 30.4375);
@@ -868,12 +934,26 @@ function formatLifetimeShortening(days) {
 
 function renderOutcomeFormOptions() {
   const form = document.getElementById("outcomeForm");
-  const type = form.elements.type.value === "saving" ? "saving" : "profit";
+  const type = Object.hasOwn(outcomeCategories, form.elements.type.value) ? form.elements.type.value : "profit";
   document.getElementById("outcomeCategorySuggestions").innerHTML = outcomeCategories[type]
     .map((category) => `<option value="${escapeHtml(category)}">${escapeHtml(category)}</option>`)
     .join("");
-  form.elements.category.placeholder = type === "saving" ? "例: 買い物を見送った" : "例: 商品販売";
-  setText("outcomeAmountLabel", type === "saving" ? "節約額" : "利益");
+  const placeholders = {
+    market: "例: 投資評価額",
+    profit: "例: 商品販売",
+    dividend: "例: 株式配当",
+    spending: "例: 外食",
+    saving: "例: 買い物を見送った"
+  };
+  const amountLabels = {
+    market: "増減額",
+    profit: "利益",
+    dividend: "配当",
+    spending: "支出額",
+    saving: "節約額"
+  };
+  form.elements.category.placeholder = placeholders[type] || "内容を入力";
+  setText("outcomeAmountLabel", amountLabels[type] || "金額");
 }
 
 function renderOutcomeHistory() {
@@ -887,11 +967,11 @@ function renderOutcomeHistory() {
     <div class="outcome-row">
       <div class="outcome-main">
         <strong>${escapeHtml(entry.category)}</strong>
-        <small>${formatEntryDate(entry.date)}・${entry.type === "profit" ? "副業利益" : "節約"}</small>
+        <small>${formatEntryDate(entry.date)}・${outcomeTypeLabels[entry.type] || "成果"}</small>
       </div>
       <div class="outcome-values">
-        <span>+${yen.format(entry.amount)}</span>
-        <b>${formatImpactDays(exactDaysShortenedByAmount(entry.amount))}短縮</b>
+        <span>${formatSignedYen(outcomeContribution(entry))}</span>
+        <b>${formatSignedImpact(signedDaysShortenedByAmount(outcomeContribution(entry)))}自由</b>
       </div>
       <button type="button" data-delete-outcome="${escapeHtml(entry.id)}" aria-label="${escapeHtml(entry.category)}を削除">削除</button>
     </div>
@@ -1221,8 +1301,23 @@ function formatNumericInputValue(value) {
   return numberFormatter.format(Number(digits));
 }
 
+function formatSignedNumericInputValue(value) {
+  const text = String(value || "");
+  const sign = text.trim().startsWith("-") ? "-" : "";
+  const digits = text.replace(/[^\d]/g, "");
+  if (!digits) return sign;
+  return `${sign}${numberFormatter.format(Number(digits))}`;
+}
+
 function parseInputNumber(value) {
   return Number(String(value || "").replace(/[^\d]/g, "")) || 0;
+}
+
+function parseSignedInputNumber(value) {
+  const text = String(value || "").trim();
+  const sign = text.startsWith("-") ? -1 : 1;
+  const amount = parseInputNumber(text);
+  return sign * amount;
 }
 
 function formatDiff(value) {
@@ -1373,6 +1468,10 @@ document.getElementById("outcomeForm").elements.type.addEventListener("change", 
 });
 
 document.getElementById("outcomeForm").addEventListener("input", (event) => {
+  if (event.target.matches("[data-signed-number-input]")) {
+    event.target.value = formatSignedNumericInputValue(event.target.value);
+    return;
+  }
   if (!event.target.matches("[data-number-input]")) return;
   event.target.value = formatNumericInputValue(event.target.value);
 });
@@ -1380,10 +1479,10 @@ document.getElementById("outcomeForm").addEventListener("input", (event) => {
 document.getElementById("outcomeForm").addEventListener("submit", (event) => {
   event.preventDefault();
   const form = event.currentTarget;
-  const type = form.elements.type.value === "saving" ? "saving" : "profit";
-  const amount = parseInputNumber(form.elements.amount.value);
-  if (amount <= 0) {
-    showOutcomeStatus(type === "profit" ? "利益を入力してください" : "節約額を入力してください");
+  const type = Object.hasOwn(outcomeCategories, form.elements.type.value) ? form.elements.type.value : "profit";
+  const amount = parseSignedInputNumber(form.elements.amount.value);
+  if ((type === "market" && amount === 0) || (type !== "market" && amount <= 0)) {
+    showOutcomeStatus("金額を入力してください");
     return;
   }
 
@@ -1407,7 +1506,8 @@ document.getElementById("outcomeForm").addEventListener("submit", (event) => {
   saveState();
   form.reset();
   render();
-  showOutcomeStatus(`${yen.format(amount)}の成果でFIREを${formatImpactDays(exactDaysShortenedByAmount(amount))}短縮`);
+  const contribution = outcomeContribution(entry);
+  showOutcomeStatus(`${formatSignedYen(contribution)}で自由まで${formatSignedImpact(signedDaysShortenedByAmount(contribution))}`);
 });
 
 document.addEventListener("click", (event) => {
