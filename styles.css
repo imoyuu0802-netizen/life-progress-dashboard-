@@ -1,17 +1,17 @@
 :root {
-  color-scheme: light;
-  --bg: #f5f5f7;
-  --surface: #ffffff;
-  --surface-strong: #ffffff;
-  --ink: #111111;
-  --muted: #6e6e73;
-  --line: #e5e5ea;
-  --soft: #f2f2f7;
-  --accent: #007aff;
-  --green: #0a8f55;
-  --blue: #007aff;
-  --gold: #b7791f;
-  --danger: #d70015;
+  color-scheme: dark;
+  --bg: #080a09;
+  --surface: #121512;
+  --surface-strong: #181c18;
+  --ink: #f7f4e8;
+  --muted: #a8aa9f;
+  --line: #2a302a;
+  --soft: #1b211c;
+  --accent: #f0c86a;
+  --green: #46d18b;
+  --blue: #6a8fb4;
+  --gold: #f0c86a;
+  --danger: #e16b66;
   --radius: 8px;
 }
 
@@ -23,7 +23,9 @@ body {
   margin: 0;
   min-height: 100vh;
   overflow-x: hidden;
-  background: var(--bg);
+  background:
+    radial-gradient(circle at top right, rgba(70, 209, 139, 0.13), transparent 32rem),
+    var(--bg);
   color: var(--ink);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   letter-spacing: 0;
@@ -58,7 +60,7 @@ select {
   padding: 0;
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  background: rgba(255, 255, 255, 0.76);
+  background: var(--soft);
   color: var(--ink);
   font-size: 21px;
   line-height: 1;
@@ -66,12 +68,12 @@ select {
 
 .settings-trigger.is-active {
   background: var(--ink);
-  color: #ffffff;
+  color: #10120f;
 }
 
 .eyebrow {
   margin: 0 0 7px;
-  color: var(--muted);
+  color: var(--gold);
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -139,7 +141,7 @@ small {
   gap: 6px;
   margin: 0 0 10px;
   padding: 8px;
-  background: rgba(8, 10, 9, 0.88);
+  background: rgba(8, 10, 9, 0.92);
   backdrop-filter: blur(10px);
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -148,9 +150,9 @@ small {
 .view-tab {
   min-height: 42px;
   padding: 0 4px;
-  background: transparent;
-  color: var(--muted);
-  border: 0;
+  background: rgba(255, 255, 255, 0.04);
+  color: #d8d0aa;
+  border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 6px;
   font-size: 13px;
   font-weight: 800;
@@ -158,8 +160,10 @@ small {
 }
 
 .view-tab.is-active {
-  background: var(--ink);
+  background: var(--gold);
   color: #10120f;
+  border-color: var(--gold);
+  box-shadow: 0 0 0 1px rgba(240, 200, 106, 0.16) inset;
 }
 
 .view {
@@ -228,14 +232,14 @@ small {
 }
 
 .focus-panel {
-  background: var(--surface);
+  background: linear-gradient(145deg, #151912, #090b0a);
   color: var(--ink);
-  border-color: transparent;
-  box-shadow: 0 18px 46px rgba(0, 0, 0, 0.08);
+  border-color: rgba(240, 200, 106, 0.42);
+  box-shadow: 0 0 0 1px rgba(240, 200, 106, 0.08) inset;
 }
 
 .focus-panel small {
-  color: var(--muted);
+  color: #d8d0aa;
 }
 
 .focus-panel .panel-title {
@@ -268,13 +272,13 @@ small {
 }
 
 .fire-countdown-head span {
-  color: var(--muted);
+  color: rgba(255, 255, 255, 0.72);
   font-size: 15px;
   font-weight: 850;
 }
 
 .fire-countdown-head strong {
-  color: var(--ink);
+  color: var(--gold);
   font-size: clamp(40px, 10vw, 86px);
   font-variant-numeric: tabular-nums;
   letter-spacing: 0;
@@ -298,13 +302,13 @@ small {
   min-width: 0;
   min-height: 98px;
   padding: 18px;
-  border: 1px solid var(--line);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: var(--radius);
-  background: var(--soft);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .daily-fire-summary small {
-  color: var(--muted);
+  color: rgba(255, 255, 255, 0.64);
   font-size: 13px;
   font-weight: 850;
 }
@@ -346,8 +350,8 @@ small {
 
 .result-panel,
 .today-breakdown-panel {
-  background: var(--surface);
-  border-color: transparent;
+  background: linear-gradient(145deg, #101611, #0b0d0b);
+  border-color: rgba(70, 209, 139, 0.25);
 }
 
 .breakdown-grid {
@@ -371,6 +375,57 @@ small {
   font-size: 22px;
   font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
+}
+
+.holdings-form,
+.holdings-list {
+  display: grid;
+  gap: 10px;
+}
+
+.holding-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(120px, 0.9fr) auto;
+  gap: 8px;
+  align-items: end;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.holding-row label {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.holding-row label span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.holding-row input {
+  width: 100%;
+}
+
+.holding-row button,
+.holdings-actions button {
+  min-height: 44px;
+}
+
+.holding-row button {
+  padding: 0 10px;
+  border: 1px solid rgba(225, 107, 102, 0.35);
+  background: rgba(225, 107, 102, 0.12);
+  color: #ffd8d6;
+}
+
+.holdings-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
 }
 
 .result-hero {
@@ -1835,6 +1890,14 @@ button:disabled {
 @media (max-width: 759px) {
   .fire-countdown-head strong {
     font-size: clamp(31px, 9.1vw, 40px);
+  }
+
+  .holding-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .holding-row button {
+    width: 100%;
   }
 
   .custom-setting-row,

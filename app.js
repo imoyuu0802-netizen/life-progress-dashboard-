@@ -32,6 +32,10 @@ const defaultState = {
     cash: 1300000,
     dividends: 96000
   },
+  investmentHoldings: [
+    { id: "holding-total", name: "投資合計", value: 4200000 }
+  ],
+  investmentValuationBaseline: null,
   assetHistory: [
     { month: "2024-12", total: 10748696, dividends: null, sideProfit: null, fireAge: null },
     { month: "2025-12", total: 12368409, dividends: null, sideProfit: null, fireAge: null }
@@ -72,6 +76,7 @@ let backupStatusTimer = null;
 let profileStatusTimer = null;
 let customizationStatusTimer = null;
 let outcomeStatusTimer = null;
+let holdingsStatusTimer = null;
 let fireCountdownBaseSeconds = 0;
 let fireCountdownStartedAt = Date.now();
 
@@ -133,6 +138,8 @@ function normalizeState(saved = {}) {
     ...saved,
     profile: { ...defaultState.profile, ...(saved.profile || {}) },
     assets: { ...defaultState.assets, ...(saved.assets || {}) },
+    investmentHoldings: normalizeInvestmentHoldings(saved.investmentHoldings, saved.assets),
+    investmentValuationBaseline: normalizeInvestmentValuationBaseline(saved.investmentValuationBaseline),
     assetHistory: ensureBaselineAssetHistory(saved.assetHistory || []),
     sideHustles: normalizeSideHustles(saved.sideHustles),
     progressEntries,
@@ -199,6 +206,29 @@ function normalizeSideHustles(items) {
   });
 }
 
+function normalizeInvestmentHoldings(items, savedAssets = {}) {
+  const source = Array.isArray(items) && items.length
+    ? items
+    : [{ id: "holding-total", name: "投資合計", value: Number(savedAssets?.investments) || defaultState.assets.investments }];
+
+  return source
+    .filter((item) => item && String(item.name || "").trim())
+    .slice(0, 20)
+    .map((item, index) => ({
+      id: String(item.id || `holding-${index}-${String(item.name).slice(0, 12)}`),
+      name: String(item.name).trim().slice(0, 28),
+      value: Math.max(0, Math.round(Number(item.value) || 0))
+    }));
+}
+
+function normalizeInvestmentValuationBaseline(item) {
+  if (!item || typeof item !== "object") return null;
+  return {
+    date: typeof item.date === "string" ? item.date.slice(0, 10) : todayKey(),
+    value: Math.max(0, Math.round(Number(item.value) || 0))
+  };
+}
+
 function normalizeQuickActions(items) {
   const source = Array.isArray(items) ? items : defaultState.quickActions;
   return source
@@ -225,7 +255,7 @@ function normalizeDividendGoals(items) {
 
 function normalizeVictoryGoals(items) {
   const source = Array.isArray(items) ? items : defaultState.victoryGoals;
-  const validMetrics = ["profit", "saving", "assetGrowth", "progressCount"];
+  const validMetrics = ["profit", "saving", "assetGrowth"];
   return source
     .filter((item) => item && String(item.label || "").trim() && validMetrics.includes(item.metric) && Number(item.target) > 0)
     .slice(0, 8)
@@ -692,23 +722,16 @@ function render() {
   renderFireProjection();
   hydrateDateInputs();
 
-  const selectedEntries = progressEntriesForDate(selectedProgressDate());
-  setText("todayLimit", `${selectedEntries.length} / ${dailyEntryLimit}`);
-  document.getElementById("progressInput").disabled = selectedEntries.length >= dailyEntryLimit;
-  document.querySelector("#progressForm button").disabled = selectedEntries.length >= dailyEntryLimit;
-
   renderSideHustles();
   renderDividendPower();
-  renderQuickActions();
   renderCustomizationSettings();
+  renderInvestmentHoldings();
   renderOutcomeFormOptions();
   renderOutcomeHistory();
   renderAssets();
   renderAssetTrend();
-  renderTodayQuests();
   renderJourney();
   renderVictoryConditions();
-  renderHistory();
   hydrateSettings();
   switchView(currentView);
 }
@@ -811,6 +834,7 @@ function renderDividendPower() {
 
 function renderQuickActions() {
   const container = document.getElementById("quickActions");
+  if (!container) return;
   if (!state.quickActions.length) {
     container.innerHTML = '<p class="quick-actions-empty">設定でワンタップ前進を追加できます</p>';
     return;
@@ -825,20 +849,48 @@ function renderQuickActions() {
     .join("");
 }
 
+function renderInvestmentHoldings() {
+  const list = document.getElementById("investmentHoldingsList");
+  if (!list) return;
+  const holdings = state.investmentHoldings.length
+    ? state.investmentHoldings
+    : normalizeInvestmentHoldings([], state.assets);
+  const total = holdings.reduce((sum, item) => sum + item.value, 0);
+
+  setText("holdingsTotal", yen.format(total));
+  list.innerHTML = holdings
+    .map((item) => `
+      <div class="holding-row" data-holding-row="${escapeHtml(item.id)}">
+        <label>
+          <span>銘柄名</span>
+          <input data-holding-field="name" value="${escapeHtml(item.name)}" maxlength="28" placeholder="例: S&P500" />
+        </label>
+        <label>
+          <span>現在の評価額</span>
+          <input data-holding-field="value" type="text" inputmode="numeric" data-number-input value="${formatInputNumber(item.value)}" />
+        </label>
+        <button type="button" data-delete-holding="${escapeHtml(item.id)}" aria-label="${escapeHtml(item.name)}を削除">削除</button>
+      </div>
+    `)
+    .join("");
+}
+
 function renderCustomizationSettings() {
   const quickList = document.getElementById("quickActionSettingsList");
   const rewardList = document.getElementById("dividendGoalSettingsList");
   const victoryList = document.getElementById("victoryGoalSettingsList");
 
-  quickList.innerHTML = state.quickActions.length
-    ? state.quickActions.map((item) => `
-      <div class="custom-setting-row" data-quick-setting="${escapeHtml(item.id)}">
-        <label><span>表示名</span><input data-quick-field="label" value="${escapeHtml(item.label)}" maxlength="16" /></label>
-        <label><span>記録内容</span><input data-quick-field="text" value="${escapeHtml(item.text)}" maxlength="40" /></label>
-        <button class="delete-custom-item" type="button" data-delete-quick-action="${escapeHtml(item.id)}">削除</button>
-      </div>
-    `).join("")
-    : '<p class="custom-empty">ワンタップ前進は未設定です</p>';
+  if (quickList) {
+    quickList.innerHTML = state.quickActions.length
+      ? state.quickActions.map((item) => `
+        <div class="custom-setting-row" data-quick-setting="${escapeHtml(item.id)}">
+          <label><span>表示名</span><input data-quick-field="label" value="${escapeHtml(item.label)}" maxlength="16" /></label>
+          <label><span>記録内容</span><input data-quick-field="text" value="${escapeHtml(item.text)}" maxlength="40" /></label>
+          <button class="delete-custom-item" type="button" data-delete-quick-action="${escapeHtml(item.id)}">削除</button>
+        </div>
+      `).join("")
+      : '<p class="custom-empty">ワンタップ前進は未設定です</p>';
+  }
 
   rewardList.innerHTML = state.dividendGoals.length
     ? state.dividendGoals.map((item) => `
@@ -860,7 +912,6 @@ function renderCustomizationSettings() {
             <option value="profit" ${item.metric === "profit" ? "selected" : ""}>副業利益</option>
             <option value="saving" ${item.metric === "saving" ? "selected" : ""}>節約</option>
             <option value="assetGrowth" ${item.metric === "assetGrowth" ? "selected" : ""}>資産増加</option>
-            <option value="progressCount" ${item.metric === "progressCount" ? "selected" : ""}>前進回数</option>
           </select>
         </label>
         <label><span>目標値</span><input data-victory-field="target" type="text" inputmode="numeric" data-number-input value="${formatInputNumber(item.target)}" /></label>
@@ -1079,7 +1130,6 @@ function victoryMetricValue(metric) {
   if (metric === "profit") return monthlySideProfit();
   if (metric === "saving") return savings;
   if (metric === "assetGrowth") return assetDiff;
-  if (metric === "progressCount") return monthlyProgressEntries().length;
   return 0;
 }
 
@@ -1087,7 +1137,7 @@ function monthlyVictoryConditions() {
   return state.victoryGoals.map((goal) => ({
     ...goal,
     current: victoryMetricValue(goal.metric),
-    unit: goal.metric === "progressCount" ? "count" : "money"
+    unit: "money"
   }));
 }
 
@@ -1151,12 +1201,11 @@ function heroJournal() {
   const monthLabel = `${Number(currentMonthKey().split("-")[1])}月`;
   const assetDiff = state.lastMonthlyChange?.diff || diffFromSnapshot(findSnapshot(previousMonthKey(currentMonthKey())), "total", totalAssets());
   const dividendDiff = diffFromSnapshot(findSnapshot(previousMonthKey(currentMonthKey())), "dividends", state.assets.dividends);
-  const progressCount = monthlyProgressEntries().length;
   const shortened = monthlyShorteningDays();
 
   return {
-    title: `${monthLabel}の冒険記録`,
-    body: `資産 ${formatDiff(assetDiff)}、配当 ${formatDiff(dividendDiff)}、前進 ${progressCount}件。FIREまで${formatShortening(shortened)}短縮。着実に過去の自分を上回る1か月です。`
+    title: `${monthLabel}の振り返り`,
+    body: `資産 ${formatDiff(assetDiff)}、配当 ${formatDiff(dividendDiff)}。FIREまで${formatShortening(shortened)}短縮。着実に過去の自分を上回る1か月です。`
   };
 }
 
@@ -1283,11 +1332,8 @@ function hydrateSettings() {
 }
 
 function hydrateDateInputs() {
-  const progressDate = document.getElementById("progressDate");
   const outcomeDate = document.getElementById("outcomeForm").elements.date;
-  progressDate.max = todayKey();
   outcomeDate.max = todayKey();
-  if (!progressDate.value) progressDate.value = todayKey();
   if (!outcomeDate.value) outcomeDate.value = todayKey();
 }
 
@@ -1350,6 +1396,7 @@ function showSaveStatus(message = "保存しました") {
 
 function showDailyStatus(message) {
   const status = document.getElementById("dailyStatus");
+  if (!status) return;
   status.textContent = message;
   window.clearTimeout(dailyStatusTimer);
   dailyStatusTimer = window.setTimeout(() => {
@@ -1393,6 +1440,16 @@ function showOutcomeStatus(message) {
   }, 2400);
 }
 
+function showHoldingsStatus(message) {
+  const status = document.getElementById("holdingsStatus");
+  if (!status) return;
+  status.textContent = message;
+  window.clearTimeout(holdingsStatusTimer);
+  holdingsStatusTimer = window.setTimeout(() => {
+    status.textContent = "";
+  }, 2600);
+}
+
 function exportBackup() {
   applySettingsFormValues(document.getElementById("settingsForm"));
   saveState();
@@ -1430,6 +1487,70 @@ function importBackupFile(file) {
   reader.readAsText(file);
 }
 
+function readInvestmentHoldingRows() {
+  return [...document.querySelectorAll("[data-holding-row]")]
+    .map((row, index) => {
+      const name = row.querySelector("[data-holding-field='name']")?.value.trim() || "";
+      const value = parseInputNumber(row.querySelector("[data-holding-field='value']")?.value || "");
+      return {
+        id: row.dataset.holdingRow || `holding-${Date.now()}-${index}`,
+        name,
+        value
+      };
+    })
+    .filter((item) => item.name && item.value >= 0);
+}
+
+function upsertInvestmentMarketOutcome(amount) {
+  const date = todayKey();
+  const id = `auto-market-holdings-${date}`;
+  state.outcomeEntries = state.outcomeEntries.filter((entry) => entry.id !== id);
+  if (!amount) return;
+  state.outcomeEntries.push({
+    id,
+    date,
+    type: "market",
+    category: "投資評価額",
+    sales: 0,
+    amount,
+    appliedToMonthlyTotals: false
+  });
+}
+
+function saveInvestmentHoldings() {
+  const holdings = readInvestmentHoldingRows();
+  if (!holdings.length) {
+    showHoldingsStatus("銘柄名と評価額を入力してください");
+    return;
+  }
+
+  const previousTotal = totalAssets();
+  const previousInvestments = state.assets.investments;
+  const baseline = state.investmentValuationBaseline?.date === todayKey()
+    ? state.investmentValuationBaseline
+    : { date: todayKey(), value: previousInvestments };
+  const nextInvestments = holdings.reduce((sum, item) => sum + item.value, 0);
+  const marketDiff = nextInvestments - baseline.value;
+
+  state.investmentHoldings = normalizeInvestmentHoldings(holdings, state.assets);
+  state.assets.investments = nextInvestments;
+  state.investmentValuationBaseline = baseline;
+  upsertInvestmentMarketOutcome(marketDiff);
+
+  const currentTotal = totalAssets();
+  state.lastMonthlyChange = {
+    previousTotal,
+    currentTotal,
+    diff: currentTotal - previousTotal,
+    updatedAt: new Date().toISOString()
+  };
+  recordAssetSnapshot(previousTotal, currentTotal);
+  state.lastUpdatedAt = new Date().toISOString();
+  saveState();
+  render();
+  showHoldingsStatus(`投資評価額を反映しました。今日の市場 ${formatSignedYen(marketDiff)}`);
+}
+
 function escapeHtml(value) {
   return value.replace(/[&<>"']/g, (char) => ({
     "&": "&amp;",
@@ -1440,21 +1561,27 @@ function escapeHtml(value) {
   })[char]);
 }
 
-document.getElementById("progressForm").addEventListener("submit", (event) => {
-  event.preventDefault();
-  const input = document.getElementById("progressInput");
-  const text = input.value.trim();
-  if (!addProgress(text, selectedProgressDate())) return;
-  input.value = "";
-});
+const progressForm = document.getElementById("progressForm");
+if (progressForm) {
+  progressForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const input = document.getElementById("progressInput");
+    const text = input.value.trim();
+    if (!addProgress(text, selectedProgressDate())) return;
+    input.value = "";
+  });
+}
 
-document.getElementById("progressDate").addEventListener("change", () => {
-  renderTodayQuests();
-  const entries = progressEntriesForDate(selectedProgressDate());
-  setText("todayLimit", `${entries.length} / ${dailyEntryLimit}`);
-  document.getElementById("progressInput").disabled = entries.length >= dailyEntryLimit;
-  document.querySelector("#progressForm button").disabled = entries.length >= dailyEntryLimit;
-});
+const progressDateInput = document.getElementById("progressDate");
+if (progressDateInput) {
+  progressDateInput.addEventListener("change", () => {
+    renderTodayQuests();
+    const entries = progressEntriesForDate(selectedProgressDate());
+    setText("todayLimit", `${entries.length} / ${dailyEntryLimit}`);
+    document.getElementById("progressInput").disabled = entries.length >= dailyEntryLimit;
+    document.querySelector("#progressForm button").disabled = entries.length >= dailyEntryLimit;
+  });
+}
 
 document.querySelectorAll("[data-view-target]").forEach((button) => {
   button.addEventListener("click", () => {
@@ -1510,10 +1637,40 @@ document.getElementById("outcomeForm").addEventListener("submit", (event) => {
   showOutcomeStatus(`${formatSignedYen(contribution)}で自由まで${formatSignedImpact(signedDaysShortenedByAmount(contribution))}`);
 });
 
+document.getElementById("investmentHoldingsForm").addEventListener("input", (event) => {
+  if (!event.target.matches("[data-number-input]")) return;
+  event.target.value = formatNumericInputValue(event.target.value);
+});
+
+document.getElementById("investmentHoldingsForm").addEventListener("submit", (event) => {
+  event.preventDefault();
+  saveInvestmentHoldings();
+});
+
+document.getElementById("addHoldingRow").addEventListener("click", () => {
+  state.investmentHoldings.push({
+    id: `holding-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    name: "",
+    value: 0
+  });
+  renderInvestmentHoldings();
+});
+
 document.addEventListener("click", (event) => {
   const button = event.target.closest("[data-delete-progress]");
   if (!button) return;
   deleteProgress(button.dataset.deleteProgress);
+});
+
+document.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-delete-holding]");
+  if (!button) return;
+  const rows = readInvestmentHoldingRows();
+  state.investmentHoldings = rows.filter((item) => item.id !== button.dataset.deleteHolding);
+  if (!state.investmentHoldings.length) {
+    state.investmentHoldings = [{ id: `holding-${Date.now()}`, name: "投資合計", value: state.assets.investments }];
+  }
+  renderInvestmentHoldings();
 });
 
 document.addEventListener("click", (event) => {
@@ -1583,32 +1740,38 @@ function addProgress(text, date = todayKey()) {
   return true;
 }
 
-document.getElementById("quickActions").addEventListener("click", (event) => {
-  const button = event.target.closest("[data-quick-action-id]");
-  if (!button) return;
-  const item = state.quickActions.find((action) => action.id === button.dataset.quickActionId);
-  if (!item) return;
-  addProgress(item.text, selectedProgressDate());
-});
+const quickActions = document.getElementById("quickActions");
+if (quickActions) {
+  quickActions.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-quick-action-id]");
+    if (!button) return;
+    const item = state.quickActions.find((action) => action.id === button.dataset.quickActionId);
+    if (!item) return;
+    addProgress(item.text, selectedProgressDate());
+  });
+}
 
-document.getElementById("quickActionSettingsList").addEventListener("change", (event) => {
-  const row = event.target.closest("[data-quick-setting]");
-  if (!row || !event.target.matches("[data-quick-field]")) return;
-  const item = state.quickActions.find((action) => action.id === row.dataset.quickSetting);
-  if (!item) return;
-  const field = event.target.dataset.quickField;
-  const value = event.target.value.trim();
-  if (!value) {
+const quickActionSettingsList = document.getElementById("quickActionSettingsList");
+if (quickActionSettingsList) {
+  quickActionSettingsList.addEventListener("change", (event) => {
+    const row = event.target.closest("[data-quick-setting]");
+    if (!row || !event.target.matches("[data-quick-field]")) return;
+    const item = state.quickActions.find((action) => action.id === row.dataset.quickSetting);
+    if (!item) return;
+    const field = event.target.dataset.quickField;
+    const value = event.target.value.trim();
+    if (!value) {
+      render();
+      showCustomizationStatus("表示名と記録内容は空欄にできません");
+      return;
+    }
+    item[field] = value;
+    state.quickActions = normalizeQuickActions(state.quickActions);
+    saveState();
     render();
-    showCustomizationStatus("表示名と記録内容は空欄にできません");
-    return;
-  }
-  item[field] = value;
-  state.quickActions = normalizeQuickActions(state.quickActions);
-  saveState();
-  render();
-  showCustomizationStatus("ワンタップ前進を更新しました");
-});
+    showCustomizationStatus("ワンタップ前進を更新しました");
+  });
+}
 
 document.getElementById("dividendGoalSettingsList").addEventListener("input", (event) => {
   if (!event.target.matches("[data-number-input]")) return;
@@ -1634,27 +1797,30 @@ document.getElementById("dividendGoalSettingsList").addEventListener("change", (
   showCustomizationStatus("配当目標を更新しました");
 });
 
-document.getElementById("quickActionForm").addEventListener("submit", (event) => {
-  event.preventDefault();
-  if (state.quickActions.length >= 8) {
-    showCustomizationStatus("ワンタップ前進は8件までです");
-    return;
-  }
-  const form = event.currentTarget;
-  const label = form.elements.label.value.trim();
-  const text = form.elements.text.value.trim() || label;
-  if (!label || !text) return;
-  state.quickActions.push({
-    id: `quick-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-    label,
-    text
+const quickActionForm = document.getElementById("quickActionForm");
+if (quickActionForm) {
+  quickActionForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    if (state.quickActions.length >= 8) {
+      showCustomizationStatus("ワンタップ前進は8件までです");
+      return;
+    }
+    const form = event.currentTarget;
+    const label = form.elements.label.value.trim();
+    const text = form.elements.text.value.trim() || label;
+    if (!label || !text) return;
+    state.quickActions.push({
+      id: `quick-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      label,
+      text
+    });
+    state.quickActions = normalizeQuickActions(state.quickActions);
+    saveState();
+    form.reset();
+    render();
+    showCustomizationStatus("ワンタップ前進を追加しました");
   });
-  state.quickActions = normalizeQuickActions(state.quickActions);
-  saveState();
-  form.reset();
-  render();
-  showCustomizationStatus("ワンタップ前進を追加しました");
-});
+}
 
 document.getElementById("dividendGoalForm").addEventListener("input", (event) => {
   if (!event.target.matches("[data-number-input]")) return;
@@ -1820,6 +1986,9 @@ function applySettingsFormValues(form) {
   state.assets.investments = parseInputNumber(form.elements.investments.value);
   state.assets.cash = parseInputNumber(form.elements.cash.value);
   state.assets.dividends = parseInputNumber(form.elements.dividends.value);
+  if (state.investmentHoldings.length === 1 && state.investmentHoldings[0].id === "holding-total") {
+    state.investmentHoldings[0].value = state.assets.investments;
+  }
   state.profile.fireGoal = Math.max(1, parseInputNumber(form.elements.fireGoal.value));
   state.profile.investmentGrowthRate = Number(form.elements.investmentGrowthRate.value) || 0;
   state.profile.yearlyAssetGrowth = parseInputNumber(form.elements.yearlyAssetGrowth.value);
