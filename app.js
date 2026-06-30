@@ -61,6 +61,8 @@ let backupStatusTimer = null;
 let profileStatusTimer = null;
 let customizationStatusTimer = null;
 let outcomeStatusTimer = null;
+let fireCountdownBaseSeconds = 0;
+let fireCountdownStartedAt = Date.now();
 
 const yen = new Intl.NumberFormat("ja-JP", {
   style: "currency",
@@ -358,6 +360,10 @@ function daysToFire() {
   return Math.max(0, Math.ceil((remainingToFire() / annualFirePower()) * 365));
 }
 
+function exactSecondsToFire() {
+  return Math.max(0, Math.round((remainingToFire() / annualFirePower()) * 365 * 24 * 60 * 60));
+}
+
 function yearsToFireDecimal() {
   return daysToFire() / 365;
 }
@@ -545,9 +551,29 @@ function formatPercent(value) {
   return `${sign}${value.toFixed(1)}%`;
 }
 
+function padClock(value) {
+  return String(value).padStart(2, "0");
+}
+
+function formatFireCountdown(totalSeconds) {
+  const seconds = Math.max(0, Math.floor(Number(totalSeconds) || 0));
+  const days = Math.floor(seconds / 86400);
+  const rest = seconds % 86400;
+  const hours = Math.floor(rest / 3600);
+  const minutes = Math.floor((rest % 3600) / 60);
+  const remainingSeconds = rest % 60;
+  return `${numberFormatter.format(days)}日 ${padClock(hours)}:${padClock(minutes)}:${padClock(remainingSeconds)}`;
+}
+
+function updateFireCountdown() {
+  const elapsedSeconds = Math.floor((Date.now() - fireCountdownStartedAt) / 1000);
+  setText("fireDistanceHero", formatFireCountdown(fireCountdownBaseSeconds - elapsedSeconds));
+}
+
 function renderFireProjection() {
-  const fireDays = daysToFire();
-  setText("fireDistanceHero", `あと${numberFormatter.format(fireDays)}日（約${yearsToFireDecimal().toFixed(1)}年）`);
+  fireCountdownBaseSeconds = exactSecondsToFire();
+  fireCountdownStartedAt = Date.now();
+  updateFireCountdown();
   setText("arrivalAge", formatAge(arrivalAge()));
   setText("monthlyShortening", formatShortening(monthlyShorteningDays()));
   setText("investmentGrowthAmount", yen.format(investmentGrowthAmount()));
@@ -563,9 +589,12 @@ function render() {
 
   setText("fireRate", `${rate}%`);
   setText("totalAssets", yen.format(total));
+  setText("heroTotalAssets", yen.format(total));
   setText("annualDividendResult", yen.format(state.assets.dividends));
   setText("annualDividendPower", `${yen.format(state.assets.dividends)}/年`);
-  setText("monthlySideProfitResult", yen.format(monthlySideProfit()));
+  const sideProfit = monthlySideProfit();
+  setText("monthlySideProfitResult", yen.format(sideProfit));
+  setText("heroMonthlySideProfit", yen.format(sideProfit));
   setText("monthlySavingResult", yen.format(monthlySavings));
   setText("yearlyAssetDiffResult", formatDiff(yearly.assetDiff));
   const peerRanking = peerAssetRanking();
@@ -576,12 +605,12 @@ function render() {
   setText("peerAverageDiff", peerAverage ? formatDiff(total - peerAverage) : "--");
   setText("peerRatio", peerAverage ? `${roundOne(total / Math.max(1, peerAverage))}倍` : "--倍");
   setText("peerBenchmarkNote", peerRanking ? `回答${numberFormatter.format(peerRanking.sample)}世帯 / 総資産を金融資産として階級内を均等推定` : "金融資産ベース・未回答を除く推定値");
-  const todayCount = todayEntries().length;
+  const todayImpact = todayShorteningDays();
   const shortening = monthlyShorteningDays();
   setText(
     "fireShortenMessage",
-    todayCount > 0
-      ? `今日は${todayCount}件前進`
+    todayImpact > 0
+      ? `今日、FIREを${formatImpactDays(todayImpact)}短縮`
       : shortening > 0
         ? `今月、FIREを${formatShortening(shortening)}短縮`
         : "今日が一番若い日"
@@ -592,7 +621,7 @@ function render() {
   setText("settingsMonthlyDiff", formatDiff(state.lastMonthlyChange?.diff));
   setText("monthlyAutoLabel", `${formatCurrentMonthLabel()}として自動記録`);
   setText("monthlyFireDelta", formatFireDaysDiff(monthlyComparison().fireAgeDiffValue));
-  setText("todayShortening", formatImpactDays(todayShorteningDays()));
+  setText("todayShortening", `+${formatImpactDays(todayShorteningDays())}`);
   setText("yearlyShortening", formatShortening(yearlyShorteningDays()));
   setText("nextOnePercentAmount", nextOnePercentAmount() ? `あと${yen.format(nextOnePercentAmount())}` : "達成済み");
   setSignedClass("monthlyAssetDiff", state.lastMonthlyChange?.diff);
@@ -1722,3 +1751,4 @@ window.fireDashboard = {
 };
 
 render();
+window.setInterval(updateFireCountdown, 1000);

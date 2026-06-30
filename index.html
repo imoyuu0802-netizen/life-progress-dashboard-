@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Life Progress" />
     <title>Life Progress Dashboard</title>
     <link rel="manifest" href="manifest.webmanifest?v=5" />
-    <link rel="stylesheet" href="styles.css?v=47" />
+    <link rel="stylesheet" href="styles.css?v=48" />
   </head>
   <body>
     <main class="app-shell">
@@ -29,20 +29,30 @@
       <section id="view-overview" class="view is-active">
         <section class="top-grid" aria-label="主要ダッシュボード">
           <article class="panel focus-panel">
-            <div class="panel-title">
-              <span>FIRE達成まで</span>
-              <strong id="fireDistanceHero">--日</strong>
+            <div class="fire-countdown-head">
+              <span>🏝 FIREまで</span>
+              <strong id="fireDistanceHero">--日 00:00:00</strong>
             </div>
-            <p id="fireShortenMessage" class="boss-message">FIREまでの日数を減らす</p>
+            <p id="fireShortenMessage" class="boss-message">今日が一番若い日</p>
+            <div class="daily-fire-summary">
+              <div>
+                <small>総資産</small>
+                <strong id="heroTotalAssets">¥0</strong>
+              </div>
+              <div class="today-shortening">
+                <small>今日の短縮</small>
+                <strong id="todayShortening">+0分</strong>
+              </div>
+              <div>
+                <small>今月の副業</small>
+                <strong id="heroMonthlySideProfit">¥0</strong>
+              </div>
+            </div>
             <div class="progress-track thick" aria-label="FIRE達成率">
               <div id="fireProgress" class="progress-fill"></div>
               <span id="fireProgressLabel">0%</span>
             </div>
             <div class="fire-days-row">
-              <div class="today-shortening">
-                <small>今日の短縮</small>
-                <strong id="todayShortening">0分</strong>
-              </div>
               <div class="yearly-shortening">
                 <small>今年の短縮</small>
                 <strong id="yearlyShortening">0日</strong>
@@ -435,14 +445,14 @@
 
     <button id="backToTop" class="back-to-top" type="button" aria-label="ページ上部へ戻る" title="ページ上部へ戻る">↑</button>
 
-    <script src="firebase-config.js?v=47"></script>
-    <script src="jflec-data.js?v=47"></script>
-    <script src="app.js?v=47"></script>
-    <script type="module" src="firebase-sync.js?v=47"></script>
+    <script src="firebase-config.js?v=48"></script>
+    <script src="jflec-data.js?v=48"></script>
+    <script src="app.js?v=48"></script>
+    <script type="module" src="firebase-sync.js?v=48"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js?v=47");
+          navigator.serviceWorker.register("sw.js?v=48");
         });
       }
     </script>
