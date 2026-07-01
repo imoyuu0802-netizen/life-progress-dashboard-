@@ -494,6 +494,73 @@ small {
   min-height: 44px;
 }
 
+.holdings-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.holdings-actions button {
+  white-space: nowrap;
+}
+
+.holdings-actions button:last-child {
+  background: var(--soft);
+  color: var(--ink);
+  border: 1px solid var(--line);
+}
+
+.holding-search-results {
+  display: grid;
+  gap: 8px;
+}
+
+.holding-result-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.holding-result-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.holding-result-list button {
+  display: grid;
+  gap: 3px;
+  min-height: 54px;
+  padding: 9px 10px;
+  text-align: left;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--line);
+  color: var(--ink);
+}
+
+.holding-result-list button strong,
+.holding-result-list button small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.holding-result-list button small,
+.holding-result-empty {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.holding-result-empty {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.03);
+}
+
 .holding-row button {
   padding: 0 10px;
   border: 1px solid rgba(225, 107, 102, 0.35);
@@ -1983,6 +2050,15 @@ button:disabled {
 
   .holding-search {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .holdings-actions,
+  .holding-result-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .holdings-actions {
+    display: grid;
   }
 
   .holding-row {

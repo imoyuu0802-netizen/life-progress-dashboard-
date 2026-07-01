@@ -954,6 +954,12 @@ function filteredHoldingPresets(selectedSymbol = "") {
   return matches.sort((a, b) => (Number(a.rank) || 999) - (Number(b.rank) || 999) || a.name.localeCompare(b.name, "ja"));
 }
 
+function holdingSearchCandidates() {
+  return filteredHoldingPresets()
+    .filter((preset) => preset.symbol !== "custom")
+    .slice(0, holdingSearchQuery.trim() ? 8 : 5);
+}
+
 function normalizeSearchText(value) {
   return String(value || "").toLowerCase().replace(/\s+/g, "");
 }
@@ -997,6 +1003,7 @@ function renderInvestmentHoldings() {
 
   setText("holdingsTotal", yen.format(total));
   setText("holdingsSummary", `${holdings.length}件 / ${yen.format(total)}`);
+  renderHoldingSearchResults();
   list.innerHTML = holdings
     .map((item) => `
       <div class="holding-row" data-holding-row="${escapeHtml(item.id)}">
@@ -1018,6 +1025,35 @@ function renderInvestmentHoldings() {
       </div>
     `)
     .join("");
+}
+
+function renderHoldingSearchResults() {
+  const container = document.getElementById("holdingSearchResults");
+  if (!container) return;
+  const candidates = holdingSearchCandidates();
+  const hasQuery = Boolean(holdingSearchQuery.trim());
+
+  if (!candidates.length) {
+    container.innerHTML = hasQuery
+      ? '<p class="holding-result-empty">検索結果無し</p>'
+      : '<p class="holding-result-empty">検索すると候補が表示されます</p>';
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="holding-result-head">
+      <span>${hasQuery ? "検索候補" : "ランキング上位"}</span>
+      <small>タップで追加</small>
+    </div>
+    <div class="holding-result-list">
+      ${candidates.map((preset) => `
+        <button type="button" data-add-holding-preset="${escapeHtml(preset.symbol)}">
+          <strong>${escapeHtml(preset.name)}</strong>
+          <small>${escapeHtml([preset.broker, preset.ticker].filter(Boolean).join(" / "))}</small>
+        </button>
+      `).join("")}
+    </div>
+  `;
 }
 
 function renderCustomizationSettings() {
@@ -1857,8 +1893,7 @@ document.getElementById("investmentHoldingsForm").addEventListener("submit", (ev
   saveInvestmentHoldings();
 });
 
-document.getElementById("addHoldingRow").addEventListener("click", () => {
-  const preset = filteredHoldingPresets()[0] || holdingPresets[0];
+function addHoldingFromPreset(preset = filteredHoldingPresets()[0] || holdingPresets[0]) {
   const id = `holding-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
   state.investmentHoldings.push({
     id,
@@ -1874,6 +1909,22 @@ document.getElementById("addHoldingRow").addEventListener("click", () => {
     .find((row) => row.dataset.holdingRow === id)
     ?.querySelector("[data-holding-field='value']")
     ?.focus();
+}
+
+document.getElementById("addHoldingRow").addEventListener("click", () => {
+  addHoldingFromPreset();
+});
+
+document.getElementById("refreshHoldings").addEventListener("click", () => {
+  saveInvestmentHoldings();
+});
+
+document.getElementById("holdingSearchResults").addEventListener("click", (event) => {
+  const button = event.target.closest("[data-add-holding-preset]");
+  if (!button) return;
+  const preset = holdingPresets.find((item) => item.symbol === button.dataset.addHoldingPreset);
+  if (!preset) return;
+  addHoldingFromPreset(preset);
 });
 
 document.addEventListener("click", (event) => {
