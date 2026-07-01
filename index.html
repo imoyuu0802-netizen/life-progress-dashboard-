@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Life Progress" />
     <title>Life Progress Dashboard</title>
     <link rel="manifest" href="manifest.webmanifest?v=5" />
-    <link rel="stylesheet" href="styles.css?v=60" />
+    <link rel="stylesheet" href="styles.css?v=61" />
   </head>
   <body>
     <main class="app-shell">
@@ -118,7 +118,7 @@
             </div>
             <div class="result-grid">
               <div>
-                <small>年間配当</small>
+                <small>年間配当（概算）</small>
                 <strong id="annualDividendResult">¥0</strong>
               </div>
               <div>
@@ -154,7 +154,7 @@
             <a class="benchmark-source" href="https://www.j-flec.go.jp/data/kakekin_2024/" target="_blank" rel="noreferrer">出典: J-FLEC「家計の金融行動に関する世論調査 2024年」をもとに独自推計</a>
             <div class="dividend-power">
               <div class="dividend-power-head">
-                <small>年間配当で楽しめるもの</small>
+                <small>概算配当で楽しめるもの</small>
                 <strong id="annualDividendPower">¥0/年</strong>
               </div>
               <div id="dividendPowerList" class="dividend-power-list"></div>
@@ -229,49 +229,6 @@
 
       <section id="view-input" class="view">
         <section class="content-grid input-view-stack">
-          <article class="panel holdings-panel">
-            <div class="section-head">
-              <div>
-                <p class="eyebrow">Portfolio</p>
-                <h2>投資評価額</h2>
-              </div>
-              <span id="holdingsTotal" class="pill">¥0</span>
-            </div>
-            <form id="investmentHoldingsForm" class="holdings-form">
-              <div class="holding-toolbar">
-              <div class="holding-search">
-                <label>
-                  <span>銘柄タイプ</span>
-                  <select id="holdingCategoryFilter">
-                    <option value="fund">投資信託</option>
-                    <option value="etf">ETF</option>
-                    <option value="stock">個別株</option>
-                    <option value="all">すべて</option>
-                  </select>
-                </label>
-                <label>
-                  <span>検索</span>
-                  <input id="holdingSearchInput" type="search" placeholder="銘柄名・ティッカーで検索" autocomplete="off" />
-                </label>
-              </div>
-              <div class="holdings-actions">
-                <button id="addHoldingRow" type="button">銘柄を追加</button>
-                <button id="refreshHoldings" type="button">更新</button>
-              </div>
-              </div>
-              <div id="holdingSearchResults" class="holding-search-results" aria-live="polite"></div>
-              <details id="holdingsDetails" class="holdings-details">
-                <summary>
-                  <span>保有銘柄を編集</span>
-                  <strong id="holdingsSummary">0件</strong>
-                </summary>
-                <div id="investmentHoldingsList" class="holdings-list"></div>
-              </details>
-              <p class="holdings-note">銘柄を追加して評価額を入れるだけで、投資資産・今日の市場変動・年間配当を自動反映します。</p>
-            </form>
-            <p id="holdingsStatus" class="save-status" role="status" aria-live="polite"></p>
-          </article>
-
           <article class="panel outcome-input-panel">
             <div class="section-head">
               <div>
@@ -326,7 +283,7 @@
                 <div class="monthly-fields">
                   <label><span>投資資産（銘柄入力で更新）</span><input name="investments" type="text" inputmode="numeric" data-number-input autocomplete="off" /></label>
                   <label><span>現金</span><input name="cash" type="text" inputmode="numeric" data-number-input autocomplete="off" /></label>
-                  <label><span>年間配当金（銘柄利回りで自動計算）</span><input name="dividends" type="text" inputmode="numeric" data-number-input autocomplete="off" readonly /></label>
+                  <label><span>年間配当金（税引前概算）</span><input name="dividends" type="text" inputmode="numeric" data-number-input autocomplete="off" readonly /></label>
                 </div>
               </details>
               <details class="monthly-input-group">
@@ -347,6 +304,49 @@
               <button type="submit">月次更新を反映</button>
               <p id="saveStatus" class="save-status" role="status" aria-live="polite"></p>
             </form>
+          </article>
+
+          <article class="panel holdings-panel">
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Portfolio</p>
+                <h2>投資評価額</h2>
+              </div>
+              <span id="holdingsTotal" class="pill">¥0</span>
+            </div>
+            <form id="investmentHoldingsForm" class="holdings-form">
+              <div class="holding-toolbar">
+              <div class="holding-search">
+                <label>
+                  <span>銘柄タイプ</span>
+                  <select id="holdingCategoryFilter">
+                    <option value="fund">投資信託</option>
+                    <option value="etf">ETF</option>
+                    <option value="stock">個別株</option>
+                    <option value="all">すべて</option>
+                  </select>
+                </label>
+                <label>
+                  <span>検索</span>
+                  <input id="holdingSearchInput" type="search" placeholder="銘柄名・ティッカーで検索" autocomplete="off" />
+                </label>
+              </div>
+              <div class="holdings-actions">
+                <button id="addHoldingRow" type="button">銘柄を追加</button>
+                <button id="refreshHoldings" type="button">更新</button>
+              </div>
+              </div>
+              <div id="holdingSearchResults" class="holding-search-results" aria-live="polite"></div>
+              <details id="holdingsDetails" class="holdings-details">
+                <summary>
+                  <span>保有銘柄を編集</span>
+                  <strong id="holdingsSummary">0件</strong>
+                </summary>
+                <div id="investmentHoldingsList" class="holdings-list"></div>
+              </details>
+              <p class="holdings-note">銘柄を追加して評価額を入れるだけで、投資資産・今日の市場変動・年間配当を自動反映します。配当は銘柄別利回りを使った税引前の概算です。</p>
+            </form>
+            <p id="holdingsStatus" class="save-status" role="status" aria-live="polite"></p>
           </article>
 
         </section>
@@ -462,12 +462,12 @@
 
     <script src="firebase-config.js?v=53"></script>
     <script src="jflec-data.js?v=53"></script>
-    <script src="app.js?v=60"></script>
+    <script src="app.js?v=61"></script>
     <script type="module" src="firebase-sync.js?v=53"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js?v=60");
+          navigator.serviceWorker.register("sw.js?v=61");
         });
       }
     </script>
