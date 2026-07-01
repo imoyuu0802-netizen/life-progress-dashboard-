@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Life Progress" />
     <title>Life Progress Dashboard</title>
     <link rel="manifest" href="manifest.webmanifest?v=5" />
-    <link rel="stylesheet" href="styles.css?v=51" />
+    <link rel="stylesheet" href="styles.css?v=52" />
   </head>
   <body>
     <main class="app-shell">
@@ -32,8 +32,8 @@
             <div class="fire-countdown-head">
               <span>🏝 FIREまで</span>
               <strong id="fireDistanceHero">--日&#10;00時間00分00秒</strong>
+              <small id="fireYearsHero">約--年</small>
             </div>
-            <p id="fireShortenMessage" class="boss-message">今日が一番若い日</p>
             <div class="daily-fire-summary">
               <div>
                 <small>総資産</small>
@@ -201,22 +201,11 @@
             <div id="sideHustleList" class="impact-dashboard"></div>
           </article>
 
-          <article class="panel victory-panel">
-            <div class="section-head">
-              <div>
-                <p class="eyebrow">Monthly Wins</p>
-                <h2>今月の勝利条件</h2>
-              </div>
-              <span id="victoryRate" class="pill">0%</span>
-            </div>
-            <div id="victoryList" class="victory-list"></div>
-          </article>
-
           <article class="panel journey-panel">
             <div class="section-head">
               <div>
                 <p class="eyebrow">Journey</p>
-                <h2>過去の自分との対戦</h2>
+                <h2>前年比</h2>
               </div>
             </div>
             <div class="compare-grid">
@@ -253,7 +242,6 @@
               <p class="holdings-note">現在価格は円換算で入力。数量 × 現在価格で評価額を自動計算します。</p>
               <div class="holdings-actions">
                 <button id="addHoldingRow" type="button">銘柄を追加</button>
-                <button type="submit">評価額を反映</button>
               </div>
             </form>
             <p id="holdingsStatus" class="save-status" role="status" aria-live="polite"></p>
@@ -390,24 +378,6 @@
               <button type="submit">追加</button>
             </form>
           </details>
-          <details class="customization-group">
-            <summary>今月の勝利条件</summary>
-            <p class="customization-note">今月達成したい成果を、種類と目標値で設定できます。</p>
-            <div id="victoryGoalSettingsList" class="custom-settings-list"></div>
-            <form id="victoryGoalForm" class="custom-add-form victory-add-form">
-              <label><span>表示名</span><input name="label" maxlength="20" placeholder="例：副業1万円" required /></label>
-              <label>
-                <span>種類</span>
-                <select name="metric" required>
-                  <option value="profit">副業利益</option>
-                  <option value="saving">節約</option>
-                  <option value="assetGrowth">資産増加</option>
-                </select>
-              </label>
-              <label><span>目標値</span><input name="target" type="text" inputmode="numeric" data-number-input placeholder="10,000" required /></label>
-              <button type="submit">追加</button>
-            </form>
-          </details>
           <p id="customizationStatus" class="save-status" role="status" aria-live="polite"></p>
         </article>
 
@@ -465,14 +435,14 @@
 
     <button id="backToTop" class="back-to-top" type="button" aria-label="ページ上部へ戻る" title="ページ上部へ戻る">↑</button>
 
-    <script src="firebase-config.js?v=51"></script>
-    <script src="jflec-data.js?v=51"></script>
-    <script src="app.js?v=51"></script>
-    <script type="module" src="firebase-sync.js?v=51"></script>
+    <script src="firebase-config.js?v=52"></script>
+    <script src="jflec-data.js?v=52"></script>
+    <script src="app.js?v=52"></script>
+    <script type="module" src="firebase-sync.js?v=52"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js?v=51");
+          navigator.serviceWorker.register("sw.js?v=52");
         });
       }
     </script>

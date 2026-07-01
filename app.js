@@ -87,6 +87,7 @@ let profileStatusTimer = null;
 let customizationStatusTimer = null;
 let outcomeStatusTimer = null;
 let holdingsStatusTimer = null;
+let holdingsAutoSaveTimer = null;
 let fireCountdownBaseSeconds = 0;
 let fireCountdownStartedAt = Date.now();
 
@@ -675,6 +676,7 @@ function renderFireProjection() {
   fireCountdownBaseSeconds = exactSecondsToFire();
   fireCountdownStartedAt = Date.now();
   updateFireCountdown();
+  setText("fireYearsHero", `約${yearsToFireDecimal().toFixed(1)}年`);
   setText("arrivalAge", formatAge(arrivalAge()));
   setText("monthlyShortening", formatShortening(monthlyShorteningDays()));
   setText("investmentGrowthAmount", yen.format(investmentGrowthAmount()));
@@ -722,7 +724,7 @@ function render() {
       ? `今日、自由まで${formatSignedImpact(todayImpact)}近づいた`
       : shortening > 0
         ? `今月、FIREを${formatShortening(shortening)}短縮`
-        : "今日が一番若い日"
+        : ""
   );
   setText("targetAge", `${state.profile.targetAge}歳`);
   setText("monthlyAssetDiff", formatDiff(state.lastMonthlyChange?.diff));
@@ -751,7 +753,6 @@ function render() {
   renderAssets();
   renderAssetTrend();
   renderJourney();
-  renderVictoryConditions();
   hydrateSettings();
   switchView(currentView);
 }
@@ -902,6 +903,13 @@ function updateHoldingDraftTotals() {
   setText("holdingsTotal", yen.format(total));
 }
 
+function scheduleInvestmentHoldingsAutoSave() {
+  window.clearTimeout(holdingsAutoSaveTimer);
+  holdingsAutoSaveTimer = window.setTimeout(() => {
+    saveInvestmentHoldings({ silent: true });
+  }, 650);
+}
+
 function renderInvestmentHoldings() {
   const list = document.getElementById("investmentHoldingsList");
   if (!list) return;
@@ -925,7 +933,7 @@ function renderInvestmentHoldings() {
           <input data-holding-field="name" value="${escapeHtml(item.name)}" maxlength="28" placeholder="例: S&P500" />
         </label>
         <label>
-          <span>数量</span>
+          <span>口数・株数</span>
           <input data-holding-field="quantity" type="text" inputmode="decimal" value="${formatQuantity(item.quantity)}" placeholder="0" />
         </label>
         <label>
@@ -969,23 +977,25 @@ function renderCustomizationSettings() {
     `).join("")
     : '<p class="custom-empty">配当で叶えたいことは未設定です</p>';
 
-  victoryList.innerHTML = state.victoryGoals.length
-    ? state.victoryGoals.map((item) => `
-      <div class="custom-setting-row victory-setting-row" data-victory-setting="${escapeHtml(item.id)}">
-        <label><span>表示名</span><input data-victory-field="label" value="${escapeHtml(item.label)}" maxlength="20" /></label>
-        <label>
-          <span>種類</span>
-          <select data-victory-field="metric">
-            <option value="profit" ${item.metric === "profit" ? "selected" : ""}>副業利益</option>
-            <option value="saving" ${item.metric === "saving" ? "selected" : ""}>節約</option>
-            <option value="assetGrowth" ${item.metric === "assetGrowth" ? "selected" : ""}>資産増加</option>
-          </select>
-        </label>
-        <label><span>目標値</span><input data-victory-field="target" type="text" inputmode="numeric" data-number-input value="${formatInputNumber(item.target)}" /></label>
-        <button class="delete-custom-item" type="button" data-delete-victory-goal="${escapeHtml(item.id)}">削除</button>
-      </div>
-    `).join("")
-    : '<p class="custom-empty">今月の勝利条件は未設定です</p>';
+  if (victoryList) {
+    victoryList.innerHTML = state.victoryGoals.length
+      ? state.victoryGoals.map((item) => `
+        <div class="custom-setting-row victory-setting-row" data-victory-setting="${escapeHtml(item.id)}">
+          <label><span>表示名</span><input data-victory-field="label" value="${escapeHtml(item.label)}" maxlength="20" /></label>
+          <label>
+            <span>種類</span>
+            <select data-victory-field="metric">
+              <option value="profit" ${item.metric === "profit" ? "selected" : ""}>副業利益</option>
+              <option value="saving" ${item.metric === "saving" ? "selected" : ""}>節約</option>
+              <option value="assetGrowth" ${item.metric === "assetGrowth" ? "selected" : ""}>資産増加</option>
+            </select>
+          </label>
+          <label><span>目標値</span><input data-victory-field="target" type="text" inputmode="numeric" data-number-input value="${formatInputNumber(item.target)}" /></label>
+          <button class="delete-custom-item" type="button" data-delete-victory-goal="${escapeHtml(item.id)}">削除</button>
+        </div>
+      `).join("")
+      : '<p class="custom-empty">条件は未設定です</p>';
+  }
 }
 
 function renderSideHustles() {
@@ -1225,7 +1235,7 @@ function renderVictoryConditions() {
         </div>
       `;
     })
-    .join("") : '<p class="outcome-empty">設定で今月の勝利条件を追加できます</p>';
+    .join("") : '<p class="outcome-empty">設定で条件を追加できます</p>';
 }
 
 function diffFromSnapshot(snapshot, key, currentValue) {
@@ -1591,10 +1601,10 @@ function upsertInvestmentMarketOutcome(amount) {
   });
 }
 
-function saveInvestmentHoldings() {
+function saveInvestmentHoldings(options = {}) {
   const holdings = readInvestmentHoldingRows();
   if (!holdings.length) {
-    showHoldingsStatus("銘柄名と評価額を入力してください");
+    if (!options.silent) showHoldingsStatus("銘柄名と評価額を入力してください");
     return;
   }
 
@@ -1621,8 +1631,32 @@ function saveInvestmentHoldings() {
   recordAssetSnapshot(previousTotal, currentTotal);
   state.lastUpdatedAt = new Date().toISOString();
   saveState();
-  render();
-  showHoldingsStatus(`投資評価額を反映しました。今日の市場 ${formatSignedYen(marketDiff)}`);
+  if (options.silent) {
+    const total = totalAssets();
+    const rate = fireRate();
+    const todayTotals = outcomeTotals(outcomeEntriesFor("today"));
+    const todayChange = todayTotals.total;
+    const todayImpact = todayShorteningDays();
+    setText("fireRate", `${rate}%`);
+    setText("totalAssets", yen.format(total));
+    setText("heroTotalAssets", yen.format(total));
+    setSignedText("heroTodayAssetChange", todayChange);
+    setSignedText("heroTodayAssetRate", todayChange, `(${formatPrecisePercent(todayAssetChangeRate())})`);
+    setSignedText("todayMarketChange", todayTotals.market);
+    setSignedText("todayProfitChange", todayTotals.profit);
+    setSignedText("todayDividendChange", todayTotals.dividend);
+    setSignedText("todaySpendingChange", -todayTotals.spending);
+    setSignedText("todayShortening", todayImpact, formatSignedImpact(todayImpact));
+    document.getElementById("fireProgress").style.width = `${rate}%`;
+    setText("fireProgressLabel", `${rate}%`);
+    renderFireProjection();
+    renderAssets();
+    renderAssetTrend();
+    hydrateSettings();
+  } else {
+    render();
+  }
+  showHoldingsStatus(options.silent ? `自動反映済み。今日の市場 ${formatSignedYen(marketDiff)}` : `投資評価額を反映しました。今日の市場 ${formatSignedYen(marketDiff)}`);
 }
 
 function escapeHtml(value) {
@@ -1716,6 +1750,7 @@ document.getElementById("investmentHoldingsForm").addEventListener("input", (eve
     event.target.value = formatNumericInputValue(event.target.value);
   }
   updateHoldingDraftTotals();
+  scheduleInvestmentHoldingsAutoSave();
 });
 
 document.getElementById("investmentHoldingsForm").addEventListener("change", (event) => {
@@ -1725,6 +1760,7 @@ document.getElementById("investmentHoldingsForm").addEventListener("change", (ev
   const nameInput = row?.querySelector("[data-holding-field='name']");
   if (preset && preset.symbol !== "custom" && nameInput) nameInput.value = preset.name;
   updateHoldingDraftTotals();
+  scheduleInvestmentHoldingsAutoSave();
 });
 
 document.getElementById("investmentHoldingsForm").addEventListener("submit", (event) => {
@@ -1760,6 +1796,7 @@ document.addEventListener("click", (event) => {
     state.investmentHoldings = [{ id: `holding-${Date.now()}`, symbol: "custom", name: "投資合計", quantity: 1, price: state.assets.investments, value: state.assets.investments }];
   }
   renderInvestmentHoldings();
+  scheduleInvestmentHoldingsAutoSave();
 });
 
 document.addEventListener("click", (event) => {
@@ -1938,57 +1975,63 @@ document.getElementById("dividendGoalForm").addEventListener("submit", (event) =
   showCustomizationStatus("配当目標を追加しました");
 });
 
-document.getElementById("victoryGoalSettingsList").addEventListener("input", (event) => {
-  if (!event.target.matches("[data-number-input]")) return;
-  event.target.value = formatNumericInputValue(event.target.value);
-});
-
-document.getElementById("victoryGoalSettingsList").addEventListener("change", (event) => {
-  const row = event.target.closest("[data-victory-setting]");
-  if (!row || !event.target.matches("[data-victory-field]")) return;
-  const item = state.victoryGoals.find((goal) => goal.id === row.dataset.victorySetting);
-  if (!item) return;
-  const field = event.target.dataset.victoryField;
-  const value = event.target.value.trim();
-  if ((field === "target" && parseInputNumber(value) <= 0) || (field === "label" && !value)) {
-    render();
-    showCustomizationStatus("名称と1以上の目標値を入力してください");
-    return;
-  }
-  item[field] = field === "target" ? parseInputNumber(value) : value;
-  state.victoryGoals = normalizeVictoryGoals(state.victoryGoals);
-  saveState();
-  render();
-  showCustomizationStatus("勝利条件を更新しました");
-});
-
-document.getElementById("victoryGoalForm").addEventListener("input", (event) => {
-  if (!event.target.matches("[data-number-input]")) return;
-  event.target.value = formatNumericInputValue(event.target.value);
-});
-
-document.getElementById("victoryGoalForm").addEventListener("submit", (event) => {
-  event.preventDefault();
-  if (state.victoryGoals.length >= 8) {
-    showCustomizationStatus("勝利条件は8件までです");
-    return;
-  }
-  const form = event.currentTarget;
-  const label = form.elements.label.value.trim();
-  const target = parseInputNumber(form.elements.target.value);
-  if (!label || target <= 0) return;
-  state.victoryGoals.push({
-    id: `victory-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-    label,
-    metric: form.elements.metric.value,
-    target
+const victoryGoalSettingsList = document.getElementById("victoryGoalSettingsList");
+if (victoryGoalSettingsList) {
+  victoryGoalSettingsList.addEventListener("input", (event) => {
+    if (!event.target.matches("[data-number-input]")) return;
+    event.target.value = formatNumericInputValue(event.target.value);
   });
-  state.victoryGoals = normalizeVictoryGoals(state.victoryGoals);
-  saveState();
-  form.reset();
-  render();
-  showCustomizationStatus("勝利条件を追加しました");
-});
+
+  victoryGoalSettingsList.addEventListener("change", (event) => {
+    const row = event.target.closest("[data-victory-setting]");
+    if (!row || !event.target.matches("[data-victory-field]")) return;
+    const item = state.victoryGoals.find((goal) => goal.id === row.dataset.victorySetting);
+    if (!item) return;
+    const field = event.target.dataset.victoryField;
+    const value = event.target.value.trim();
+    if ((field === "target" && parseInputNumber(value) <= 0) || (field === "label" && !value)) {
+      render();
+      showCustomizationStatus("名称と1以上の目標値を入力してください");
+      return;
+    }
+    item[field] = field === "target" ? parseInputNumber(value) : value;
+    state.victoryGoals = normalizeVictoryGoals(state.victoryGoals);
+    saveState();
+    render();
+    showCustomizationStatus("勝利条件を更新しました");
+  });
+}
+
+const victoryGoalForm = document.getElementById("victoryGoalForm");
+if (victoryGoalForm) {
+  victoryGoalForm.addEventListener("input", (event) => {
+    if (!event.target.matches("[data-number-input]")) return;
+    event.target.value = formatNumericInputValue(event.target.value);
+  });
+
+  victoryGoalForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    if (state.victoryGoals.length >= 8) {
+      showCustomizationStatus("勝利条件は8件までです");
+      return;
+    }
+    const form = event.currentTarget;
+    const label = form.elements.label.value.trim();
+    const target = parseInputNumber(form.elements.target.value);
+    if (!label || target <= 0) return;
+    state.victoryGoals.push({
+      id: `victory-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      label,
+      metric: form.elements.metric.value,
+      target
+    });
+    state.victoryGoals = normalizeVictoryGoals(state.victoryGoals);
+    saveState();
+    form.reset();
+    render();
+    showCustomizationStatus("勝利条件を追加しました");
+  });
+}
 
 document.getElementById("customizationPanel").addEventListener("click", (event) => {
   const quickButton = event.target.closest("[data-delete-quick-action]");
