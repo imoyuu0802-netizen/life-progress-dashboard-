@@ -43,7 +43,7 @@ const defaultState = {
     dividends: 96000
   },
   investmentHoldings: [
-    { id: "holding-total", symbol: "custom", name: "投資合計", quantity: 1, price: 4200000, value: 4200000 }
+    { id: "holding-total", symbol: "custom", name: "投資合計", value: 4200000 }
   ],
   investmentValuationBaseline: null,
   assetHistory: [
@@ -220,23 +220,21 @@ function normalizeSideHustles(items) {
 function normalizeInvestmentHoldings(items, savedAssets = {}) {
   const source = Array.isArray(items) && items.length
     ? items
-    : [{ id: "holding-total", symbol: "custom", name: "投資合計", quantity: 1, price: Number(savedAssets?.investments) || defaultState.assets.investments }];
+    : [{ id: "holding-total", symbol: "custom", name: "投資合計", value: Number(savedAssets?.investments) || defaultState.assets.investments }];
 
   return source
     .filter((item) => item && String(item.name || "").trim())
     .slice(0, 20)
     .map((item, index) => {
-      const quantity = Math.max(0, Number(item.quantity) || (Number(item.price) ? 0 : 1));
       const fallbackValue = Math.max(0, Math.round(Number(item.value) || 0));
-      const price = Math.max(0, Math.round(Number(item.price) || (quantity ? fallbackValue / quantity : fallbackValue)));
-      const value = Math.max(0, Math.round(quantity * price || fallbackValue));
+      const legacyQuantity = Math.max(0, Number(item.quantity) || 0);
+      const legacyPrice = Math.max(0, Math.round(Number(item.price) || 0));
+      const value = fallbackValue || Math.max(0, Math.round(legacyQuantity * legacyPrice));
       const preset = holdingPresets.find((presetItem) => presetItem.symbol === item.symbol || presetItem.name === item.name);
       return {
         id: String(item.id || `holding-${index}-${String(item.name).slice(0, 12)}`),
         symbol: preset?.symbol || "custom",
         name: String(item.name).trim().slice(0, 28),
-        quantity,
-        price,
         value
       };
     });
@@ -876,19 +874,8 @@ function holdingPresetOptions(selectedSymbol) {
     .join("");
 }
 
-function formatQuantity(value) {
-  const amount = Number(value) || 0;
-  return Number.isInteger(amount) ? String(amount) : String(Number(amount.toFixed(4)));
-}
-
-function parseQuantity(value) {
-  return Math.max(0, Number(String(value || "").replace(/,/g, "")) || 0);
-}
-
 function holdingValueFromRow(row) {
-  const quantity = parseQuantity(row.querySelector("[data-holding-field='quantity']")?.value);
-  const price = parseInputNumber(row.querySelector("[data-holding-field='price']")?.value || "");
-  return Math.round(quantity * price);
+  return parseInputNumber(row.querySelector("[data-holding-field='value']")?.value || "");
 }
 
 function updateHoldingDraftTotals() {
@@ -897,8 +884,6 @@ function updateHoldingDraftTotals() {
   rows.forEach((row) => {
     const value = holdingValueFromRow(row);
     total += value;
-    const valueElement = row.querySelector("[data-holding-value]");
-    if (valueElement) valueElement.textContent = yen.format(value);
   });
   setText("holdingsTotal", yen.format(total));
 }
@@ -933,17 +918,9 @@ function renderInvestmentHoldings() {
           <input data-holding-field="name" value="${escapeHtml(item.name)}" maxlength="28" placeholder="例: S&P500" />
         </label>
         <label>
-          <span>口数・株数</span>
-          <input data-holding-field="quantity" type="text" inputmode="decimal" value="${formatQuantity(item.quantity)}" placeholder="0" />
+          <span>現在の評価額</span>
+          <input data-holding-field="value" type="text" inputmode="numeric" data-number-input value="${formatInputNumber(item.value)}" placeholder="0" />
         </label>
-        <label>
-          <span>現在価格（円換算）</span>
-          <input data-holding-field="price" type="text" inputmode="numeric" data-number-input value="${formatInputNumber(item.price)}" placeholder="0" />
-        </label>
-        <div class="holding-value-card">
-          <small>評価額</small>
-          <strong data-holding-value>${yen.format(item.value)}</strong>
-        </div>
         <button type="button" data-delete-holding="${escapeHtml(item.id)}" aria-label="${escapeHtml(item.name)}を削除">削除</button>
       </div>
     `)
@@ -1570,19 +1547,15 @@ function readInvestmentHoldingRows() {
       const symbol = row.querySelector("[data-holding-field='symbol']")?.value || "custom";
       const preset = holdingPresets.find((item) => item.symbol === symbol);
       const name = row.querySelector("[data-holding-field='name']")?.value.trim() || "";
-      const quantity = parseQuantity(row.querySelector("[data-holding-field='quantity']")?.value || "");
-      const price = parseInputNumber(row.querySelector("[data-holding-field='price']")?.value || "");
-      const value = Math.round(quantity * price);
+      const value = parseInputNumber(row.querySelector("[data-holding-field='value']")?.value || "");
       return {
         id: row.dataset.holdingRow || `holding-${Date.now()}-${index}`,
         symbol,
         name: name || preset?.name || "その他",
-        quantity,
-        price,
         value
       };
     })
-    .filter((item) => item.name && item.quantity > 0 && item.price >= 0);
+    .filter((item) => item.name && item.value >= 0);
 }
 
 function upsertInvestmentMarketOutcome(amount) {
@@ -1774,8 +1747,6 @@ document.getElementById("addHoldingRow").addEventListener("click", () => {
     id: `holding-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
     symbol: preset.symbol,
     name: preset.name,
-    quantity: 0,
-    price: 0,
     value: 0
   });
   renderInvestmentHoldings();
@@ -1793,7 +1764,7 @@ document.addEventListener("click", (event) => {
   const rows = readInvestmentHoldingRows();
   state.investmentHoldings = rows.filter((item) => item.id !== button.dataset.deleteHolding);
   if (!state.investmentHoldings.length) {
-    state.investmentHoldings = [{ id: `holding-${Date.now()}`, symbol: "custom", name: "投資合計", quantity: 1, price: state.assets.investments, value: state.assets.investments }];
+    state.investmentHoldings = [{ id: `holding-${Date.now()}`, symbol: "custom", name: "投資合計", value: state.assets.investments }];
   }
   renderInvestmentHoldings();
   scheduleInvestmentHoldingsAutoSave();
@@ -2119,8 +2090,6 @@ function applySettingsFormValues(form) {
   state.assets.cash = parseInputNumber(form.elements.cash.value);
   state.assets.dividends = parseInputNumber(form.elements.dividends.value);
   if (state.investmentHoldings.length === 1 && state.investmentHoldings[0].id === "holding-total") {
-    state.investmentHoldings[0].quantity = 1;
-    state.investmentHoldings[0].price = state.assets.investments;
     state.investmentHoldings[0].value = state.assets.investments;
   }
   state.profile.fireGoal = Math.max(1, parseInputNumber(form.elements.fireGoal.value));
