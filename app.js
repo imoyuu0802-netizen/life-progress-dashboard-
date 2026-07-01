@@ -19,18 +19,38 @@ const outcomeTypeLabels = {
 
 const holdingPresets = [
   { symbol: "rakuten-schd", name: "楽天SCHD", source: "apps-script", ticker: "rakuten-schd" },
+  { symbol: "rakuten-plus-sp500", name: "楽天プラス S&P500", source: "apps-script", ticker: "rakuten-plus-sp500" },
   { symbol: "SPYD", name: "SPYD", source: "googlefinance", ticker: "NYSEARCA:SPYD" },
   { symbol: "HDV", name: "HDV", source: "googlefinance", ticker: "NYSEARCA:HDV" },
   { symbol: "VYM", name: "VYM", source: "googlefinance", ticker: "NYSEARCA:VYM" },
   { symbol: "emaxis-slim-all-country", name: "eMAXIS Slim 全世界株式", source: "apps-script", ticker: "emaxis-slim-all-country" },
+  { symbol: "emaxis-slim-all-country-ex-japan", name: "eMAXIS Slim 全世界株式 除く日本", source: "apps-script", ticker: "emaxis-slim-all-country-ex-japan" },
   { symbol: "emaxis-slim-sp500", name: "eMAXIS Slim S&P500", source: "apps-script", ticker: "emaxis-slim-sp500" },
-  { symbol: "spacex", name: "スペースX", source: "manual", ticker: "" },
+  { symbol: "SPCX", name: "スペースX", source: "googlefinance", ticker: "NASDAQ:SPCX" },
   { symbol: "NVDA", name: "エヌビディア", source: "googlefinance", ticker: "NASDAQ:NVDA" },
   { symbol: "KDDI", name: "KDDI", source: "googlefinance", ticker: "TYO:9433" },
   { symbol: "BTI", name: "BTI", source: "googlefinance", ticker: "NYSE:BTI" },
   { symbol: "nf-nikkei-high-dividend-50", name: "NF日経高配当50", source: "googlefinance", ticker: "TYO:1489" },
   { symbol: "custom", name: "その他", source: "manual", ticker: "" }
 ];
+
+const defaultInvestmentHoldings = [
+  { id: "holding-emaxis-sp500", symbol: "emaxis-slim-sp500", name: "eMAXIS Slim S&P500", value: 2791766 },
+  { id: "holding-emaxis-all-country", symbol: "emaxis-slim-all-country", name: "eMAXIS Slim 全世界株式", value: 3296970 },
+  { id: "holding-rakuten-schd", symbol: "rakuten-schd", name: "楽天SCHD", value: 1526411 },
+  { id: "holding-emaxis-all-country-ex-japan", symbol: "emaxis-slim-all-country-ex-japan", name: "eMAXIS Slim 全世界株式 除く日本", value: 1028369 },
+  { id: "holding-rakuten-plus-sp500", symbol: "rakuten-plus-sp500", name: "楽天プラス S&P500", value: 101137 },
+  { id: "holding-spyd", symbol: "SPYD", name: "SPYD", value: 685334 },
+  { id: "holding-hdv", symbol: "HDV", name: "HDV", value: 267228 },
+  { id: "holding-vym", symbol: "VYM", name: "VYM", value: 205728 },
+  { id: "holding-nf-nikkei-high-dividend-50", symbol: "nf-nikkei-high-dividend-50", name: "NF日経高配当50", value: 187384 },
+  { id: "holding-bti", symbol: "BTI", name: "BTI", value: 87886 },
+  { id: "holding-kddi", symbol: "KDDI", name: "KDDI", value: 63720 },
+  { id: "holding-nvda", symbol: "NVDA", name: "エヌビディア", value: 31796 },
+  { id: "holding-spacex", symbol: "SPCX", name: "スペースX", value: 25992 }
+];
+
+const defaultInvestmentTotal = defaultInvestmentHoldings.reduce((sum, item) => sum + item.value, 0);
 
 const defaultState = {
   profile: {
@@ -43,13 +63,11 @@ const defaultState = {
     fireGoal: 50000000
   },
   assets: {
-    investments: 4200000,
+    investments: defaultInvestmentTotal,
     cash: 1300000,
     dividends: 96000
   },
-  investmentHoldings: [
-    { id: "holding-total", symbol: "custom", name: "投資合計", value: 4200000 }
-  ],
+  investmentHoldings: defaultInvestmentHoldings,
   investmentValuationBaseline: null,
   assetHistory: [
     { month: "2024-12", total: 10748696, dividends: null, sideProfit: null, fireAge: null },
@@ -149,12 +167,14 @@ function loadState() {
 function normalizeState(saved = {}) {
   const progressEntries = migrateProgressEntries(saved.progressEntries || []);
   const outcomeMigration = migrateLegacyOutcomes(saved, normalizeOutcomeEntries(saved.outcomeEntries));
+  const useDefaultInvestmentHoldings = shouldUseDefaultInvestmentHoldings(saved);
+  const investmentHoldings = useDefaultInvestmentHoldings ? defaultInvestmentHoldings : saved.investmentHoldings;
   return {
     ...cloneDefaultState(),
     ...saved,
     profile: { ...defaultState.profile, ...(saved.profile || {}) },
-    assets: { ...defaultState.assets, ...(saved.assets || {}) },
-    investmentHoldings: normalizeInvestmentHoldings(saved.investmentHoldings, saved.assets),
+    assets: { ...defaultState.assets, ...(saved.assets || {}), ...(useDefaultInvestmentHoldings ? { investments: defaultInvestmentTotal } : {}) },
+    investmentHoldings: normalizeInvestmentHoldings(investmentHoldings, saved.assets),
     investmentValuationBaseline: normalizeInvestmentValuationBaseline(saved.investmentValuationBaseline),
     assetHistory: ensureBaselineAssetHistory(saved.assetHistory || []),
     sideHustles: normalizeSideHustles(saved.sideHustles),
@@ -165,6 +185,13 @@ function normalizeState(saved = {}) {
     victoryGoals: normalizeVictoryGoals(saved.victoryGoals),
     legacyOutcomeMigrationComplete: outcomeMigration.complete
   };
+}
+
+function shouldUseDefaultInvestmentHoldings(saved = {}) {
+  if (!Array.isArray(saved.investmentHoldings) || !saved.investmentHoldings.length) return true;
+  if (saved.investmentHoldings.length !== 1) return false;
+  const [item] = saved.investmentHoldings;
+  return item?.id === "holding-total" && item?.symbol === "custom" && item?.name === "投資合計";
 }
 
 function migrateLegacyOutcomes(saved, entries) {
