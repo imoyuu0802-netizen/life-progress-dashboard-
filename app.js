@@ -18,20 +18,20 @@ const outcomeTypeLabels = {
 };
 
 const holdingPresets = [
-  { symbol: "rakuten-schd", name: "楽天SCHD", source: "apps-script", ticker: "rakuten-schd" },
-  { symbol: "rakuten-plus-sp500", name: "楽天プラス S&P500", source: "apps-script", ticker: "rakuten-plus-sp500" },
-  { symbol: "SPYD", name: "SPYD", source: "googlefinance", ticker: "NYSEARCA:SPYD" },
-  { symbol: "HDV", name: "HDV", source: "googlefinance", ticker: "NYSEARCA:HDV" },
-  { symbol: "VYM", name: "VYM", source: "googlefinance", ticker: "NYSEARCA:VYM" },
-  { symbol: "emaxis-slim-all-country", name: "eMAXIS Slim 全世界株式", source: "apps-script", ticker: "emaxis-slim-all-country" },
-  { symbol: "emaxis-slim-all-country-ex-japan", name: "eMAXIS Slim 全世界株式 除く日本", source: "apps-script", ticker: "emaxis-slim-all-country-ex-japan" },
-  { symbol: "emaxis-slim-sp500", name: "eMAXIS Slim S&P500", source: "apps-script", ticker: "emaxis-slim-sp500" },
-  { symbol: "SPCX", name: "スペースX", source: "googlefinance", ticker: "NASDAQ:SPCX" },
-  { symbol: "NVDA", name: "エヌビディア", source: "googlefinance", ticker: "NASDAQ:NVDA" },
-  { symbol: "KDDI", name: "KDDI", source: "googlefinance", ticker: "TYO:9433" },
-  { symbol: "BTI", name: "BTI", source: "googlefinance", ticker: "NYSE:BTI" },
-  { symbol: "nf-nikkei-high-dividend-50", name: "NF日経高配当50", source: "googlefinance", ticker: "TYO:1489" },
-  { symbol: "custom", name: "その他", source: "manual", ticker: "" }
+  { symbol: "rakuten-schd", name: "楽天SCHD", source: "apps-script", ticker: "rakuten-schd", dividendYield: 3.3 },
+  { symbol: "rakuten-plus-sp500", name: "楽天プラス S&P500", source: "apps-script", ticker: "rakuten-plus-sp500", dividendYield: 0 },
+  { symbol: "SPYD", name: "SPYD", source: "googlefinance", ticker: "NYSEARCA:SPYD", dividendYield: 4.5 },
+  { symbol: "HDV", name: "HDV", source: "googlefinance", ticker: "NYSEARCA:HDV", dividendYield: 3.5 },
+  { symbol: "VYM", name: "VYM", source: "googlefinance", ticker: "NYSEARCA:VYM", dividendYield: 2.7 },
+  { symbol: "emaxis-slim-all-country", name: "eMAXIS Slim 全世界株式", source: "apps-script", ticker: "emaxis-slim-all-country", dividendYield: 0 },
+  { symbol: "emaxis-slim-all-country-ex-japan", name: "eMAXIS Slim 全世界株式 除く日本", source: "apps-script", ticker: "emaxis-slim-all-country-ex-japan", dividendYield: 0 },
+  { symbol: "emaxis-slim-sp500", name: "eMAXIS Slim S&P500", source: "apps-script", ticker: "emaxis-slim-sp500", dividendYield: 0 },
+  { symbol: "SPCX", name: "スペースX", source: "googlefinance", ticker: "NASDAQ:SPCX", dividendYield: 0 },
+  { symbol: "NVDA", name: "エヌビディア", source: "googlefinance", ticker: "NASDAQ:NVDA", dividendYield: 0.03 },
+  { symbol: "KDDI", name: "KDDI", source: "googlefinance", ticker: "TYO:9433", dividendYield: 3.0 },
+  { symbol: "BTI", name: "BTI", source: "googlefinance", ticker: "NYSE:BTI", dividendYield: 7.0 },
+  { symbol: "nf-nikkei-high-dividend-50", name: "NF日経高配当50", source: "googlefinance", ticker: "TYO:1489", dividendYield: 3.4 },
+  { symbol: "custom", name: "その他", source: "manual", ticker: "", dividendYield: 0 }
 ];
 
 const defaultInvestmentHoldings = [
@@ -51,6 +51,10 @@ const defaultInvestmentHoldings = [
 ];
 
 const defaultInvestmentTotal = defaultInvestmentHoldings.reduce((sum, item) => sum + item.value, 0);
+const defaultAnnualDividends = Math.round(defaultInvestmentHoldings.reduce((sum, item) => {
+  const preset = holdingPresets.find((presetItem) => presetItem.symbol === item.symbol);
+  return sum + item.value * (Number(preset?.dividendYield) || 0) / 100;
+}, 0));
 
 const defaultState = {
   profile: {
@@ -65,7 +69,7 @@ const defaultState = {
   assets: {
     investments: defaultInvestmentTotal,
     cash: 1300000,
-    dividends: 96000
+    dividends: defaultAnnualDividends
   },
   investmentHoldings: defaultInvestmentHoldings,
   investmentValuationBaseline: null,
@@ -169,12 +173,15 @@ function normalizeState(saved = {}) {
   const outcomeMigration = migrateLegacyOutcomes(saved, normalizeOutcomeEntries(saved.outcomeEntries));
   const useDefaultInvestmentHoldings = shouldUseDefaultInvestmentHoldings(saved);
   const investmentHoldings = useDefaultInvestmentHoldings ? defaultInvestmentHoldings : saved.investmentHoldings;
+  const normalizedInvestmentHoldings = normalizeInvestmentHoldings(investmentHoldings, saved.assets);
+  const assets = { ...defaultState.assets, ...(saved.assets || {}), ...(useDefaultInvestmentHoldings ? { investments: defaultInvestmentTotal } : {}) };
+  assets.dividends = annualDividendsFromHoldings(normalizedInvestmentHoldings);
   return {
     ...cloneDefaultState(),
     ...saved,
     profile: { ...defaultState.profile, ...(saved.profile || {}) },
-    assets: { ...defaultState.assets, ...(saved.assets || {}), ...(useDefaultInvestmentHoldings ? { investments: defaultInvestmentTotal } : {}) },
-    investmentHoldings: normalizeInvestmentHoldings(investmentHoldings, saved.assets),
+    assets,
+    investmentHoldings: normalizedInvestmentHoldings,
     investmentValuationBaseline: normalizeInvestmentValuationBaseline(saved.investmentValuationBaseline),
     assetHistory: ensureBaselineAssetHistory(saved.assetHistory || []),
     sideHustles: normalizeSideHustles(saved.sideHustles),
@@ -269,9 +276,19 @@ function normalizeInvestmentHoldings(items, savedAssets = {}) {
         name: String(item.name).trim().slice(0, 28),
         source: preset?.source || item.source || "manual",
         ticker: preset?.ticker || item.ticker || "",
+        dividendYield: typeof item.dividendYield === "number" ? item.dividendYield : Number(preset?.dividendYield) || 0,
         value
       };
     });
+}
+
+function annualDividendsFromHoldings(holdings = state.investmentHoldings) {
+  return Math.round(holdings.reduce((sum, item) => sum + (Number(item.value) || 0) * holdingDividendYield(item) / 100, 0));
+}
+
+function holdingDividendYield(item) {
+  const preset = holdingPresets.find((presetItem) => presetItem.symbol === item.symbol || presetItem.name === item.name);
+  return Math.max(0, Number(item.dividendYield ?? preset?.dividendYield) || 0);
 }
 
 function normalizeInvestmentValuationBaseline(item) {
@@ -909,12 +926,7 @@ function holdingPresetOptions(selectedSymbol) {
 }
 
 function holdingPresetLabel(preset) {
-  const sourceLabels = {
-    googlefinance: preset.ticker ? `GF候補 ${preset.ticker}` : "GF候補",
-    "apps-script": "投信取得候補",
-    manual: "手入力"
-  };
-  return `${preset.name}（${sourceLabels[preset.source] || "手入力"}）`;
+  return preset.name;
 }
 
 function holdingValueFromRow(row) {
@@ -936,6 +948,10 @@ function scheduleInvestmentHoldingsAutoSave() {
   holdingsAutoSaveTimer = window.setTimeout(() => {
     saveInvestmentHoldings({ silent: true });
   }, 650);
+}
+
+function confirmDelete(message) {
+  return window.confirm(message);
 }
 
 function renderInvestmentHoldings() {
@@ -1599,6 +1615,7 @@ function readInvestmentHoldingRows() {
         name: name || preset?.name || "その他",
         source: preset?.source || "manual",
         ticker: preset?.ticker || "",
+        dividendYield: Number(preset?.dividendYield) || 0,
         value
       };
     })
@@ -1638,6 +1655,7 @@ function saveInvestmentHoldings(options = {}) {
 
   state.investmentHoldings = normalizeInvestmentHoldings(holdings, state.assets);
   state.assets.investments = nextInvestments;
+  state.assets.dividends = annualDividendsFromHoldings(state.investmentHoldings);
   state.investmentValuationBaseline = baseline;
   upsertInvestmentMarketOutcome(marketDiff);
 
@@ -1660,6 +1678,8 @@ function saveInvestmentHoldings(options = {}) {
     setText("fireRate", `${rate}%`);
     setText("totalAssets", yen.format(total));
     setText("heroTotalAssets", yen.format(total));
+    setText("annualDividendResult", yen.format(state.assets.dividends));
+    setText("annualDividendPower", `${yen.format(state.assets.dividends)}/年`);
     setSignedText("heroTodayAssetChange", todayChange);
     setSignedText("heroTodayAssetRate", todayChange, `(${formatPrecisePercent(todayAssetChangeRate())})`);
     setSignedText("todayMarketChange", todayTotals.market);
@@ -1794,6 +1814,7 @@ document.getElementById("addHoldingRow").addEventListener("click", () => {
     id: `holding-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
     symbol: preset.symbol,
     name: preset.name,
+    dividendYield: Number(preset.dividendYield) || 0,
     value: 0
   });
   renderInvestmentHoldings();
@@ -1802,12 +1823,15 @@ document.getElementById("addHoldingRow").addEventListener("click", () => {
 document.addEventListener("click", (event) => {
   const button = event.target.closest("[data-delete-progress]");
   if (!button) return;
+  if (!confirmDelete("この前進記録を削除しますか？")) return;
   deleteProgress(button.dataset.deleteProgress);
 });
 
 document.addEventListener("click", (event) => {
   const button = event.target.closest("[data-delete-holding]");
   if (!button) return;
+  const name = button.getAttribute("aria-label")?.replace("を削除", "") || "この銘柄";
+  if (!confirmDelete(`${name}を削除しますか？`)) return;
   const rows = readInvestmentHoldingRows();
   state.investmentHoldings = rows.filter((item) => item.id !== button.dataset.deleteHolding);
   if (!state.investmentHoldings.length) {
@@ -1820,6 +1844,7 @@ document.addEventListener("click", (event) => {
 document.addEventListener("click", (event) => {
   const button = event.target.closest("[data-delete-outcome]");
   if (!button) return;
+  if (!confirmDelete("この成果記録を削除しますか？")) return;
   deleteOutcome(button.dataset.deleteOutcome);
 });
 
@@ -2054,6 +2079,7 @@ if (victoryGoalForm) {
 document.getElementById("customizationPanel").addEventListener("click", (event) => {
   const quickButton = event.target.closest("[data-delete-quick-action]");
   if (quickButton) {
+    if (!confirmDelete("このワンタップ前進を削除しますか？")) return;
     state.quickActions = state.quickActions.filter((item) => item.id !== quickButton.dataset.deleteQuickAction);
     saveState();
     render();
@@ -2063,6 +2089,7 @@ document.getElementById("customizationPanel").addEventListener("click", (event) 
 
   const rewardButton = event.target.closest("[data-delete-dividend-goal]");
   if (rewardButton) {
+    if (!confirmDelete("この配当目標を削除しますか？")) return;
     state.dividendGoals = state.dividendGoals.filter((item) => item.id !== rewardButton.dataset.deleteDividendGoal);
     saveState();
     render();
@@ -2072,6 +2099,7 @@ document.getElementById("customizationPanel").addEventListener("click", (event) 
 
   const victoryButton = event.target.closest("[data-delete-victory-goal]");
   if (!victoryButton) return;
+  if (!confirmDelete("この勝利条件を削除しますか？")) return;
   state.victoryGoals = state.victoryGoals.filter((item) => item.id !== victoryButton.dataset.deleteVictoryGoal);
   saveState();
   render();
@@ -2135,7 +2163,7 @@ function snapshotForMonth(month, total) {
 function applySettingsFormValues(form) {
   state.assets.investments = parseInputNumber(form.elements.investments.value);
   state.assets.cash = parseInputNumber(form.elements.cash.value);
-  state.assets.dividends = parseInputNumber(form.elements.dividends.value);
+  state.assets.dividends = annualDividendsFromHoldings();
   if (state.investmentHoldings.length === 1 && state.investmentHoldings[0].id === "holding-total") {
     state.investmentHoldings[0].value = state.assets.investments;
   }
