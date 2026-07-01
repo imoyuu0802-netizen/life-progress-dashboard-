@@ -18,13 +18,18 @@ const outcomeTypeLabels = {
 };
 
 const holdingPresets = [
-  { symbol: "rakuten-schd", name: "楽天SCHD" },
-  { symbol: "SPYD", name: "SPYD" },
-  { symbol: "HDV", name: "HDV" },
-  { symbol: "VYM", name: "VYM" },
-  { symbol: "emaxis-slim-all-country", name: "eMAXIS Slim 全世界株式" },
-  { symbol: "emaxis-slim-sp500", name: "eMAXIS Slim S&P500" },
-  { symbol: "custom", name: "その他" }
+  { symbol: "rakuten-schd", name: "楽天SCHD", source: "apps-script", ticker: "rakuten-schd" },
+  { symbol: "SPYD", name: "SPYD", source: "googlefinance", ticker: "NYSEARCA:SPYD" },
+  { symbol: "HDV", name: "HDV", source: "googlefinance", ticker: "NYSEARCA:HDV" },
+  { symbol: "VYM", name: "VYM", source: "googlefinance", ticker: "NYSEARCA:VYM" },
+  { symbol: "emaxis-slim-all-country", name: "eMAXIS Slim 全世界株式", source: "apps-script", ticker: "emaxis-slim-all-country" },
+  { symbol: "emaxis-slim-sp500", name: "eMAXIS Slim S&P500", source: "apps-script", ticker: "emaxis-slim-sp500" },
+  { symbol: "spacex", name: "スペースX", source: "manual", ticker: "" },
+  { symbol: "NVDA", name: "エヌビディア", source: "googlefinance", ticker: "NASDAQ:NVDA" },
+  { symbol: "KDDI", name: "KDDI", source: "googlefinance", ticker: "TYO:9433" },
+  { symbol: "BTI", name: "BTI", source: "googlefinance", ticker: "NYSE:BTI" },
+  { symbol: "nf-nikkei-high-dividend-50", name: "NF日経高配当50", source: "googlefinance", ticker: "TYO:1489" },
+  { symbol: "custom", name: "その他", source: "manual", ticker: "" }
 ];
 
 const defaultState = {
@@ -235,6 +240,8 @@ function normalizeInvestmentHoldings(items, savedAssets = {}) {
         id: String(item.id || `holding-${index}-${String(item.name).slice(0, 12)}`),
         symbol: preset?.symbol || "custom",
         name: String(item.name).trim().slice(0, 28),
+        source: preset?.source || item.source || "manual",
+        ticker: preset?.ticker || item.ticker || "",
         value
       };
     });
@@ -870,8 +877,17 @@ function renderQuickActions() {
 
 function holdingPresetOptions(selectedSymbol) {
   return holdingPresets
-    .map((preset) => `<option value="${escapeHtml(preset.symbol)}" ${preset.symbol === selectedSymbol ? "selected" : ""}>${escapeHtml(preset.name)}</option>`)
+    .map((preset) => `<option value="${escapeHtml(preset.symbol)}" ${preset.symbol === selectedSymbol ? "selected" : ""}>${escapeHtml(holdingPresetLabel(preset))}</option>`)
     .join("");
+}
+
+function holdingPresetLabel(preset) {
+  const sourceLabels = {
+    googlefinance: preset.ticker ? `GF候補 ${preset.ticker}` : "GF候補",
+    "apps-script": "投信取得候補",
+    manual: "手入力"
+  };
+  return `${preset.name}（${sourceLabels[preset.source] || "手入力"}）`;
 }
 
 function holdingValueFromRow(row) {
@@ -1063,7 +1079,9 @@ function renderOutcomeFormOptions() {
 
 function renderOutcomeHistory() {
   const container = document.getElementById("outcomeHistory");
-  const entries = [...state.outcomeEntries].sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id));
+  const entries = state.outcomeEntries
+    .filter((entry) => entry.type !== "market")
+    .sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id));
   if (!entries.length) {
     container.innerHTML = '<p class="outcome-empty">成果を記録すると、FIRE短縮がここに積み上がります</p>';
     return;
@@ -1552,6 +1570,8 @@ function readInvestmentHoldingRows() {
         id: row.dataset.holdingRow || `holding-${Date.now()}-${index}`,
         symbol,
         name: name || preset?.name || "その他",
+        source: preset?.source || "manual",
+        ticker: preset?.ticker || "",
         value
       };
     })

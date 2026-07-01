@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Life Progress" />
     <title>Life Progress Dashboard</title>
     <link rel="manifest" href="manifest.webmanifest?v=5" />
-    <link rel="stylesheet" href="styles.css?v=53" />
+    <link rel="stylesheet" href="styles.css?v=54" />
   </head>
   <body>
     <main class="app-shell">
@@ -239,7 +239,7 @@
             </div>
             <form id="investmentHoldingsForm" class="holdings-form">
               <div id="investmentHoldingsList" class="holdings-list"></div>
-              <p class="holdings-note">証券口座やスプレッドシートの現在評価額を入れるだけで、投資資産と今日の市場変動へ自動反映します。</p>
+              <p class="holdings-note">現在評価額を入れるだけで、投資資産と今日の市場変動へ自動反映します。GF候補はGoogleFinance、投信取得候補はApps Script連携の想定です。</p>
               <div class="holdings-actions">
                 <button id="addHoldingRow" type="button">銘柄を追加</button>
               </div>
@@ -262,10 +262,10 @@
               <label>
                 <span>成果の種類</span>
                 <select name="type">
-                  <option value="market">市場</option>
                   <option value="profit">副業</option>
                   <option value="dividend">配当</option>
                   <option value="spending">支出</option>
+                  <option value="saving">節約</option>
                 </select>
               </label>
               <label class="outcome-category-field">
@@ -437,12 +437,12 @@
 
     <script src="firebase-config.js?v=53"></script>
     <script src="jflec-data.js?v=53"></script>
-    <script src="app.js?v=53"></script>
+    <script src="app.js?v=54"></script>
     <script type="module" src="firebase-sync.js?v=53"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js?v=53");
+          navigator.serviceWorker.register("sw.js?v=54");
         });
       }
     </script>
