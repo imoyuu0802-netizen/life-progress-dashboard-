@@ -385,7 +385,7 @@ small {
 
 .holding-row {
   display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(120px, 0.9fr) auto;
+  grid-template-columns: minmax(140px, 1fr) minmax(130px, 1fr) minmax(88px, 0.55fr) minmax(132px, 0.8fr) minmax(110px, 0.7fr) auto;
   gap: 8px;
   align-items: end;
   padding: 10px;
@@ -406,8 +406,33 @@ small {
   font-weight: 800;
 }
 
-.holding-row input {
+.holding-row input,
+.holding-row select {
   width: 100%;
+}
+
+.holding-value-card {
+  display: grid;
+  gap: 6px;
+  min-height: 68px;
+  padding: 10px;
+  border: 1px solid rgba(70, 209, 139, 0.24);
+  border-radius: var(--radius);
+  background: rgba(70, 209, 139, 0.08);
+}
+
+.holding-value-card small {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.holding-value-card strong {
+  align-self: end;
+  color: var(--green);
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
 }
 
 .holding-row button,
@@ -426,6 +451,12 @@ small {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 8px;
+}
+
+.holdings-note {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
 }
 
 .result-hero {

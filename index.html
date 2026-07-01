@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Life Progress" />
     <title>Life Progress Dashboard</title>
     <link rel="manifest" href="manifest.webmanifest?v=5" />
-    <link rel="stylesheet" href="styles.css?v=50" />
+    <link rel="stylesheet" href="styles.css?v=51" />
   </head>
   <body>
     <main class="app-shell">
@@ -250,6 +250,7 @@
             </div>
             <form id="investmentHoldingsForm" class="holdings-form">
               <div id="investmentHoldingsList" class="holdings-list"></div>
+              <p class="holdings-note">現在価格は円換算で入力。数量 × 現在価格で評価額を自動計算します。</p>
               <div class="holdings-actions">
                 <button id="addHoldingRow" type="button">銘柄を追加</button>
                 <button type="submit">評価額を反映</button>
@@ -464,14 +465,14 @@
 
     <button id="backToTop" class="back-to-top" type="button" aria-label="ページ上部へ戻る" title="ページ上部へ戻る">↑</button>
 
-    <script src="firebase-config.js?v=50"></script>
-    <script src="jflec-data.js?v=50"></script>
-    <script src="app.js?v=50"></script>
-    <script type="module" src="firebase-sync.js?v=50"></script>
+    <script src="firebase-config.js?v=51"></script>
+    <script src="jflec-data.js?v=51"></script>
+    <script src="app.js?v=51"></script>
+    <script type="module" src="firebase-sync.js?v=51"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js?v=50");
+          navigator.serviceWorker.register("sw.js?v=51");
         });
       }
     </script>
