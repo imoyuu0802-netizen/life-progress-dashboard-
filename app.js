@@ -945,13 +945,32 @@ function filteredHoldingPresets(selectedSymbol = "") {
     const categoryMatched = holdingFilterType === "all" || preset.category === holdingFilterType || preset.symbol === selectedSymbol;
     if (!categoryMatched) return false;
     if (!query) return true;
-    return normalizeSearchText([preset.name, preset.symbol, preset.ticker, preset.broker].join(" ")).includes(query) || preset.symbol === selectedSymbol;
+    return holdingPresetMatchesQuery(preset, query) || preset.symbol === selectedSymbol;
   });
   const selectedPreset = holdingPresets.find((preset) => preset.symbol === selectedSymbol);
   if (selectedPreset && !matches.some((preset) => preset.symbol === selectedPreset.symbol)) {
     matches.unshift(selectedPreset);
   }
   return matches.sort((a, b) => (Number(a.rank) || 999) - (Number(b.rank) || 999) || a.name.localeCompare(b.name, "ja"));
+}
+
+function holdingPresetMatchesQuery(preset, query) {
+  const targets = [
+    preset.name,
+    preset.symbol,
+    tickerBody(preset.ticker),
+    preset.broker
+  ].map(normalizeSearchText).filter(Boolean);
+
+  if (query.length === 1) {
+    return targets.some((target) => target.startsWith(query));
+  }
+
+  return targets.some((target) => target.includes(query));
+}
+
+function tickerBody(ticker) {
+  return String(ticker || "").split(":").pop();
 }
 
 function holdingSearchCandidates() {
