@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Life Progress" />
     <title>Life Progress Dashboard</title>
     <link rel="manifest" href="manifest.webmanifest?v=5" />
-    <link rel="stylesheet" href="styles.css?v=56" />
+    <link rel="stylesheet" href="styles.css?v=57" />
   </head>
   <body>
     <main class="app-shell">
@@ -238,6 +238,21 @@
               <span id="holdingsTotal" class="pill">¥0</span>
             </div>
             <form id="investmentHoldingsForm" class="holdings-form">
+              <div class="holding-search">
+                <label>
+                  <span>銘柄タイプ</span>
+                  <select id="holdingCategoryFilter">
+                    <option value="fund">投資信託</option>
+                    <option value="etf">ETF</option>
+                    <option value="stock">個別株</option>
+                    <option value="all">すべて</option>
+                  </select>
+                </label>
+                <label>
+                  <span>検索</span>
+                  <input id="holdingSearchInput" type="search" placeholder="銘柄名・ティッカーで検索" autocomplete="off" />
+                </label>
+              </div>
               <div id="investmentHoldingsList" class="holdings-list"></div>
               <p class="holdings-note">現在評価額を入れるだけで、投資資産・今日の市場変動・年間配当を自動反映します。</p>
               <div class="holdings-actions">
@@ -437,12 +452,12 @@
 
     <script src="firebase-config.js?v=53"></script>
     <script src="jflec-data.js?v=53"></script>
-    <script src="app.js?v=56"></script>
+    <script src="app.js?v=57"></script>
     <script type="module" src="firebase-sync.js?v=53"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js?v=56");
+          navigator.serviceWorker.register("sw.js?v=57");
         });
       }
     </script>

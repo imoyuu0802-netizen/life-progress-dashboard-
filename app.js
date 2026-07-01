@@ -18,20 +18,26 @@ const outcomeTypeLabels = {
 };
 
 const holdingPresets = [
-  { symbol: "rakuten-schd", name: "楽天SCHD", source: "apps-script", ticker: "rakuten-schd", dividendYield: 3.3 },
-  { symbol: "rakuten-plus-sp500", name: "楽天プラス S&P500", source: "apps-script", ticker: "rakuten-plus-sp500", dividendYield: 0 },
-  { symbol: "SPYD", name: "SPYD", source: "googlefinance", ticker: "NYSEARCA:SPYD", dividendYield: 4.5 },
-  { symbol: "HDV", name: "HDV", source: "googlefinance", ticker: "NYSEARCA:HDV", dividendYield: 3.5 },
-  { symbol: "VYM", name: "VYM", source: "googlefinance", ticker: "NYSEARCA:VYM", dividendYield: 2.7 },
-  { symbol: "emaxis-slim-all-country", name: "eMAXIS Slim 全世界株式", source: "apps-script", ticker: "emaxis-slim-all-country", dividendYield: 0 },
-  { symbol: "emaxis-slim-all-country-ex-japan", name: "eMAXIS Slim 全世界株式 除く日本", source: "apps-script", ticker: "emaxis-slim-all-country-ex-japan", dividendYield: 0 },
-  { symbol: "emaxis-slim-sp500", name: "eMAXIS Slim S&P500", source: "apps-script", ticker: "emaxis-slim-sp500", dividendYield: 0 },
-  { symbol: "SPCX", name: "スペースX", source: "googlefinance", ticker: "NASDAQ:SPCX", dividendYield: 0 },
-  { symbol: "NVDA", name: "エヌビディア", source: "googlefinance", ticker: "NASDAQ:NVDA", dividendYield: 0.03 },
-  { symbol: "KDDI", name: "KDDI", source: "googlefinance", ticker: "TYO:9433", dividendYield: 3.0 },
-  { symbol: "BTI", name: "BTI", source: "googlefinance", ticker: "NYSE:BTI", dividendYield: 7.0 },
-  { symbol: "nf-nikkei-high-dividend-50", name: "NF日経高配当50", source: "googlefinance", ticker: "TYO:1489", dividendYield: 3.4 },
-  { symbol: "custom", name: "その他", source: "manual", ticker: "", dividendYield: 0 }
+  { symbol: "emaxis-slim-all-country", name: "eMAXIS Slim 全世界株式", category: "fund", source: "apps-script", ticker: "emaxis-slim-all-country", dividendYield: 0, rank: 1, broker: "楽天/SBI" },
+  { symbol: "emaxis-slim-sp500", name: "eMAXIS Slim S&P500", category: "fund", source: "apps-script", ticker: "emaxis-slim-sp500", dividendYield: 0, rank: 2, broker: "楽天/SBI" },
+  { symbol: "rakuten-plus-sp500", name: "楽天プラス S&P500", category: "fund", source: "apps-script", ticker: "rakuten-plus-sp500", dividendYield: 0, rank: 3, broker: "楽天" },
+  { symbol: "rakuten-plus-all-country", name: "楽天プラス オールカントリー", category: "fund", source: "apps-script", ticker: "rakuten-plus-all-country", dividendYield: 0, rank: 4, broker: "楽天" },
+  { symbol: "rakuten-schd", name: "楽天SCHD", category: "fund", source: "apps-script", ticker: "rakuten-schd", dividendYield: 3.3, rank: 5, broker: "楽天/SBI" },
+  { symbol: "sbi-v-sp500", name: "SBI・V・S&P500", category: "fund", source: "apps-script", ticker: "sbi-v-sp500", dividendYield: 0, rank: 6, broker: "SBI" },
+  { symbol: "sbi-v-total-stock-market", name: "SBI・V・全米株式", category: "fund", source: "apps-script", ticker: "sbi-v-total-stock-market", dividendYield: 0, rank: 7, broker: "SBI" },
+  { symbol: "ifree-next-fang-plus", name: "iFreeNEXT FANG+インデックス", category: "fund", source: "apps-script", ticker: "ifree-next-fang-plus", dividendYield: 0, rank: 8, broker: "楽天/SBI" },
+  { symbol: "nissay-nasdaq100", name: "ニッセイNASDAQ100インデックス", category: "fund", source: "apps-script", ticker: "nissay-nasdaq100", dividendYield: 0, rank: 9, broker: "楽天/SBI" },
+  { symbol: "rakuten-vti", name: "楽天・全米株式インデックス", category: "fund", source: "apps-script", ticker: "rakuten-vti", dividendYield: 0, rank: 10, broker: "楽天" },
+  { symbol: "emaxis-slim-all-country-ex-japan", name: "eMAXIS Slim 全世界株式 除く日本", category: "fund", source: "apps-script", ticker: "emaxis-slim-all-country-ex-japan", dividendYield: 0, rank: 11, broker: "楽天/SBI" },
+  { symbol: "SPYD", name: "SPYD", category: "etf", source: "googlefinance", ticker: "NYSEARCA:SPYD", dividendYield: 4.5, rank: 101, broker: "米国ETF" },
+  { symbol: "HDV", name: "HDV", category: "etf", source: "googlefinance", ticker: "NYSEARCA:HDV", dividendYield: 3.5, rank: 102, broker: "米国ETF" },
+  { symbol: "VYM", name: "VYM", category: "etf", source: "googlefinance", ticker: "NYSEARCA:VYM", dividendYield: 2.7, rank: 103, broker: "米国ETF" },
+  { symbol: "nf-nikkei-high-dividend-50", name: "NF日経高配当50", category: "etf", source: "googlefinance", ticker: "TYO:1489", dividendYield: 3.4, rank: 104, broker: "国内ETF" },
+  { symbol: "SPCX", name: "スペースX", category: "stock", source: "googlefinance", ticker: "NASDAQ:SPCX", dividendYield: 0, rank: 201, broker: "米国株" },
+  { symbol: "NVDA", name: "エヌビディア", category: "stock", source: "googlefinance", ticker: "NASDAQ:NVDA", dividendYield: 0.03, rank: 202, broker: "米国株" },
+  { symbol: "KDDI", name: "KDDI", category: "stock", source: "googlefinance", ticker: "TYO:9433", dividendYield: 3.0, rank: 203, broker: "国内株" },
+  { symbol: "BTI", name: "BTI", category: "stock", source: "googlefinance", ticker: "NYSE:BTI", dividendYield: 7.0, rank: 204, broker: "米国株" },
+  { symbol: "custom", name: "その他", category: "custom", source: "manual", ticker: "", dividendYield: 0, rank: 999, broker: "手入力" }
 ];
 
 const defaultInvestmentHoldings = [
@@ -117,6 +123,8 @@ let holdingsStatusTimer = null;
 let holdingsAutoSaveTimer = null;
 let fireCountdownBaseSeconds = 0;
 let fireCountdownStartedAt = Date.now();
+let holdingFilterType = localStorage.getItem("life-progress-holding-filter-type") || "fund";
+let holdingSearchQuery = localStorage.getItem("life-progress-holding-search") || "";
 
 const yen = new Intl.NumberFormat("ja-JP", {
   style: "currency",
@@ -274,6 +282,7 @@ function normalizeInvestmentHoldings(items, savedAssets = {}) {
         id: String(item.id || `holding-${index}-${String(item.name).slice(0, 12)}`),
         symbol: preset?.symbol || "custom",
         name: String(item.name).trim().slice(0, 28),
+        category: preset?.category || item.category || "custom",
         source: preset?.source || item.source || "manual",
         ticker: preset?.ticker || item.ticker || "",
         dividendYield: typeof item.dividendYield === "number" ? item.dividendYield : Number(preset?.dividendYield) || 0,
@@ -920,13 +929,33 @@ function renderQuickActions() {
 }
 
 function holdingPresetOptions(selectedSymbol) {
-  return holdingPresets
+  const filtered = filteredHoldingPresets(selectedSymbol);
+  return filtered
     .map((preset) => `<option value="${escapeHtml(preset.symbol)}" ${preset.symbol === selectedSymbol ? "selected" : ""}>${escapeHtml(holdingPresetLabel(preset))}</option>`)
     .join("");
 }
 
 function holdingPresetLabel(preset) {
   return preset.name;
+}
+
+function filteredHoldingPresets(selectedSymbol = "") {
+  const query = normalizeSearchText(holdingSearchQuery);
+  const matches = holdingPresets.filter((preset) => {
+    const categoryMatched = holdingFilterType === "all" || preset.category === holdingFilterType || preset.symbol === selectedSymbol;
+    if (!categoryMatched) return false;
+    if (!query) return true;
+    return normalizeSearchText([preset.name, preset.symbol, preset.ticker, preset.broker].join(" ")).includes(query) || preset.symbol === selectedSymbol;
+  });
+  const selectedPreset = holdingPresets.find((preset) => preset.symbol === selectedSymbol);
+  if (selectedPreset && !matches.some((preset) => preset.symbol === selectedPreset.symbol)) {
+    matches.unshift(selectedPreset);
+  }
+  return matches.sort((a, b) => (Number(a.rank) || 999) - (Number(b.rank) || 999) || a.name.localeCompare(b.name, "ja"));
+}
+
+function normalizeSearchText(value) {
+  return String(value || "").toLowerCase().replace(/\s+/g, "");
 }
 
 function holdingValueFromRow(row) {
@@ -957,6 +986,10 @@ function confirmDelete(message) {
 function renderInvestmentHoldings() {
   const list = document.getElementById("investmentHoldingsList");
   if (!list) return;
+  const filter = document.getElementById("holdingCategoryFilter");
+  const search = document.getElementById("holdingSearchInput");
+  if (filter) filter.value = holdingFilterType;
+  if (search && search.value !== holdingSearchQuery) search.value = holdingSearchQuery;
   const holdings = state.investmentHoldings.length
     ? state.investmentHoldings
     : normalizeInvestmentHoldings([], state.assets);
@@ -1613,6 +1646,7 @@ function readInvestmentHoldingRows() {
         id: row.dataset.holdingRow || `holding-${Date.now()}-${index}`,
         symbol,
         name: name || preset?.name || "その他",
+        category: preset?.category || "custom",
         source: preset?.source || "manual",
         ticker: preset?.ticker || "",
         dividendYield: Number(preset?.dividendYield) || 0,
@@ -1786,6 +1820,12 @@ document.getElementById("outcomeForm").addEventListener("submit", (event) => {
 });
 
 document.getElementById("investmentHoldingsForm").addEventListener("input", (event) => {
+  if (event.target.id === "holdingSearchInput") {
+    holdingSearchQuery = event.target.value;
+    localStorage.setItem("life-progress-holding-search", holdingSearchQuery);
+    renderInvestmentHoldings();
+    return;
+  }
   if (event.target.matches("[data-number-input]")) {
     event.target.value = formatNumericInputValue(event.target.value);
   }
@@ -1794,6 +1834,14 @@ document.getElementById("investmentHoldingsForm").addEventListener("input", (eve
 });
 
 document.getElementById("investmentHoldingsForm").addEventListener("change", (event) => {
+  if (event.target.id === "holdingCategoryFilter") {
+    holdingFilterType = event.target.value;
+    localStorage.setItem("life-progress-holding-filter-type", holdingFilterType);
+    holdingSearchQuery = "";
+    localStorage.setItem("life-progress-holding-search", holdingSearchQuery);
+    renderInvestmentHoldings();
+    return;
+  }
   if (!event.target.matches("[data-holding-field='symbol']")) return;
   const row = event.target.closest("[data-holding-row]");
   const preset = holdingPresets.find((item) => item.symbol === event.target.value);
@@ -1809,11 +1857,12 @@ document.getElementById("investmentHoldingsForm").addEventListener("submit", (ev
 });
 
 document.getElementById("addHoldingRow").addEventListener("click", () => {
-  const preset = holdingPresets[0];
+  const preset = filteredHoldingPresets()[0] || holdingPresets[0];
   state.investmentHoldings.push({
     id: `holding-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
     symbol: preset.symbol,
     name: preset.name,
+    category: preset.category,
     dividendYield: Number(preset.dividendYield) || 0,
     value: 0
   });
