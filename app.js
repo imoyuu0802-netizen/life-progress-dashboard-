@@ -996,6 +996,7 @@ function renderInvestmentHoldings() {
   const total = holdings.reduce((sum, item) => sum + item.value, 0);
 
   setText("holdingsTotal", yen.format(total));
+  setText("holdingsSummary", `${holdings.length}件 / ${yen.format(total)}`);
   list.innerHTML = holdings
     .map((item) => `
       <div class="holding-row" data-holding-row="${escapeHtml(item.id)}">
@@ -1858,8 +1859,9 @@ document.getElementById("investmentHoldingsForm").addEventListener("submit", (ev
 
 document.getElementById("addHoldingRow").addEventListener("click", () => {
   const preset = filteredHoldingPresets()[0] || holdingPresets[0];
+  const id = `holding-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
   state.investmentHoldings.push({
-    id: `holding-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    id,
     symbol: preset.symbol,
     name: preset.name,
     category: preset.category,
@@ -1867,6 +1869,11 @@ document.getElementById("addHoldingRow").addEventListener("click", () => {
     value: 0
   });
   renderInvestmentHoldings();
+  document.getElementById("holdingsDetails").open = true;
+  [...document.querySelectorAll("[data-holding-row]")]
+    .find((row) => row.dataset.holdingRow === id)
+    ?.querySelector("[data-holding-field='value']")
+    ?.focus();
 });
 
 document.addEventListener("click", (event) => {

@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Life Progress" />
     <title>Life Progress Dashboard</title>
     <link rel="manifest" href="manifest.webmanifest?v=5" />
-    <link rel="stylesheet" href="styles.css?v=57" />
+    <link rel="stylesheet" href="styles.css?v=58" />
   </head>
   <body>
     <main class="app-shell">
@@ -238,6 +238,7 @@
               <span id="holdingsTotal" class="pill">¥0</span>
             </div>
             <form id="investmentHoldingsForm" class="holdings-form">
+              <div class="holding-toolbar">
               <div class="holding-search">
                 <label>
                   <span>銘柄タイプ</span>
@@ -253,11 +254,18 @@
                   <input id="holdingSearchInput" type="search" placeholder="銘柄名・ティッカーで検索" autocomplete="off" />
                 </label>
               </div>
-              <div id="investmentHoldingsList" class="holdings-list"></div>
-              <p class="holdings-note">現在評価額を入れるだけで、投資資産・今日の市場変動・年間配当を自動反映します。</p>
               <div class="holdings-actions">
                 <button id="addHoldingRow" type="button">銘柄を追加</button>
               </div>
+              </div>
+              <details id="holdingsDetails" class="holdings-details">
+                <summary>
+                  <span>保有銘柄を編集</span>
+                  <strong id="holdingsSummary">0件</strong>
+                </summary>
+                <div id="investmentHoldingsList" class="holdings-list"></div>
+              </details>
+              <p class="holdings-note">銘柄を追加して評価額を入れるだけで、投資資産・今日の市場変動・年間配当を自動反映します。</p>
             </form>
             <p id="holdingsStatus" class="save-status" role="status" aria-live="polite"></p>
           </article>
@@ -452,12 +460,12 @@
 
     <script src="firebase-config.js?v=53"></script>
     <script src="jflec-data.js?v=53"></script>
-    <script src="app.js?v=57"></script>
+    <script src="app.js?v=58"></script>
     <script type="module" src="firebase-sync.js?v=53"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js?v=57");
+          navigator.serviceWorker.register("sw.js?v=58");
         });
       }
     </script>

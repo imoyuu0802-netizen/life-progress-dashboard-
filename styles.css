@@ -383,6 +383,13 @@ small {
   gap: 10px;
 }
 
+.holding-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: end;
+}
+
 .holding-search {
   display: grid;
   grid-template-columns: minmax(130px, 0.6fr) minmax(180px, 1fr);
@@ -403,6 +410,55 @@ small {
 .holding-search input,
 .holding-search select {
   width: 100%;
+}
+
+.holdings-details {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.03);
+  overflow: hidden;
+}
+
+.holdings-details summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 48px;
+  padding: 0 14px;
+  cursor: pointer;
+  color: var(--ink);
+  font-weight: 900;
+  list-style: none;
+}
+
+.holdings-details summary::-webkit-details-marker {
+  display: none;
+}
+
+.holdings-details summary::before {
+  content: "▶";
+  color: var(--muted);
+  font-size: 11px;
+  transition: transform 160ms ease;
+}
+
+.holdings-details[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.holdings-details summary span {
+  flex: 1;
+}
+
+.holdings-details summary strong {
+  color: var(--muted);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.holdings-details .holdings-list {
+  padding: 0 10px 10px;
 }
 
 .holding-row {
@@ -1919,6 +1975,10 @@ button:disabled {
 @media (max-width: 759px) {
   .fire-countdown-head strong {
     font-size: clamp(31px, 9.1vw, 40px);
+  }
+
+  .holding-toolbar {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .holding-search {
