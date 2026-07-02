@@ -1077,10 +1077,6 @@ function renderInvestmentHoldings() {
             ${holdingPresetOptions(item.symbol)}
           </select>
         </label>
-        <label>
-          <span>表示名</span>
-          <input data-holding-field="name" value="${escapeHtml(item.name)}" maxlength="28" placeholder="例: S&P500" />
-        </label>
         ${crypto ? `
         <label>
           <span>保有数量</span>
@@ -1766,13 +1762,12 @@ function readInvestmentHoldingRows() {
     .map((row, index) => {
       const symbol = row.querySelector("[data-holding-field='symbol']")?.value || "custom";
       const preset = holdingPresets.find((item) => item.symbol === symbol);
-      const name = row.querySelector("[data-holding-field='name']")?.value.trim() || "";
       const value = parseInputNumber(row.querySelector("[data-holding-field='value']")?.value || "");
       const quantity = parseDecimalInputNumber(row.querySelector("[data-holding-field='quantity']")?.value || "");
       return {
         id: row.dataset.holdingRow || `holding-${Date.now()}-${index}`,
         symbol,
-        name: name || preset?.name || "その他",
+        name: preset?.name || "その他",
         category: preset?.category || "custom",
         source: preset?.source || "manual",
         ticker: preset?.ticker || "",
@@ -2059,8 +2054,6 @@ document.getElementById("investmentHoldingsForm").addEventListener("change", (ev
   if (!event.target.matches("[data-holding-field='symbol']")) return;
   const row = event.target.closest("[data-holding-row]");
   const preset = holdingPresets.find((item) => item.symbol === event.target.value);
-  const nameInput = row?.querySelector("[data-holding-field='name']");
-  if (preset && preset.symbol !== "custom" && nameInput) nameInput.value = preset.name;
   if (row && preset) {
     state.investmentHoldings = normalizeInvestmentHoldings(readInvestmentHoldingRows(), state.assets);
     renderInvestmentHoldings();
