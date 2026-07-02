@@ -58,6 +58,7 @@ const defaultState = {
     currentAge: 29,
     targetAge: 45,
     householdType: "twoPlus",
+    growthRateMode: "manual",
     investmentGrowthRate: 5,
     monthlyInvestmentAmount: 50000,
     yearlyAssetGrowth: 0,
@@ -297,6 +298,22 @@ function annualDividendsFromHoldings(holdings = state.investmentHoldings) {
 function holdingDividendYield(item) {
   const preset = holdingPresets.find((presetItem) => presetItem.symbol === item.symbol || presetItem.name === item.name);
   return Math.max(0, Number(item.dividendYield ?? preset?.dividendYield) || 0);
+}
+
+function weightedHoldingYield() {
+  const total = state.investmentHoldings.reduce((sum, item) => sum + Math.max(0, Number(item.value) || 0), 0);
+  if (total <= 0) return 0;
+  const weighted = state.investmentHoldings.reduce((sum, item) => {
+    const value = Math.max(0, Number(item.value) || 0);
+    return sum + value * holdingDividendYield(item);
+  }, 0);
+  return roundOne(weighted / total);
+}
+
+function effectiveInvestmentGrowthRate() {
+  return state.profile.growthRateMode === "holdings"
+    ? weightedHoldingYield()
+    : Math.max(0, Number(state.profile.investmentGrowthRate) || 0);
 }
 
 function applyScheduledDividendEntries(referenceDate = new Date()) {
@@ -566,7 +583,7 @@ function compoundYearsToFire() {
   if (!target || currentTotal >= target) return 0;
 
   const monthlyContribution = recurringMonthlyFireContribution();
-  const monthlyRate = Math.max(0, Number(state.profile.investmentGrowthRate) || 0) / 100 / 12;
+  const monthlyRate = effectiveInvestmentGrowthRate() / 100 / 12;
   if (monthlyContribution <= 0 && monthlyRate <= 0) return null;
 
   let investmentBalance = Math.max(0, Number(state.assets.investments) || 0);
@@ -744,7 +761,7 @@ function formatYears(value) {
 }
 
 function investmentGrowthAmount() {
-  return Math.round(state.assets.investments * ((Number(state.profile.investmentGrowthRate) || 0) / 100));
+  return Math.round(state.assets.investments * (effectiveInvestmentGrowthRate() / 100));
 }
 
 function annualInvestmentContribution() {
@@ -876,6 +893,7 @@ function renderFireProjection() {
   setText("arrivalAge", formatAge(arrivalAge()));
   setText("monthlyShortening", formatShortening(monthlyShortening));
   setText("investmentGrowthAmount", yen.format(investmentGrowthAmount()));
+  setText("effectiveGrowthRate", `${effectiveInvestmentGrowthRate()}%`);
   setText("retirementLead", formatRetirementComparison(leadYears));
   setText("currentAgeDisplay", formatAge(currentAgeYears()));
   setPositiveNegativeClass("monthlyShortening", monthlyShortening);
@@ -917,6 +935,7 @@ function render() {
   setText("peerBenchmarkNote", peerRanking ? `回答${numberFormatter.format(peerRanking.sample)}世帯 / 総資産を金融資産として階級内を均等推定` : "金融資産ベース・未回答を除く推定値");
   const yearsToFire = yearsToFireDecimal();
   setText("resultYearsToFire", typeof yearsToFire === "number" ? `約${yearsToFire.toFixed(1)}年` : "積立額を入力");
+  setText("resultFireAge", formatAge(arrivalAge()));
   const todayImpact = todayShorteningDays();
   const shortening = monthlyShorteningDays();
   setText(
@@ -1735,6 +1754,7 @@ function hydrateSettings() {
   form.elements.fireGoal.value = formatInputNumber(state.profile.fireGoal);
   form.elements.monthlyInvestmentAmount.value = formatInputNumber(state.profile.monthlyInvestmentAmount);
   form.elements.investmentGrowthRate.value = String(Number(state.profile.investmentGrowthRate) || 0);
+  form.elements.growthRateMode.value = state.profile.growthRateMode === "holdings" ? "holdings" : "manual";
   form.elements.yearlyAssetGrowth.value = formatInputNumber(state.profile.yearlyAssetGrowth);
 }
 
@@ -2048,6 +2068,7 @@ async function saveInvestmentHoldings(options = {}) {
     setText("heroTotalAssets", yen.format(total));
     setText("annualDividendResult", yen.format(state.assets.dividends));
     setText("annualDividendPower", `${yen.format(state.assets.dividends)}/年`);
+    setText("effectiveGrowthRate", `${effectiveInvestmentGrowthRate()}%`);
     setSignedText("heroTodayAssetChange", todayChange);
     setSignedText("heroTodayAssetRate", todayChange, `(${formatPrecisePercent(todayAssetChangeRate())})`);
     setSignedText("todayMarketChange", todayTotals.market);
@@ -2062,6 +2083,7 @@ async function saveInvestmentHoldings(options = {}) {
     setText("fireProgressLabel", `${rate}%`);
     const yearsToFire = yearsToFireDecimal();
     setText("resultYearsToFire", typeof yearsToFire === "number" ? `約${yearsToFire.toFixed(1)}年` : "積立額を入力");
+    setText("resultFireAge", formatAge(arrivalAge()));
     renderFireProjection();
     renderAssets();
     renderAssetTrend();
@@ -2304,6 +2326,14 @@ document.getElementById("settingsForm").elements.investmentGrowthRate.addEventLi
   saveState();
   renderFireProjection();
   showSaveStatus(`利回り${state.profile.investmentGrowthRate}%で再計算しました`);
+});
+
+document.getElementById("settingsForm").elements.growthRateMode.addEventListener("change", (event) => {
+  state.profile.growthRateMode = event.target.value === "holdings" ? "holdings" : "manual";
+  saveState();
+  render();
+  const modeLabel = state.profile.growthRateMode === "holdings" ? "保有銘柄の利回り" : "想定利回り";
+  showSaveStatus(`${modeLabel}でFIRE年数を再計算しました`);
 });
 
 document.getElementById("exportBackup").addEventListener("click", exportBackup);
@@ -2616,6 +2646,7 @@ function applySettingsFormValues(form) {
   state.profile.fireGoal = Math.max(1, parseInputNumber(form.elements.fireGoal.value));
   state.profile.monthlyInvestmentAmount = parseInputNumber(form.elements.monthlyInvestmentAmount.value);
   state.profile.investmentGrowthRate = Number(form.elements.investmentGrowthRate.value) || 0;
+  state.profile.growthRateMode = form.elements.growthRateMode.value === "holdings" ? "holdings" : "manual";
   state.profile.yearlyAssetGrowth = parseInputNumber(form.elements.yearlyAssetGrowth.value);
 }
 
