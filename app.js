@@ -121,6 +121,7 @@ let customizationStatusTimer = null;
 let outcomeStatusTimer = null;
 let holdingsStatusTimer = null;
 let holdingsAutoSaveTimer = null;
+let refreshAllTimer = null;
 let fireCountdownBaseSeconds = 0;
 let fireCountdownStartedAt = Date.now();
 let holdingFilterType = localStorage.getItem("life-progress-holding-filter-type") || "fund";
@@ -1732,7 +1733,7 @@ function saveInvestmentHoldings(options = {}) {
   const holdings = readInvestmentHoldingRows();
   if (!holdings.length) {
     if (!options.silent) showHoldingsStatus("銘柄名と評価額を入力してください");
-    return;
+    return false;
   }
 
   const previousTotal = totalAssets();
@@ -1786,7 +1787,22 @@ function saveInvestmentHoldings(options = {}) {
   } else {
     render();
   }
-  showHoldingsStatus(options.silent ? `自動反映済み。今日の市場 ${formatSignedYen(marketDiff)}` : `投資評価額を反映しました。今日の市場 ${formatSignedYen(marketDiff)}`);
+  showHoldingsStatus(options.statusMessage || (options.silent ? `自動反映済み。今日の市場 ${formatSignedYen(marketDiff)}` : `投資評価額を反映しました。今日の市場 ${formatSignedYen(marketDiff)}`));
+  return true;
+}
+
+function showRefreshAllDone() {
+  const button = document.getElementById("refreshAll");
+  if (!button) return;
+  const label = button.querySelector("span");
+  const originalText = label?.textContent || "";
+  if (label) label.textContent = "完了";
+  button.classList.add("is-done");
+  window.clearTimeout(refreshAllTimer);
+  refreshAllTimer = window.setTimeout(() => {
+    if (label) label.textContent = originalText || "更新";
+    button.classList.remove("is-done");
+  }, 1400);
 }
 
 function escapeHtml(value) {
@@ -1934,8 +1950,9 @@ document.getElementById("addHoldingRow").addEventListener("click", () => {
   addHoldingFromPreset();
 });
 
-document.getElementById("refreshHoldings").addEventListener("click", () => {
-  saveInvestmentHoldings();
+document.getElementById("refreshAll").addEventListener("click", () => {
+  const updated = saveInvestmentHoldings({ statusMessage: "全体を更新しました" });
+  if (updated) showRefreshAllDone();
 });
 
 document.getElementById("holdingSearchResults").addEventListener("click", (event) => {

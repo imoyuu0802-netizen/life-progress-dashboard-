@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Life Progress" />
     <title>Life Progress Dashboard</title>
     <link rel="manifest" href="manifest.webmanifest?v=5" />
-    <link rel="stylesheet" href="styles.css?v=61" />
+    <link rel="stylesheet" href="styles.css?v=62" />
   </head>
   <body>
     <main class="app-shell">
@@ -17,7 +17,10 @@
           <p class="eyebrow">FIRE Countdown</p>
           <h1>自由までの距離</h1>
         </div>
-        <button class="settings-trigger" type="button" data-view-target="settings" aria-label="設定を開く" title="設定">⚙</button>
+        <div class="hero-actions">
+          <button id="refreshAll" class="refresh-trigger" type="button" aria-label="全体を更新" title="全体を更新">↻<span>更新</span></button>
+          <button class="settings-trigger" type="button" data-view-target="settings" aria-label="設定を開く" title="設定">⚙</button>
+        </div>
       </header>
 
       <nav class="view-nav" aria-label="画面切り替え">
@@ -333,7 +336,6 @@
               </div>
               <div class="holdings-actions">
                 <button id="addHoldingRow" type="button">銘柄を追加</button>
-                <button id="refreshHoldings" type="button">更新</button>
               </div>
               </div>
               <div id="holdingSearchResults" class="holding-search-results" aria-live="polite"></div>
@@ -462,12 +464,12 @@
 
     <script src="firebase-config.js?v=53"></script>
     <script src="jflec-data.js?v=53"></script>
-    <script src="app.js?v=61"></script>
+    <script src="app.js?v=62"></script>
     <script type="module" src="firebase-sync.js?v=53"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js?v=61");
+          navigator.serviceWorker.register("sw.js?v=62");
         });
       }
     </script>

@@ -1,10 +1,10 @@
-const cacheName = "life-progress-dashboard-v61";
+const cacheName = "life-progress-dashboard-v62";
 const assets = [
   "./",
   "./index.html",
-  "./styles.css?v=61",
+  "./styles.css?v=62",
   "./jflec-data.js?v=53",
-  "./app.js?v=61",
+  "./app.js?v=62",
   "./firebase-config.js?v=53",
   "./firebase-sync.js?v=53",
   "./manifest.webmanifest?v=5",

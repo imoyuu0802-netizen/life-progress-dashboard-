@@ -53,15 +53,44 @@ select {
   padding: 12px 2px 18px;
 }
 
+.hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.refresh-trigger,
 .settings-trigger {
-  flex: 0 0 44px;
-  width: 44px;
   min-height: 44px;
-  padding: 0;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--soft);
   color: var(--ink);
+}
+
+.refresh-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-width: 70px;
+  padding: 0 11px;
+  font-size: 13px;
+  font-weight: 850;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.refresh-trigger.is-done {
+  border-color: rgba(70, 209, 139, 0.46);
+  color: var(--green);
+}
+
+.settings-trigger {
+  flex: 0 0 44px;
+  width: 44px;
+  padding: 0;
   font-size: 21px;
   line-height: 1;
 }
@@ -501,12 +530,6 @@ small {
 
 .holdings-actions button {
   white-space: nowrap;
-}
-
-.holdings-actions button:last-child {
-  background: var(--soft);
-  color: var(--ink);
-  border: 1px solid var(--line);
 }
 
 .holding-search-results {
@@ -2040,6 +2063,16 @@ button:disabled {
 }
 
 @media (max-width: 759px) {
+  .refresh-trigger {
+    min-width: 44px;
+    width: 44px;
+    padding: 0;
+  }
+
+  .refresh-trigger span {
+    display: none;
+  }
+
   .fire-countdown-head strong {
     font-size: clamp(31px, 9.1vw, 40px);
   }
