@@ -428,6 +428,18 @@ small {
   gap: 8px;
 }
 
+.momentum-pill {
+  border-color: rgba(70, 209, 139, 0.35);
+  color: var(--green);
+}
+
+.daily-momentum {
+  margin: -2px 0 12px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 850;
+}
+
 .breakdown-grid div {
   display: grid;
   gap: 6px;

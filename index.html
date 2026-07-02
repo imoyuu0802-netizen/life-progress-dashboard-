@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Life Progress" />
     <title>Life Progress Dashboard</title>
     <link rel="manifest" href="manifest.webmanifest?v=5" />
-    <link rel="stylesheet" href="styles.css?v=68" />
+    <link rel="stylesheet" href="styles.css?v=69" />
   </head>
   <body>
     <main class="app-shell">
@@ -50,6 +50,11 @@
               <div class="today-shortening">
                 <small>今日短縮した自由</small>
                 <strong id="todayShortening">+0分</strong>
+              </div>
+              <div class="daily-streak">
+                <small>連続成果</small>
+                <strong id="dailyStreak">0日</strong>
+                <span id="dailyStreakLabel">今日の成果待ち</span>
               </div>
             </div>
             <div class="shortening-basis" aria-label="短縮時間の計算根拠">
@@ -94,7 +99,9 @@
                 <p class="eyebrow">Today</p>
                 <h2>今日の資産増減</h2>
               </div>
+              <span id="streakPill" class="pill momentum-pill">0日継続</span>
             </div>
+            <p id="dailyMomentumMessage" class="daily-momentum">成果を1件記録するとFIRE時計が動きます</p>
             <div class="breakdown-grid">
               <div>
                 <small>市場</small>
@@ -301,6 +308,7 @@
                 <summary>FIRE計画</summary>
                 <div class="monthly-fields">
                   <label><span>FIRE目標額</span><input name="fireGoal" type="text" inputmode="numeric" data-number-input autocomplete="off" /></label>
+                  <label><span>毎月積立額</span><input name="monthlyInvestmentAmount" type="text" inputmode="numeric" data-number-input autocomplete="off" /></label>
                   <label>
                     <span>投資成長率 / 年</span>
                     <select name="investmentGrowthRate">
@@ -308,7 +316,7 @@
                       <option value="6">6%</option><option value="7">7%</option><option value="8">8%</option><option value="10">10%</option>
                     </select>
                   </label>
-                  <label><span>年間増加見込み</span><input name="yearlyAssetGrowth" type="text" inputmode="numeric" data-number-input autocomplete="off" /></label>
+                  <label><span>その他年間増加見込み</span><input name="yearlyAssetGrowth" type="text" inputmode="numeric" data-number-input autocomplete="off" /></label>
                   <div class="growth-preview"><small>投資成長見込み / 年</small><strong id="investmentGrowthAmount">¥0</strong></div>
                 </div>
               </details>
@@ -473,12 +481,12 @@
 
     <script src="firebase-config.js?v=53"></script>
     <script src="jflec-data.js?v=53"></script>
-    <script src="app.js?v=68"></script>
+    <script src="app.js?v=69"></script>
     <script type="module" src="firebase-sync.js?v=53"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js?v=68");
+          navigator.serviceWorker.register("sw.js?v=69");
         });
       }
     </script>

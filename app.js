@@ -44,21 +44,7 @@ const holdingPresets = [
   { symbol: "custom", name: "その他", category: "custom", source: "manual", ticker: "", dividendYield: 0, rank: 999, broker: "手入力" }
 ];
 
-const defaultInvestmentHoldings = [
-  { id: "holding-emaxis-sp500", symbol: "emaxis-slim-sp500", name: "eMAXIS Slim S&P500", value: 2791766 },
-  { id: "holding-emaxis-all-country", symbol: "emaxis-slim-all-country", name: "eMAXIS Slim 全世界株式", value: 3296970 },
-  { id: "holding-rakuten-schd", symbol: "rakuten-schd", name: "楽天SCHD", value: 1526411 },
-  { id: "holding-emaxis-all-country-ex-japan", symbol: "emaxis-slim-all-country-ex-japan", name: "eMAXIS Slim 全世界株式 除く日本", value: 1028369 },
-  { id: "holding-rakuten-plus-sp500", symbol: "rakuten-plus-sp500", name: "楽天プラス S&P500", value: 101137 },
-  { id: "holding-spyd", symbol: "SPYD", name: "SPYD", value: 685334 },
-  { id: "holding-hdv", symbol: "HDV", name: "HDV", value: 267228 },
-  { id: "holding-vym", symbol: "VYM", name: "VYM", value: 205728 },
-  { id: "holding-nf-nikkei-high-dividend-50", symbol: "nf-nikkei-high-dividend-50", name: "NF日経高配当50", value: 187384 },
-  { id: "holding-bti", symbol: "BTI", name: "BTI", value: 87886 },
-  { id: "holding-kddi", symbol: "KDDI", name: "KDDI", value: 63720 },
-  { id: "holding-nvda", symbol: "NVDA", name: "エヌビディア", value: 31796 },
-  { id: "holding-spacex", symbol: "SPCX", name: "スペースX", value: 25992 }
-];
+const defaultInvestmentHoldings = [];
 
 const defaultInvestmentTotal = defaultInvestmentHoldings.reduce((sum, item) => sum + item.value, 0);
 const defaultAnnualDividends = Math.round(defaultInvestmentHoldings.reduce((sum, item) => {
@@ -73,20 +59,18 @@ const defaultState = {
     targetAge: 45,
     householdType: "twoPlus",
     investmentGrowthRate: 5,
-    yearlyAssetGrowth: 1200000,
+    monthlyInvestmentAmount: 50000,
+    yearlyAssetGrowth: 0,
     fireGoal: 50000000
   },
   assets: {
     investments: defaultInvestmentTotal,
-    cash: 1300000,
+    cash: 0,
     dividends: defaultAnnualDividends
   },
   investmentHoldings: defaultInvestmentHoldings,
   investmentValuationBaseline: null,
-  assetHistory: [
-    { month: "2024-12", total: 10748696, dividends: null, sideProfit: null, fireAge: null },
-    { month: "2025-12", total: 12368409, dividends: null, sideProfit: null, fireAge: null }
-  ],
+  assetHistory: [],
   sideHustles: [
     { name: "商品販売", sales: 0, profit: 0, previousProfit: 0 },
     { name: "コンテンツ販売", sales: 0, profit: 0, previousProfit: 0 },
@@ -189,10 +173,14 @@ function normalizeState(saved = {}) {
   const normalizedInvestmentHoldings = normalizeInvestmentHoldings(investmentHoldings, saved.assets);
   const assets = { ...defaultState.assets, ...(saved.assets || {}), ...(useDefaultInvestmentHoldings ? { investments: defaultInvestmentTotal } : {}) };
   assets.dividends = annualDividendsFromHoldings(normalizedInvestmentHoldings);
+  const profile = { ...defaultState.profile, ...(saved.profile || {}) };
+  if (saved.profile && !Object.hasOwn(saved.profile, "monthlyInvestmentAmount")) {
+    profile.monthlyInvestmentAmount = 0;
+  }
   return {
     ...cloneDefaultState(),
     ...saved,
-    profile: { ...defaultState.profile, ...(saved.profile || {}) },
+    profile,
     assets,
     investmentHoldings: normalizedInvestmentHoldings,
     investmentValuationBaseline: normalizeInvestmentValuationBaseline(saved.investmentValuationBaseline),
@@ -270,9 +258,12 @@ function normalizeSideHustles(items) {
 }
 
 function normalizeInvestmentHoldings(items, savedAssets = {}) {
+  const savedInvestmentTotal = Number(savedAssets?.investments) || defaultState.assets.investments;
   const source = Array.isArray(items) && items.length
     ? items
-    : [{ id: "holding-total", symbol: "custom", name: "投資合計", value: Number(savedAssets?.investments) || defaultState.assets.investments }];
+    : savedInvestmentTotal > 0
+      ? [{ id: "holding-total", symbol: "custom", name: "投資合計", value: savedInvestmentTotal }]
+      : [];
 
   return source
     .filter((item) => item && String(item.name || "").trim())
@@ -481,19 +472,26 @@ function currentAgeYears() {
 }
 
 function arrivalAge() {
-  return roundOne(currentAgeDecimal() + yearsToFireDecimal());
+  const years = yearsToFireDecimal();
+  if (typeof years !== "number") return null;
+  return roundOne(currentAgeDecimal() + years);
 }
 
 function daysToFire() {
+  if (remainingToFire() <= 0) return 0;
+  if (projectedAnnualFirePower() <= 0) return null;
   return Math.max(0, Math.ceil((remainingToFire() / annualFirePower()) * 365));
 }
 
 function exactSecondsToFire() {
+  if (remainingToFire() <= 0) return 0;
+  if (projectedAnnualFirePower() <= 0) return null;
   return Math.max(0, Math.round((remainingToFire() / annualFirePower()) * 365 * 24 * 60 * 60));
 }
 
 function yearsToFireDecimal() {
-  return daysToFire() / 365;
+  const days = daysToFire();
+  return typeof days === "number" ? days / 365 : null;
 }
 
 function yearsToTargetAge() {
@@ -517,16 +515,21 @@ function selectedProgressDate() {
   return document.getElementById("progressDate")?.value || todayKey();
 }
 
-function annualFirePower() {
+function projectedAnnualFirePower() {
   const monthlyProfit = monthlySideProfit();
-  return Math.max(1, state.profile.yearlyAssetGrowth + investmentGrowthAmount() + state.assets.dividends + monthlyProfit * 12);
+  return state.profile.yearlyAssetGrowth + annualInvestmentContribution() + investmentGrowthAmount() + state.assets.dividends + monthlyProfit * 12;
+}
+
+function annualFirePower() {
+  return Math.max(1, projectedAnnualFirePower());
 }
 
 function baseAnnualFirePower() {
-  return Math.max(1, state.profile.yearlyAssetGrowth + investmentGrowthAmount() + state.assets.dividends);
+  return Math.max(1, state.profile.yearlyAssetGrowth + annualInvestmentContribution() + investmentGrowthAmount() + state.assets.dividends);
 }
 
 function fireAgeWithAnnualPower(annualPower) {
+  if (annualPower <= 0) return null;
   const yearsLeft = remainingToFire() / Math.max(1, annualPower);
   return roundOne(currentAgeDecimal() + yearsLeft);
 }
@@ -650,10 +653,12 @@ function peerAverageAssetAmount(ranking) {
 }
 
 function retirementLeadYears() {
-  return roundOne(averageRetirementAge - arrivalAge());
+  const age = arrivalAge();
+  return typeof age === "number" ? roundOne(averageRetirementAge - age) : null;
 }
 
 function formatRetirementComparison(value) {
+  if (typeof value !== "number" || !Number.isFinite(value)) return "--";
   const years = Math.abs(roundOne(value));
   const formatted = Number.isInteger(years) ? years : years.toFixed(1);
   if (value > 0) return `${formatted}年早い`;
@@ -666,17 +671,23 @@ function roundOne(value) {
 }
 
 function formatAge(value) {
+  if (typeof value !== "number" || !Number.isFinite(value)) return "--歳";
   const rounded = roundOne(Number(value) || 0);
   return Number.isInteger(rounded) ? `${rounded}歳` : `${rounded.toFixed(1)}歳`;
 }
 
 function formatYears(value) {
+  if (typeof value !== "number" || !Number.isFinite(value)) return "--年";
   const rounded = roundOne(Number(value) || 0);
   return Number.isInteger(rounded) ? `${rounded}年` : `${rounded.toFixed(1)}年`;
 }
 
 function investmentGrowthAmount() {
   return Math.round(state.assets.investments * ((Number(state.profile.investmentGrowthRate) || 0) / 100));
+}
+
+function annualInvestmentContribution() {
+  return Math.max(0, Math.round((Number(state.profile.monthlyInvestmentAmount) || 0) * 12));
 }
 
 function monthlyAssetRateChange() {
@@ -710,6 +721,14 @@ function setSignedText(id, value, text = formatSignedYen(value)) {
 }
 
 function renderShorteningBasis(todayAmount, todayImpact) {
+  const rawAnnualPower = projectedAnnualFirePower();
+  if (rawAnnualPower <= 0) {
+    setText("shorteningBasisMain", "毎月積立額を入れると計算開始");
+    setSignedClass("shorteningBasisMain", 0);
+    setText("shorteningBasisFormula", "FIRE計画の毎月積立額・成長率・配当・副業利益をもとに短縮時間を換算します");
+    setText("shorteningBasisBreakdown", "共有用の初期状態では資産額と投資額をゼロにしています");
+    return;
+  }
   const annualPower = annualFirePower();
   const dailyPower = annualPower / 365;
   const sideProfitAnnual = monthlySideProfit() * 12;
@@ -721,7 +740,35 @@ function renderShorteningBasis(todayAmount, todayImpact) {
   setText("shorteningBasisFormula", `1日短縮に必要な金額 = 年間FIRE前進力 ${yen.format(Math.round(annualPower))} ÷ 365日`);
   setText(
     "shorteningBasisBreakdown",
-    `内訳: 年間増加 ${yen.format(state.profile.yearlyAssetGrowth)} + 投資成長 ${yen.format(investmentGrowthAmount())} + 配当 ${yen.format(state.assets.dividends)} + 副業年換算 ${yen.format(sideProfitAnnual)}`
+    `内訳: 積立 ${yen.format(annualInvestmentContribution())} + その他増加 ${yen.format(state.profile.yearlyAssetGrowth)} + 投資成長 ${yen.format(investmentGrowthAmount())} + 配当 ${yen.format(state.assets.dividends)} + 副業年換算 ${yen.format(sideProfitAnnual)}`
+  );
+}
+
+function nextFreedomHourAmount(todayImpactDays) {
+  if (projectedAnnualFirePower() <= 0) return null;
+  const minutes = Math.max(0, todayImpactDays * 24 * 60);
+  const nextHour = Math.floor(minutes / 60) + 1;
+  const remainingHours = Math.max(0, nextHour - minutes / 60);
+  return Math.ceil((annualFirePower() / 365 / 24) * remainingHours);
+}
+
+function renderDailyMomentum(todayImpact) {
+  const streak = dailyOutcomeStreak();
+  const hasTodayEntry = outcomeEntriesFor("today")
+    .some((entry) => entry.type !== "market" && outcomeContribution(entry) > 0);
+  const nextHour = nextFreedomHourAmount(Math.max(0, todayImpact));
+  setText("streakPill", streak.count ? `${streak.count}日継続` : "今日から開始");
+  if (nextHour === null) {
+    setText("dailyMomentumMessage", "まずはFIRE計画で毎月積立額を設定すると、自由までの時計が動きます");
+    return;
+  }
+  setText(
+    "dailyMomentumMessage",
+    hasTodayEntry
+      ? `次の+1時間短縮まであと${yen.format(nextHour)}`
+      : streak.count
+        ? `今日1件記録で${streak.count}日継続を維持。次の+1時間短縮まで${yen.format(nextHour)}`
+        : `まずは成果を1件記録。次の+1時間短縮まで${yen.format(nextHour)}`
   );
 }
 
@@ -750,6 +797,10 @@ function formatFireCountdown(totalSeconds) {
 }
 
 function updateFireCountdown() {
+  if (fireCountdownBaseSeconds === null) {
+    setText("fireDistanceHero", "計画未設定\n積立額を入力");
+    return;
+  }
   const elapsedSeconds = Math.floor((Date.now() - fireCountdownStartedAt) / 1000);
   setText("fireDistanceHero", formatFireCountdown(fireCountdownBaseSeconds - elapsedSeconds));
 }
@@ -760,7 +811,8 @@ function renderFireProjection() {
   updateFireCountdown();
   const monthlyShortening = monthlyShorteningDays();
   const leadYears = retirementLeadYears();
-  setText("fireYearsHero", `約${yearsToFireDecimal().toFixed(1)}年`);
+  const years = yearsToFireDecimal();
+  setText("fireYearsHero", typeof years === "number" ? `約${years.toFixed(1)}年` : "積立額を入力");
   setText("arrivalAge", formatAge(arrivalAge()));
   setText("monthlyShortening", formatShortening(monthlyShortening));
   setText("investmentGrowthAmount", yen.format(investmentGrowthAmount()));
@@ -821,6 +873,8 @@ function render() {
   setText("monthlyFireDelta", formatFireDaysDiff(monthlyFireAgeDiff));
   setSignedText("todayShortening", todayImpact, formatSignedImpact(todayImpact));
   renderShorteningBasis(todayChange, todayImpact);
+  renderDailyStreak();
+  renderDailyMomentum(todayImpact);
   const yearlyShortening = yearlyShorteningDays();
   setText("yearlyShortening", formatShortening(yearlyShortening));
   setText("nextOnePercentAmount", nextOnePercentAmount() ? `あと${yen.format(nextOnePercentAmount())}` : "達成済み");
@@ -863,6 +917,43 @@ function setSignedClass(id, value) {
 
 function setPositiveNegativeClass(id, value) {
   setSignedClass(id, typeof value === "number" ? value : null);
+}
+
+function dailyOutcomeStreak() {
+  const actionDates = new Set(
+    state.outcomeEntries
+      .filter((entry) => entry.type !== "market" && outcomeContribution(entry) > 0)
+      .map((entry) => entry.date)
+  );
+
+  function countBackFrom(date) {
+    const cursor = new Date(`${date}T12:00:00`);
+    let count = 0;
+    while (actionDates.has(formatDateKey(cursor))) {
+      count += 1;
+      cursor.setDate(cursor.getDate() - 1);
+    }
+    return count;
+  }
+
+  const todayCount = countBackFrom(todayKey());
+  if (todayCount > 0) return { count: todayCount, includesToday: true };
+
+  const yesterday = new Date(`${todayKey()}T12:00:00`);
+  yesterday.setDate(yesterday.getDate() - 1);
+  return { count: countBackFrom(formatDateKey(yesterday)), includesToday: false };
+}
+
+function renderDailyStreak() {
+  const streak = dailyOutcomeStreak();
+  setText("dailyStreak", `${streak.count}日`);
+  setText(
+    "dailyStreakLabel",
+    streak.count
+      ? streak.includesToday ? "今日も継続中" : `昨日まで${streak.count}日`
+      : "今日の成果待ち"
+  );
+  setPositiveNegativeClass("dailyStreak", streak.count);
 }
 
 function formatShortening(days) {
@@ -1185,7 +1276,7 @@ function renderSideHustles() {
       <span>FIRE短縮</span>
       <strong>${formatLifetimeShortening(exactDaysShortenedByAmount(lifetime.total))}</strong>
     </div>
-    <p class="impact-note">現在の年間増加見込み・投資成長・配当・副業利益を基準に換算</p>
+    <p class="impact-note">現在の毎月積立額・その他増加・投資成長・配当・副業利益を基準に換算</p>
   `;
 
 }
@@ -1579,6 +1670,7 @@ function hydrateSettings() {
   form.elements.cash.value = formatInputNumber(state.assets.cash);
   form.elements.dividends.value = formatInputNumber(state.assets.dividends);
   form.elements.fireGoal.value = formatInputNumber(state.profile.fireGoal);
+  form.elements.monthlyInvestmentAmount.value = formatInputNumber(state.profile.monthlyInvestmentAmount);
   form.elements.investmentGrowthRate.value = String(Number(state.profile.investmentGrowthRate) || 0);
   form.elements.yearlyAssetGrowth.value = formatInputNumber(state.profile.yearlyAssetGrowth);
 }
@@ -1901,6 +1993,8 @@ async function saveInvestmentHoldings(options = {}) {
     setSignedText("todaySpendingChange", -todayTotals.spending);
     setSignedText("todayShortening", todayImpact, formatSignedImpact(todayImpact));
     renderShorteningBasis(todayChange, todayImpact);
+    renderDailyStreak();
+    renderDailyMomentum(todayImpact);
     document.getElementById("fireProgress").style.width = `${rate}%`;
     setText("fireProgressLabel", `${rate}%`);
     renderFireProjection();
@@ -2455,6 +2549,7 @@ function applySettingsFormValues(form) {
     state.investmentHoldings[0].value = state.assets.investments;
   }
   state.profile.fireGoal = Math.max(1, parseInputNumber(form.elements.fireGoal.value));
+  state.profile.monthlyInvestmentAmount = parseInputNumber(form.elements.monthlyInvestmentAmount.value);
   state.profile.investmentGrowthRate = Number(form.elements.investmentGrowthRate.value) || 0;
   state.profile.yearlyAssetGrowth = parseInputNumber(form.elements.yearlyAssetGrowth.value);
 }
