@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Life Progress" />
     <title>Life Progress Dashboard</title>
     <link rel="manifest" href="manifest.webmanifest?v=5" />
-    <link rel="stylesheet" href="styles.css?v=69" />
+    <link rel="stylesheet" href="styles.css?v=70" />
   </head>
   <body>
     <main class="app-shell">
@@ -136,6 +136,22 @@
             </div>
             <div class="result-grid">
               <div>
+                <small>同年代の資産順位</small>
+                <strong id="peerPercentile">推定 --</strong>
+              </div>
+              <div>
+                <small>同年代比</small>
+                <strong id="peerRatio">--倍</strong>
+              </div>
+              <div>
+                <small>同年代平均との差</small>
+                <strong id="peerAverageDiff">--</strong>
+              </div>
+              <div>
+                <small>FIREまであと</small>
+                <strong id="resultYearsToFire">--年</strong>
+              </div>
+              <div>
                 <small>年間配当（概算）</small>
                 <strong id="annualDividendResult">¥0</strong>
               </div>
@@ -150,18 +166,6 @@
               <div>
                 <small>前年差資産</small>
                 <strong id="yearlyAssetDiffResult">--</strong>
-              </div>
-              <div>
-                <small>同年代平均との差</small>
-                <strong id="peerAverageDiff">--</strong>
-              </div>
-              <div>
-                <small>同年代比</small>
-                <strong id="peerRatio">--倍</strong>
-              </div>
-              <div>
-                <small>同年代の資産順位</small>
-                <strong id="peerPercentile">推定 --</strong>
               </div>
               <div>
                 <small>65歳退職との比較</small>
@@ -481,12 +485,12 @@
 
     <script src="firebase-config.js?v=53"></script>
     <script src="jflec-data.js?v=53"></script>
-    <script src="app.js?v=69"></script>
+    <script src="app.js?v=70"></script>
     <script type="module" src="firebase-sync.js?v=53"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js?v=69");
+          navigator.serviceWorker.register("sw.js?v=70");
         });
       }
     </script>

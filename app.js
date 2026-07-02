@@ -22,21 +22,21 @@ const holdingPresets = [
   { symbol: "emaxis-slim-sp500", name: "eMAXIS Slim S&P500", category: "fund", source: "apps-script", ticker: "emaxis-slim-sp500", dividendYield: 0, rank: 2, broker: "楽天/SBI" },
   { symbol: "rakuten-plus-sp500", name: "楽天プラス S&P500", category: "fund", source: "apps-script", ticker: "rakuten-plus-sp500", dividendYield: 0, rank: 3, broker: "楽天" },
   { symbol: "rakuten-plus-all-country", name: "楽天プラス オールカントリー", category: "fund", source: "apps-script", ticker: "rakuten-plus-all-country", dividendYield: 0, rank: 4, broker: "楽天" },
-  { symbol: "rakuten-schd", name: "楽天SCHD", category: "fund", source: "apps-script", ticker: "rakuten-schd", dividendYield: 3.3, rank: 5, broker: "楽天/SBI" },
+  { symbol: "rakuten-schd", name: "楽天SCHD", category: "fund", source: "apps-script", ticker: "rakuten-schd", dividendYield: 3.3, dividendMonths: [2, 5, 8, 11], dividendDay: 25, rank: 5, broker: "楽天/SBI" },
   { symbol: "sbi-v-sp500", name: "SBI・V・S&P500", category: "fund", source: "apps-script", ticker: "sbi-v-sp500", dividendYield: 0, rank: 6, broker: "SBI" },
   { symbol: "sbi-v-total-stock-market", name: "SBI・V・全米株式", category: "fund", source: "apps-script", ticker: "sbi-v-total-stock-market", dividendYield: 0, rank: 7, broker: "SBI" },
   { symbol: "ifree-next-fang-plus", name: "iFreeNEXT FANG+インデックス", category: "fund", source: "apps-script", ticker: "ifree-next-fang-plus", dividendYield: 0, rank: 8, broker: "楽天/SBI" },
   { symbol: "nissay-nasdaq100", name: "ニッセイNASDAQ100インデックス", category: "fund", source: "apps-script", ticker: "nissay-nasdaq100", dividendYield: 0, rank: 9, broker: "楽天/SBI" },
   { symbol: "rakuten-vti", name: "楽天・全米株式インデックス", category: "fund", source: "apps-script", ticker: "rakuten-vti", dividendYield: 0, rank: 10, broker: "楽天" },
   { symbol: "emaxis-slim-all-country-ex-japan", name: "eMAXIS Slim 全世界株式 除く日本", category: "fund", source: "apps-script", ticker: "emaxis-slim-all-country-ex-japan", dividendYield: 0, rank: 11, broker: "楽天/SBI" },
-  { symbol: "SPYD", name: "SPYD", category: "etf", source: "googlefinance", ticker: "NYSEARCA:SPYD", dividendYield: 4.5, rank: 101, broker: "米国ETF" },
-  { symbol: "HDV", name: "HDV", category: "etf", source: "googlefinance", ticker: "NYSEARCA:HDV", dividendYield: 3.5, rank: 102, broker: "米国ETF" },
-  { symbol: "VYM", name: "VYM", category: "etf", source: "googlefinance", ticker: "NYSEARCA:VYM", dividendYield: 2.7, rank: 103, broker: "米国ETF" },
-  { symbol: "nf-nikkei-high-dividend-50", name: "NF日経高配当50", category: "etf", source: "googlefinance", ticker: "TYO:1489", dividendYield: 3.4, rank: 104, broker: "国内ETF" },
+  { symbol: "SPYD", name: "SPYD", category: "etf", source: "googlefinance", ticker: "NYSEARCA:SPYD", dividendYield: 4.5, dividendMonths: [3, 6, 9, 12], dividendDay: 25, rank: 101, broker: "米国ETF" },
+  { symbol: "HDV", name: "HDV", category: "etf", source: "googlefinance", ticker: "NYSEARCA:HDV", dividendYield: 3.5, dividendMonths: [3, 6, 9, 12], dividendDay: 25, rank: 102, broker: "米国ETF" },
+  { symbol: "VYM", name: "VYM", category: "etf", source: "googlefinance", ticker: "NYSEARCA:VYM", dividendYield: 2.7, dividendMonths: [3, 6, 9, 12], dividendDay: 25, rank: 103, broker: "米国ETF" },
+  { symbol: "nf-nikkei-high-dividend-50", name: "NF日経高配当50", category: "etf", source: "googlefinance", ticker: "TYO:1489", dividendYield: 3.4, dividendMonths: [1, 4, 7, 10], dividendDay: 15, rank: 104, broker: "国内ETF" },
   { symbol: "SPCX", name: "スペースX", category: "stock", source: "googlefinance", ticker: "NASDAQ:SPCX", dividendYield: 0, rank: 201, broker: "米国株" },
-  { symbol: "NVDA", name: "エヌビディア", category: "stock", source: "googlefinance", ticker: "NASDAQ:NVDA", dividendYield: 0.03, rank: 202, broker: "米国株" },
-  { symbol: "KDDI", name: "KDDI", category: "stock", source: "googlefinance", ticker: "TYO:9433", dividendYield: 3.0, rank: 203, broker: "国内株" },
-  { symbol: "BTI", name: "BTI", category: "stock", source: "googlefinance", ticker: "NYSE:BTI", dividendYield: 7.0, rank: 204, broker: "米国株" },
+  { symbol: "NVDA", name: "エヌビディア", category: "stock", source: "googlefinance", ticker: "NASDAQ:NVDA", dividendYield: 0.03, dividendMonths: [3, 6, 9, 12], dividendDay: 25, rank: 202, broker: "米国株" },
+  { symbol: "KDDI", name: "KDDI", category: "stock", source: "googlefinance", ticker: "TYO:9433", dividendYield: 3.0, dividendMonths: [6, 12], dividendDay: 20, rank: 203, broker: "国内株" },
+  { symbol: "BTI", name: "BTI", category: "stock", source: "googlefinance", ticker: "NYSE:BTI", dividendYield: 7.0, dividendMonths: [2, 5, 8, 11], dividendDay: 10, rank: 204, broker: "米国株" },
   { symbol: "BTC", name: "ビットコイン", category: "crypto", source: "coingecko", ticker: "bitcoin", dividendYield: 0, rank: 301, broker: "暗号資産", aliases: ["bitcoin"] },
   { symbol: "ETH", name: "イーサリアム", category: "crypto", source: "coingecko", ticker: "ethereum", dividendYield: 0, rank: 302, broker: "暗号資産", aliases: ["ethereum"] },
   { symbol: "XRP", name: "リップル", category: "crypto", source: "coingecko", ticker: "ripple", dividendYield: 0, rank: 303, broker: "暗号資産", aliases: ["ripple"] },
@@ -299,6 +299,42 @@ function holdingDividendYield(item) {
   return Math.max(0, Number(item.dividendYield ?? preset?.dividendYield) || 0);
 }
 
+function applyScheduledDividendEntries(referenceDate = new Date()) {
+  const month = referenceDate.getMonth() + 1;
+  const day = referenceDate.getDate();
+  const monthKey = formatDateKey(referenceDate).slice(0, 7);
+  const additions = [];
+
+  state.investmentHoldings.forEach((holding) => {
+    const preset = holdingPresets.find((item) => item.symbol === holding.symbol || item.name === holding.name);
+    const months = Array.isArray(preset?.dividendMonths) ? preset.dividendMonths : [];
+    const dividendDay = Number(preset?.dividendDay) || 1;
+    if (!months.includes(month) || day < dividendDay) return;
+
+    const holdingKey = holding.id || holding.symbol || holding.name || "holding";
+    const id = `auto-dividend-${monthKey}-${holdingKey}`;
+    if (state.outcomeEntries.some((entry) => entry.id === id)) return;
+
+    const annualDividend = (Number(holding.value) || 0) * holdingDividendYield(holding) / 100;
+    const amount = Math.round(annualDividend / Math.max(1, months.length));
+    if (amount <= 0) return;
+
+    additions.push({
+      id,
+      date: `${monthKey}-${String(dividendDay).padStart(2, "0")}`,
+      type: "dividend",
+      category: `${holding.name} 自動配当`,
+      sales: 0,
+      amount,
+      appliedToMonthlyTotals: false
+    });
+  });
+
+  if (!additions.length) return;
+  state.outcomeEntries.push(...additions);
+  saveState();
+}
+
 function normalizeInvestmentValuationBaseline(item) {
   if (!item || typeof item !== "object") return null;
   return {
@@ -478,20 +514,17 @@ function arrivalAge() {
 }
 
 function daysToFire() {
-  if (remainingToFire() <= 0) return 0;
-  if (projectedAnnualFirePower() <= 0) return null;
-  return Math.max(0, Math.ceil((remainingToFire() / annualFirePower()) * 365));
+  const years = yearsToFireDecimal();
+  return typeof years === "number" ? Math.max(0, Math.ceil(years * 365)) : null;
 }
 
 function exactSecondsToFire() {
-  if (remainingToFire() <= 0) return 0;
-  if (projectedAnnualFirePower() <= 0) return null;
-  return Math.max(0, Math.round((remainingToFire() / annualFirePower()) * 365 * 24 * 60 * 60));
+  const years = yearsToFireDecimal();
+  return typeof years === "number" ? Math.max(0, Math.round(years * 365 * 24 * 60 * 60)) : null;
 }
 
 function yearsToFireDecimal() {
-  const days = daysToFire();
-  return typeof days === "number" ? days / 365 : null;
+  return compoundYearsToFire();
 }
 
 function yearsToTargetAge() {
@@ -518,6 +551,34 @@ function selectedProgressDate() {
 function projectedAnnualFirePower() {
   const monthlyProfit = monthlySideProfit();
   return state.profile.yearlyAssetGrowth + annualInvestmentContribution() + investmentGrowthAmount() + state.assets.dividends + monthlyProfit * 12;
+}
+
+function recurringMonthlyFireContribution() {
+  return Math.max(0, Number(state.profile.monthlyInvestmentAmount) || 0)
+    + Math.max(0, Number(state.profile.yearlyAssetGrowth) || 0) / 12
+    + Math.max(0, Number(state.assets.dividends) || 0) / 12
+    + Math.max(0, monthlySideProfit());
+}
+
+function compoundYearsToFire() {
+  const target = Number(state.profile.fireGoal) || 0;
+  const currentTotal = totalAssets();
+  if (!target || currentTotal >= target) return 0;
+
+  const monthlyContribution = recurringMonthlyFireContribution();
+  const monthlyRate = Math.max(0, Number(state.profile.investmentGrowthRate) || 0) / 100 / 12;
+  if (monthlyContribution <= 0 && monthlyRate <= 0) return null;
+
+  let investmentBalance = Math.max(0, Number(state.assets.investments) || 0);
+  const cashBalance = Math.max(0, Number(state.assets.cash) || 0);
+  const maxMonths = 1200;
+
+  for (let month = 1; month <= maxMonths; month += 1) {
+    investmentBalance = investmentBalance * (1 + monthlyRate) + monthlyContribution;
+    if (investmentBalance + cashBalance >= target) return roundOne(month / 12);
+  }
+
+  return null;
 }
 
 function annualFirePower() {
@@ -731,16 +792,15 @@ function renderShorteningBasis(todayAmount, todayImpact) {
   }
   const annualPower = annualFirePower();
   const dailyPower = annualPower / 365;
-  const sideProfitAnnual = monthlySideProfit() * 12;
   setText(
     "shorteningBasisMain",
-    `${formatSignedYen(todayAmount)} ÷ ${yen.format(Math.round(dailyPower))}/日 = ${formatSignedImpact(todayImpact)}`
+    `${formatSignedYen(todayAmount)}で自由が${formatSignedImpact(todayImpact)}近づく`
   );
   setSignedClass("shorteningBasisMain", todayImpact);
-  setText("shorteningBasisFormula", `1日短縮に必要な金額 = 年間FIRE前進力 ${yen.format(Math.round(annualPower))} ÷ 365日`);
+  setText("shorteningBasisFormula", `目安: ${yen.format(Math.round(dailyPower))}でFIREが1日近づく計算`);
   setText(
     "shorteningBasisBreakdown",
-    `内訳: 積立 ${yen.format(annualInvestmentContribution())} + その他増加 ${yen.format(state.profile.yearlyAssetGrowth)} + 投資成長 ${yen.format(investmentGrowthAmount())} + 配当 ${yen.format(state.assets.dividends)} + 副業年換算 ${yen.format(sideProfitAnnual)}`
+    `毎月積立・利回り・配当・副業利益を年換算して日割り`
   );
 }
 
@@ -823,6 +883,7 @@ function renderFireProjection() {
 }
 
 function render() {
+  applyScheduledDividendEntries();
   const total = totalAssets();
   const rate = fireRate();
   const monthlySavings = outcomeTotals(outcomeEntriesFor("month")).saving;
@@ -854,6 +915,8 @@ function render() {
   setText("peerAverageDiff", peerAverage ? formatDiff(total - peerAverage) : "--");
   setText("peerRatio", peerAverage ? `${roundOne(total / Math.max(1, peerAverage))}倍` : "--倍");
   setText("peerBenchmarkNote", peerRanking ? `回答${numberFormatter.format(peerRanking.sample)}世帯 / 総資産を金融資産として階級内を均等推定` : "金融資産ベース・未回答を除く推定値");
+  const yearsToFire = yearsToFireDecimal();
+  setText("resultYearsToFire", typeof yearsToFire === "number" ? `約${yearsToFire.toFixed(1)}年` : "積立額を入力");
   const todayImpact = todayShorteningDays();
   const shortening = monthlyShorteningDays();
   setText(
@@ -1997,6 +2060,8 @@ async function saveInvestmentHoldings(options = {}) {
     renderDailyMomentum(todayImpact);
     document.getElementById("fireProgress").style.width = `${rate}%`;
     setText("fireProgressLabel", `${rate}%`);
+    const yearsToFire = yearsToFireDecimal();
+    setText("resultYearsToFire", typeof yearsToFire === "number" ? `約${yearsToFire.toFixed(1)}年` : "積立額を入力");
     renderFireProjection();
     renderAssets();
     renderAssetTrend();
