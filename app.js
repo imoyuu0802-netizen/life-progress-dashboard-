@@ -316,6 +316,13 @@ function effectiveInvestmentGrowthRate() {
     : Math.max(0, Number(state.profile.investmentGrowthRate) || 0);
 }
 
+function growthRateNoteText() {
+  if (state.profile.growthRateMode === "holdings") {
+    return "保有銘柄の利回りは、登録済み利回りを評価額で加重平均した概算です。証券会社の実績利回りや将来リターンを保証するものではありません。";
+  }
+  return "想定利回りは自分で決めた前提です。FIRE年数の目安計算に使うもので、将来リターンを保証するものではありません。";
+}
+
 function applyScheduledDividendEntries(referenceDate = new Date()) {
   const month = referenceDate.getMonth() + 1;
   const day = referenceDate.getDate();
@@ -894,6 +901,7 @@ function renderFireProjection() {
   setText("monthlyShortening", formatShortening(monthlyShortening));
   setText("investmentGrowthAmount", yen.format(investmentGrowthAmount()));
   setText("effectiveGrowthRate", `${effectiveInvestmentGrowthRate()}%`);
+  setText("growthRateNote", growthRateNoteText());
   setText("retirementLead", formatRetirementComparison(leadYears));
   setText("currentAgeDisplay", formatAge(currentAgeYears()));
   setPositiveNegativeClass("monthlyShortening", monthlyShortening);
@@ -2069,6 +2077,7 @@ async function saveInvestmentHoldings(options = {}) {
     setText("annualDividendResult", yen.format(state.assets.dividends));
     setText("annualDividendPower", `${yen.format(state.assets.dividends)}/年`);
     setText("effectiveGrowthRate", `${effectiveInvestmentGrowthRate()}%`);
+    setText("growthRateNote", growthRateNoteText());
     setSignedText("heroTodayAssetChange", todayChange);
     setSignedText("heroTodayAssetRate", todayChange, `(${formatPrecisePercent(todayAssetChangeRate())})`);
     setSignedText("todayMarketChange", todayTotals.market);
