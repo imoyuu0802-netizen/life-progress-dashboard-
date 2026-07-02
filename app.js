@@ -2076,19 +2076,24 @@ document.getElementById("investmentHoldingsForm").addEventListener("submit", (ev
 
 function addHoldingFromPreset(preset = filteredHoldingPresets()[0] || holdingPresets[0]) {
   const id = `holding-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
-  state.investmentHoldings.push({
+  state.investmentHoldings.unshift({
     id,
     symbol: preset.symbol,
     name: preset.name,
     category: preset.category,
+    source: preset.source,
+    ticker: preset.ticker,
     dividendYield: Number(preset.dividendYield) || 0,
+    quantity: 0,
+    price: 0,
+    priceUpdatedAt: "",
     value: 0
   });
   renderInvestmentHoldings();
   document.getElementById("holdingsDetails").open = true;
-  [...document.querySelectorAll("[data-holding-row]")]
-    .find((row) => row.dataset.holdingRow === id)
-    ?.querySelector("[data-holding-field='value']")
+  const row = [...document.querySelectorAll("[data-holding-row]")]
+    .find((candidate) => candidate.dataset.holdingRow === id);
+  row?.querySelector(isCryptoHolding(preset) ? "[data-holding-field='quantity']" : "[data-holding-field='value']")
     ?.focus();
 }
 
