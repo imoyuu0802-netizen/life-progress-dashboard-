@@ -859,10 +859,6 @@ small {
   font-variant-numeric: tabular-nums;
 }
 
-.fire-days-row .yearly-shortening strong {
-  color: var(--green);
-}
-
 .settings-stack {
   grid-template-columns: minmax(0, 1fr);
 }

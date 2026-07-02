@@ -742,12 +742,16 @@ function renderFireProjection() {
   fireCountdownBaseSeconds = exactSecondsToFire();
   fireCountdownStartedAt = Date.now();
   updateFireCountdown();
+  const monthlyShortening = monthlyShorteningDays();
+  const leadYears = retirementLeadYears();
   setText("fireYearsHero", `約${yearsToFireDecimal().toFixed(1)}年`);
   setText("arrivalAge", formatAge(arrivalAge()));
-  setText("monthlyShortening", formatShortening(monthlyShorteningDays()));
+  setText("monthlyShortening", formatShortening(monthlyShortening));
   setText("investmentGrowthAmount", yen.format(investmentGrowthAmount()));
-  setText("retirementLead", formatRetirementComparison(retirementLeadYears()));
+  setText("retirementLead", formatRetirementComparison(leadYears));
   setText("currentAgeDisplay", formatAge(currentAgeYears()));
+  setPositiveNegativeClass("monthlyShortening", monthlyShortening);
+  setPositiveNegativeClass("retirementLead", leadYears);
 }
 
 function render() {
@@ -797,14 +801,18 @@ function render() {
   setText("monthlyAssetRate", formatPercent(monthlyAssetRateChange()));
   setText("settingsMonthlyDiff", formatDiff(state.lastMonthlyChange?.diff));
   setText("monthlyAutoLabel", `${formatCurrentMonthLabel()}として自動記録`);
-  setText("monthlyFireDelta", formatFireDaysDiff(monthlyComparison().fireAgeDiffValue));
+  const monthlyFireAgeDiff = monthlyComparison().fireAgeDiffValue;
+  setText("monthlyFireDelta", formatFireDaysDiff(monthlyFireAgeDiff));
   setSignedText("todayShortening", todayImpact, formatSignedImpact(todayImpact));
-  setText("yearlyShortening", formatShortening(yearlyShorteningDays()));
+  const yearlyShortening = yearlyShorteningDays();
+  setText("yearlyShortening", formatShortening(yearlyShortening));
   setText("nextOnePercentAmount", nextOnePercentAmount() ? `あと${yen.format(nextOnePercentAmount())}` : "達成済み");
   setSignedClass("monthlyAssetDiff", state.lastMonthlyChange?.diff);
   setSignedClass("monthlyAssetRate", monthlyAssetRateChange());
   setSignedClass("yearlyAssetDiffResult", yearly.assetDiff);
   setSignedClass("peerAverageDiff", peerAverage ? total - peerAverage : null);
+  setPositiveNegativeClass("monthlyFireDelta", monthlyFireAgeDiff);
+  setPositiveNegativeClass("yearlyShortening", yearlyShortening);
   setText("fireProgressLabel", `${rate}%`);
   document.getElementById("fireProgress").style.width = `${rate}%`;
   renderFireProjection();
@@ -834,6 +842,10 @@ function setSignedClass(id, value) {
   element.classList.remove("is-plus", "is-minus");
   if (typeof value !== "number" || value === 0) return;
   element.classList.add(value > 0 ? "is-plus" : "is-minus");
+}
+
+function setPositiveNegativeClass(id, value) {
+  setSignedClass(id, typeof value === "number" ? value : null);
 }
 
 function formatShortening(days) {
