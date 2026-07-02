@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Life Progress" />
     <title>Life Progress Dashboard</title>
     <link rel="manifest" href="manifest.webmanifest?v=5" />
-    <link rel="stylesheet" href="styles.css?v=65" />
+    <link rel="stylesheet" href="styles.css?v=66" />
   </head>
   <body>
     <main class="app-shell">
@@ -51,6 +51,14 @@
                 <small>今日短縮した自由</small>
                 <strong id="todayShortening">+0分</strong>
               </div>
+            </div>
+            <div class="shortening-basis" aria-label="短縮時間の計算根拠">
+              <div>
+                <span>短縮の根拠</span>
+                <strong id="shorteningBasisMain">--</strong>
+              </div>
+              <small id="shorteningBasisFormula">年間FIRE前進力から日割りで換算</small>
+              <small id="shorteningBasisBreakdown">内訳を読み込み中</small>
             </div>
             <div class="progress-track thick" aria-label="FIRE達成率">
               <div id="fireProgress" class="progress-fill"></div>
@@ -465,12 +473,12 @@
 
     <script src="firebase-config.js?v=53"></script>
     <script src="jflec-data.js?v=53"></script>
-    <script src="app.js?v=65"></script>
+    <script src="app.js?v=66"></script>
     <script type="module" src="firebase-sync.js?v=53"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js?v=65");
+          navigator.serviceWorker.register("sw.js?v=66");
         });
       }
     </script>

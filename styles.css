@@ -367,6 +367,45 @@ small {
   color: var(--danger);
 }
 
+.shortening-basis {
+  display: grid;
+  gap: 7px;
+  margin: -2px 0 14px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.shortening-basis div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.shortening-basis span,
+.shortening-basis small {
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.shortening-basis strong {
+  color: var(--ink);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.shortening-basis strong.is-plus {
+  color: var(--green);
+}
+
+.shortening-basis strong.is-minus {
+  color: var(--danger);
+}
+
 .focus-panel .progress-track,
 .focus-panel .fire-days-row {
   display: none;

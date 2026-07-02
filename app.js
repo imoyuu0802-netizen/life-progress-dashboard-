@@ -709,6 +709,22 @@ function setSignedText(id, value, text = formatSignedYen(value)) {
   setSignedClass(id, Number(value) || 0);
 }
 
+function renderShorteningBasis(todayAmount, todayImpact) {
+  const annualPower = annualFirePower();
+  const dailyPower = annualPower / 365;
+  const sideProfitAnnual = monthlySideProfit() * 12;
+  setText(
+    "shorteningBasisMain",
+    `${formatSignedYen(todayAmount)} ÷ ${yen.format(Math.round(dailyPower))}/日 = ${formatSignedImpact(todayImpact)}`
+  );
+  setSignedClass("shorteningBasisMain", todayImpact);
+  setText("shorteningBasisFormula", `1日短縮に必要な金額 = 年間FIRE前進力 ${yen.format(Math.round(annualPower))} ÷ 365日`);
+  setText(
+    "shorteningBasisBreakdown",
+    `内訳: 年間増加 ${yen.format(state.profile.yearlyAssetGrowth)} + 投資成長 ${yen.format(investmentGrowthAmount())} + 配当 ${yen.format(state.assets.dividends)} + 副業年換算 ${yen.format(sideProfitAnnual)}`
+  );
+}
+
 function todayAssetChange() {
   return outcomeTotals(outcomeEntriesFor("today")).total;
 }
@@ -804,6 +820,7 @@ function render() {
   const monthlyFireAgeDiff = monthlyComparison().fireAgeDiffValue;
   setText("monthlyFireDelta", formatFireDaysDiff(monthlyFireAgeDiff));
   setSignedText("todayShortening", todayImpact, formatSignedImpact(todayImpact));
+  renderShorteningBasis(todayChange, todayImpact);
   const yearlyShortening = yearlyShorteningDays();
   setText("yearlyShortening", formatShortening(yearlyShortening));
   setText("nextOnePercentAmount", nextOnePercentAmount() ? `あと${yen.format(nextOnePercentAmount())}` : "達成済み");
@@ -1888,6 +1905,7 @@ async function saveInvestmentHoldings(options = {}) {
     setSignedText("todayDividendChange", todayTotals.dividend);
     setSignedText("todaySpendingChange", -todayTotals.spending);
     setSignedText("todayShortening", todayImpact, formatSignedImpact(todayImpact));
+    renderShorteningBasis(todayChange, todayImpact);
     document.getElementById("fireProgress").style.width = `${rate}%`;
     setText("fireProgressLabel", `${rate}%`);
     renderFireProjection();
