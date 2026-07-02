@@ -357,13 +357,13 @@ small {
   font-variant-numeric: tabular-nums;
 }
 
-.daily-fire-summary .today-change strong,
-.daily-fire-summary .today-change span,
-.daily-fire-summary .today-shortening strong {
+.daily-fire-summary .today-change .is-plus,
+.daily-fire-summary .today-shortening .is-plus {
   color: var(--green);
 }
 
-.daily-fire-summary .is-minus {
+.daily-fire-summary .today-change .is-minus,
+.daily-fire-summary .today-shortening .is-minus {
   color: var(--danger);
 }
 
