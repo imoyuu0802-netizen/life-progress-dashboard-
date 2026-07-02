@@ -37,6 +37,10 @@ const holdingPresets = [
   { symbol: "NVDA", name: "エヌビディア", category: "stock", source: "googlefinance", ticker: "NASDAQ:NVDA", dividendYield: 0.03, rank: 202, broker: "米国株" },
   { symbol: "KDDI", name: "KDDI", category: "stock", source: "googlefinance", ticker: "TYO:9433", dividendYield: 3.0, rank: 203, broker: "国内株" },
   { symbol: "BTI", name: "BTI", category: "stock", source: "googlefinance", ticker: "NYSE:BTI", dividendYield: 7.0, rank: 204, broker: "米国株" },
+  { symbol: "BTC", name: "ビットコイン", category: "crypto", source: "coingecko", ticker: "bitcoin", dividendYield: 0, rank: 301, broker: "暗号資産", aliases: ["bitcoin"] },
+  { symbol: "ETH", name: "イーサリアム", category: "crypto", source: "coingecko", ticker: "ethereum", dividendYield: 0, rank: 302, broker: "暗号資産", aliases: ["ethereum"] },
+  { symbol: "XRP", name: "リップル", category: "crypto", source: "coingecko", ticker: "ripple", dividendYield: 0, rank: 303, broker: "暗号資産", aliases: ["ripple"] },
+  { symbol: "SOL", name: "ソラナ", category: "crypto", source: "coingecko", ticker: "solana", dividendYield: 0, rank: 304, broker: "暗号資産", aliases: ["solana"] },
   { symbol: "custom", name: "その他", category: "custom", source: "manual", ticker: "", dividendYield: 0, rank: 999, broker: "手入力" }
 ];
 
@@ -287,6 +291,9 @@ function normalizeInvestmentHoldings(items, savedAssets = {}) {
         source: preset?.source || item.source || "manual",
         ticker: preset?.ticker || item.ticker || "",
         dividendYield: typeof item.dividendYield === "number" ? item.dividendYield : Number(preset?.dividendYield) || 0,
+        quantity: Math.max(0, Number(item.quantity) || 0),
+        price: Math.max(0, Number(item.price) || 0),
+        priceUpdatedAt: typeof item.priceUpdatedAt === "string" ? item.priceUpdatedAt : "",
         value
       };
     });
@@ -960,7 +967,8 @@ function holdingPresetMatchesQuery(preset, query) {
     preset.name,
     preset.symbol,
     tickerBody(preset.ticker),
-    preset.broker
+    preset.broker,
+    ...(preset.aliases || [])
   ].map(normalizeSearchText).filter(Boolean);
 
   if (query.length === 1) {
@@ -986,6 +994,10 @@ function normalizeSearchText(value) {
 
 function holdingValueFromRow(row) {
   return parseInputNumber(row.querySelector("[data-holding-field='value']")?.value || "");
+}
+
+function isCryptoHolding(item) {
+  return item?.category === "crypto" || item?.source === "coingecko";
 }
 
 function updateHoldingDraftTotals() {
@@ -1025,8 +1037,11 @@ function renderInvestmentHoldings() {
   setText("holdingsSummary", `${holdings.length}件 / ${yen.format(total)}`);
   renderHoldingSearchResults();
   list.innerHTML = holdings
-    .map((item) => `
-      <div class="holding-row" data-holding-row="${escapeHtml(item.id)}">
+    .map((item) => {
+      const crypto = isCryptoHolding(item);
+      const priceNote = crypto && item.price ? ` / ${yen.format(item.price)}` : "";
+      return `
+      <div class="holding-row ${crypto ? "is-crypto" : ""}" data-holding-row="${escapeHtml(item.id)}" data-holding-price="${escapeHtml(String(item.price || ""))}" data-holding-price-updated-at="${escapeHtml(item.priceUpdatedAt || "")}">
         <label>
           <span>銘柄</span>
           <select data-holding-field="symbol">
@@ -1037,13 +1052,20 @@ function renderInvestmentHoldings() {
           <span>表示名</span>
           <input data-holding-field="name" value="${escapeHtml(item.name)}" maxlength="28" placeholder="例: S&P500" />
         </label>
+        ${crypto ? `
         <label>
-          <span>現在の評価額</span>
+          <span>保有数量</span>
+          <input data-holding-field="quantity" type="text" inputmode="decimal" data-decimal-input value="${formatDecimalInput(item.quantity)}" placeholder="0.0000" />
+        </label>
+        ` : ""}
+        <label>
+          <span>${crypto ? `円評価額${priceNote}` : "現在の評価額"}</span>
           <input data-holding-field="value" type="text" inputmode="numeric" data-number-input value="${formatInputNumber(item.value)}" placeholder="0" />
         </label>
         <button type="button" data-delete-holding="${escapeHtml(item.id)}" aria-label="${escapeHtml(item.name)}を削除">削除</button>
       </div>
-    `)
+    `;
+    })
     .join("");
 }
 
@@ -1552,6 +1574,20 @@ function formatNumericInputValue(value) {
   return numberFormatter.format(Number(digits));
 }
 
+function formatDecimalInput(value) {
+  const numeric = Number(value) || 0;
+  if (!numeric) return "";
+  const text = String(numeric);
+  return text.includes(".") ? text.replace(/0+$/, "").replace(/\.$/, "") : text;
+}
+
+function formatDecimalInputValue(value) {
+  const text = String(value || "").replace(/[^\d.]/g, "");
+  const [integer, ...decimalParts] = text.split(".");
+  const decimal = decimalParts.join("").slice(0, 8);
+  return decimalParts.length ? `${integer || "0"}.${decimal}` : integer;
+}
+
 function formatSignedNumericInputValue(value) {
   const text = String(value || "");
   const sign = text.trim().startsWith("-") ? "-" : "";
@@ -1562,6 +1598,10 @@ function formatSignedNumericInputValue(value) {
 
 function parseInputNumber(value) {
   return Number(String(value || "").replace(/[^\d]/g, "")) || 0;
+}
+
+function parseDecimalInputNumber(value) {
+  return Number(String(value || "").replace(/[^\d.]/g, "")) || 0;
 }
 
 function parseSignedInputNumber(value) {
@@ -1699,6 +1739,7 @@ function readInvestmentHoldingRows() {
       const preset = holdingPresets.find((item) => item.symbol === symbol);
       const name = row.querySelector("[data-holding-field='name']")?.value.trim() || "";
       const value = parseInputNumber(row.querySelector("[data-holding-field='value']")?.value || "");
+      const quantity = parseDecimalInputNumber(row.querySelector("[data-holding-field='quantity']")?.value || "");
       return {
         id: row.dataset.holdingRow || `holding-${Date.now()}-${index}`,
         symbol,
@@ -1707,10 +1748,65 @@ function readInvestmentHoldingRows() {
         source: preset?.source || "manual",
         ticker: preset?.ticker || "",
         dividendYield: Number(preset?.dividendYield) || 0,
+        quantity,
+        price: parseDecimalInputNumber(row.dataset.holdingPrice || ""),
+        priceUpdatedAt: row.dataset.holdingPriceUpdatedAt || "",
         value
       };
     })
     .filter((item) => item.name && item.value >= 0);
+}
+
+async function applyCryptoMarketPrices(holdings) {
+  const cryptoHoldings = holdings.filter((item) => isCryptoHolding(item) && item.ticker && item.quantity > 0);
+  if (!cryptoHoldings.length) return { holdings, updated: false, failed: false };
+
+  const ids = [...new Set(cryptoHoldings.map((item) => item.ticker))];
+  try {
+    const params = new URLSearchParams({
+      ids: ids.join(","),
+      vs_currencies: "jpy",
+      include_last_updated_at: "true",
+      precision: "full"
+    });
+    const response = await fetch(`https://api.coingecko.com/api/v3/simple/price?${params.toString()}`, {
+      headers: { accept: "application/json" }
+    });
+    if (!response.ok) throw new Error(`CoinGecko ${response.status}`);
+    const prices = await response.json();
+    const updatedAt = new Date().toISOString();
+    const nextHoldings = holdings.map((item) => {
+      if (!isCryptoHolding(item) || !item.ticker || item.quantity <= 0) return item;
+      const price = Number(prices?.[item.ticker]?.jpy) || 0;
+      if (!price) return item;
+      return {
+        ...item,
+        price,
+        priceUpdatedAt: prices?.[item.ticker]?.last_updated_at
+          ? new Date(prices[item.ticker].last_updated_at * 1000).toISOString()
+          : updatedAt,
+        value: Math.round(item.quantity * price)
+      };
+    });
+    return { holdings: nextHoldings, updated: true, failed: false };
+  } catch {
+    return { holdings, updated: false, failed: true };
+  }
+}
+
+function syncHoldingRowValues(holdings) {
+  holdings.forEach((item) => {
+    const row = [...document.querySelectorAll("[data-holding-row]")]
+      .find((candidate) => candidate.dataset.holdingRow === item.id);
+    if (!row) return;
+    row.dataset.holdingPrice = String(item.price || "");
+    row.dataset.holdingPriceUpdatedAt = item.priceUpdatedAt || "";
+    const valueInput = row.querySelector("[data-holding-field='value']");
+    if (valueInput && document.activeElement !== valueInput) {
+      valueInput.value = formatInputNumber(item.value);
+    }
+  });
+  updateHoldingDraftTotals();
 }
 
 function upsertInvestmentMarketOutcome(amount) {
@@ -1729,12 +1825,14 @@ function upsertInvestmentMarketOutcome(amount) {
   });
 }
 
-function saveInvestmentHoldings(options = {}) {
-  const holdings = readInvestmentHoldingRows();
+async function saveInvestmentHoldings(options = {}) {
+  const priceResult = await applyCryptoMarketPrices(readInvestmentHoldingRows());
+  const holdings = priceResult.holdings;
   if (!holdings.length) {
     if (!options.silent) showHoldingsStatus("銘柄名と評価額を入力してください");
     return false;
   }
+  if (priceResult.updated) syncHoldingRowValues(holdings);
 
   const previousTotal = totalAssets();
   const previousInvestments = state.assets.investments;
@@ -1787,7 +1885,10 @@ function saveInvestmentHoldings(options = {}) {
   } else {
     render();
   }
-  showHoldingsStatus(options.statusMessage || (options.silent ? `自動反映済み。今日の市場 ${formatSignedYen(marketDiff)}` : `投資評価額を反映しました。今日の市場 ${formatSignedYen(marketDiff)}`));
+  const statusMessage = priceResult.failed
+    ? "暗号資産価格を取得できませんでした。手入力の評価額で更新しました"
+    : options.statusMessage || (options.silent ? `自動反映済み。今日の市場 ${formatSignedYen(marketDiff)}` : `投資評価額を反映しました。今日の市場 ${formatSignedYen(marketDiff)}`);
+  showHoldingsStatus(statusMessage);
   return true;
 }
 
@@ -1803,6 +1904,14 @@ function showRefreshAllDone() {
     if (label) label.textContent = originalText || "更新";
     button.classList.remove("is-done");
   }, 1400);
+}
+
+function refreshCryptoPricesOnOpen() {
+  const hasCryptoQuantity = state.investmentHoldings.some((item) => isCryptoHolding(item) && item.quantity > 0);
+  if (!hasCryptoQuantity) return;
+  window.setTimeout(() => {
+    saveInvestmentHoldings({ silent: true });
+  }, 500);
 }
 
 function escapeHtml(value) {
@@ -1898,6 +2007,9 @@ document.getElementById("investmentHoldingsForm").addEventListener("input", (eve
     renderInvestmentHoldings();
     return;
   }
+  if (event.target.matches("[data-decimal-input]")) {
+    event.target.value = formatDecimalInputValue(event.target.value);
+  }
   if (event.target.matches("[data-number-input]")) {
     event.target.value = formatNumericInputValue(event.target.value);
   }
@@ -1919,6 +2031,10 @@ document.getElementById("investmentHoldingsForm").addEventListener("change", (ev
   const preset = holdingPresets.find((item) => item.symbol === event.target.value);
   const nameInput = row?.querySelector("[data-holding-field='name']");
   if (preset && preset.symbol !== "custom" && nameInput) nameInput.value = preset.name;
+  if (row && preset) {
+    state.investmentHoldings = normalizeInvestmentHoldings(readInvestmentHoldingRows(), state.assets);
+    renderInvestmentHoldings();
+  }
   updateHoldingDraftTotals();
   scheduleInvestmentHoldingsAutoSave();
 });
@@ -1950,8 +2066,8 @@ document.getElementById("addHoldingRow").addEventListener("click", () => {
   addHoldingFromPreset();
 });
 
-document.getElementById("refreshAll").addEventListener("click", () => {
-  const updated = saveInvestmentHoldings({ statusMessage: "全体を更新しました" });
+document.getElementById("refreshAll").addEventListener("click", async () => {
+  const updated = await saveInvestmentHoldings({ statusMessage: "全体を更新しました" });
   if (updated) showRefreshAllDone();
 });
 
@@ -2341,4 +2457,5 @@ window.fireDashboard = {
 };
 
 render();
+refreshCryptoPricesOnOpen();
 window.setInterval(updateFireCountdown, 1000);
