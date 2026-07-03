@@ -80,6 +80,7 @@ const defaultState = {
   ],
   lastUpdatedAt: null,
   lastMonthlyChange: null,
+  fireCountdownPlan: null,
   progressEntries: [],
   outcomeEntries: [],
   outcomeQuickActions: [
@@ -120,7 +121,7 @@ let holdingsAutoSaveTimer = null;
 let refreshAllTimer = null;
 let outcomeSnackTimer = null;
 let fireCountdownBaseSeconds = 0;
-let fireCountdownStartedAt = Date.now();
+let fireCountdownTargetAt = null;
 let holdingFilterType = localStorage.getItem("life-progress-holding-filter-type") || "fund";
 let holdingSearchQuery = localStorage.getItem("life-progress-holding-search") || "";
 
@@ -195,6 +196,7 @@ function normalizeState(saved = {}) {
     investmentValuationBaseline: normalizeInvestmentValuationBaseline(saved.investmentValuationBaseline),
     assetHistory: ensureBaselineAssetHistory(saved.assetHistory || []),
     sideHustles: normalizeSideHustles(saved.sideHustles),
+    fireCountdownPlan: normalizeFireCountdownPlan(saved.fireCountdownPlan),
     progressEntries,
     outcomeEntries: outcomeMigration.entries,
     outcomeQuickActions: normalizeOutcomeQuickActions(saved.outcomeQuickActions),
@@ -380,6 +382,14 @@ function normalizeInvestmentValuationBaseline(item) {
     date: typeof item.date === "string" ? item.date.slice(0, 10) : todayKey(),
     value: Math.max(0, Math.round(Number(item.value) || 0))
   };
+}
+
+function normalizeFireCountdownPlan(item) {
+  if (!item || typeof item !== "object") return null;
+  const signature = typeof item.signature === "string" ? item.signature : "";
+  const targetAt = Number(item.targetAt) || 0;
+  if (!signature || targetAt <= 0) return null;
+  return { signature, targetAt };
 }
 
 function normalizeQuickActions(items) {
@@ -588,6 +598,20 @@ function daysToFire() {
 function exactSecondsToFire() {
   const years = yearsToFireDecimal();
   return typeof years === "number" ? Math.max(0, Math.round(years * 365 * 24 * 60 * 60)) : null;
+}
+
+function fireProjectionSignature() {
+  return JSON.stringify({
+    totalAssets: totalAssets(),
+    investments: Math.max(0, Number(state.assets.investments) || 0),
+    cash: Math.max(0, Number(state.assets.cash) || 0),
+    fireGoal: fireGoalAmount(),
+    monthlyContribution: recurringMonthlyFireContribution(),
+    investmentRate: effectiveInvestmentGrowthRate(),
+    monthlySideProfit: monthlySideProfit(),
+    annualDividends: Math.max(0, Number(state.assets.dividends) || 0),
+    yearlyAssetGrowth: Math.max(0, Number(state.profile.yearlyAssetGrowth) || 0)
+  });
 }
 
 function yearsToFireDecimal() {
@@ -954,17 +978,30 @@ function formatFireCountdown(totalSeconds) {
 }
 
 function updateFireCountdown() {
-  if (fireCountdownBaseSeconds === null) {
+  if (fireCountdownTargetAt === null) {
     setText("fireDistanceHero", "計画未設定\n積立額を入力");
     return;
   }
-  const elapsedSeconds = Math.floor((Date.now() - fireCountdownStartedAt) / 1000);
-  setText("fireDistanceHero", formatFireCountdown(fireCountdownBaseSeconds - elapsedSeconds));
+  const remainingSeconds = Math.max(0, Math.floor((fireCountdownTargetAt - Date.now()) / 1000));
+  setText("fireDistanceHero", formatFireCountdown(remainingSeconds));
 }
 
 function renderFireProjection() {
   fireCountdownBaseSeconds = exactSecondsToFire();
-  fireCountdownStartedAt = Date.now();
+  if (fireCountdownBaseSeconds === null) {
+    fireCountdownTargetAt = null;
+    state.fireCountdownPlan = null;
+  } else {
+    const signature = fireProjectionSignature();
+    const savedPlan = normalizeFireCountdownPlan(state.fireCountdownPlan);
+    if (savedPlan && savedPlan.signature === signature && savedPlan.targetAt > Date.now()) {
+      fireCountdownTargetAt = savedPlan.targetAt;
+    } else {
+      fireCountdownTargetAt = Date.now() + fireCountdownBaseSeconds * 1000;
+      state.fireCountdownPlan = { signature, targetAt: fireCountdownTargetAt };
+      saveState();
+    }
+  }
   updateFireCountdown();
   const monthlyShortening = monthlyShorteningDays();
   const leadYears = retirementLeadYears();
