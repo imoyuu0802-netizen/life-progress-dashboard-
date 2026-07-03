@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Life Progress" />
     <title>Life Progress Dashboard</title>
     <link rel="manifest" href="manifest.webmanifest?v=5" />
-    <link rel="stylesheet" href="styles.css?v=74" />
+    <link rel="stylesheet" href="styles.css?v=75" />
   </head>
   <body>
     <main class="app-shell">
@@ -114,12 +114,7 @@
                 <strong id="confirmedLifetimeShortening">0分</strong>
                 <span>市場が下がっても、自分の行動で買い戻した時間は減りません</span>
               </div>
-              <div id="outcomeQuickActions" class="outcome-quick-actions">
-                <button type="button" data-outcome-quick-type="profit" data-outcome-quick-category="副業利益" data-outcome-quick-amount="1000">副業 +¥1,000</button>
-                <button type="button" data-outcome-quick-type="profit" data-outcome-quick-category="副業利益" data-outcome-quick-amount="3000">副業 +¥3,000</button>
-                <button type="button" data-outcome-quick-type="saving" data-outcome-quick-category="節約" data-outcome-quick-amount="500">節約 +¥500</button>
-                <button type="button" data-outcome-quick-type="saving" data-outcome-quick-category="節約" data-outcome-quick-amount="1000">節約 +¥1,000</button>
-              </div>
+              <div id="outcomeQuickActions" class="outcome-quick-actions"></div>
             </div>
             <div class="breakdown-grid">
               <div>
@@ -458,6 +453,18 @@
             </div>
           </div>
           <details class="customization-group" open>
+            <summary>ワンタップ成果ボタン</summary>
+            <p class="customization-note">ホームの副業・節約ボタンの金額と表示名を変更できます。</p>
+            <div id="outcomeQuickSettingsList" class="custom-settings-list"></div>
+            <form id="outcomeQuickForm" class="custom-add-form outcome-quick-add-form">
+              <label><span>種類</span><select name="type"><option value="profit">副業</option><option value="saving">節約</option></select></label>
+              <label><span>表示名</span><input name="label" maxlength="18" placeholder="例：コーヒー我慢" required /></label>
+              <label><span>内容</span><input name="category" maxlength="24" placeholder="例：節約" required /></label>
+              <label><span>金額</span><input name="amount" type="text" inputmode="numeric" data-number-input placeholder="160" required /></label>
+              <button type="submit">追加</button>
+            </form>
+          </details>
+          <details class="customization-group" open>
             <summary>配当で叶えたいこと</summary>
             <p class="customization-note">欲しいものや体験を金額と一緒に登録できます。</p>
             <div id="dividendGoalSettingsList" class="custom-settings-list"></div>
@@ -523,15 +530,22 @@
     </main>
 
     <button id="backToTop" class="back-to-top" type="button" aria-label="ページ上部へ戻る" title="ページ上部へ戻る">↑</button>
+    <div id="outcomeSnack" class="outcome-snack" role="status" aria-live="polite" hidden>
+      <span id="outcomeSnackMessage">記録しました</span>
+      <div>
+        <button type="button" data-snack-action="edit">編集</button>
+        <button type="button" data-snack-action="undo">取消</button>
+      </div>
+    </div>
 
     <script src="firebase-config.js?v=53"></script>
     <script src="jflec-data.js?v=53"></script>
-    <script src="app.js?v=74"></script>
+    <script src="app.js?v=75"></script>
     <script type="module" src="firebase-sync.js?v=54"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js?v=74");
+          navigator.serviceWorker.register("sw.js?v=75");
         });
       }
     </script>

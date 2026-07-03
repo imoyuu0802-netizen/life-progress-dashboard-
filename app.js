@@ -82,6 +82,12 @@ const defaultState = {
   lastMonthlyChange: null,
   progressEntries: [],
   outcomeEntries: [],
+  outcomeQuickActions: [
+    { id: "outcome-quick-profit-1000", type: "profit", label: "副業 +¥1,000", category: "副業利益", amount: 1000 },
+    { id: "outcome-quick-profit-3000", type: "profit", label: "副業 +¥3,000", category: "副業利益", amount: 3000 },
+    { id: "outcome-quick-saving-500", type: "saving", label: "節約 +¥500", category: "節約", amount: 500 },
+    { id: "outcome-quick-saving-1000", type: "saving", label: "節約 +¥1,000", category: "節約", amount: 1000 }
+  ],
   quickActions: [
     { id: "quick-learning", label: "学習30分", text: "学習30分" },
     { id: "quick-exercise", label: "運動30分", text: "運動30分" },
@@ -112,6 +118,7 @@ let outcomeStatusTimer = null;
 let holdingsStatusTimer = null;
 let holdingsAutoSaveTimer = null;
 let refreshAllTimer = null;
+let outcomeSnackTimer = null;
 let fireCountdownBaseSeconds = 0;
 let fireCountdownStartedAt = Date.now();
 let holdingFilterType = localStorage.getItem("life-progress-holding-filter-type") || "fund";
@@ -190,6 +197,7 @@ function normalizeState(saved = {}) {
     sideHustles: normalizeSideHustles(saved.sideHustles),
     progressEntries,
     outcomeEntries: outcomeMigration.entries,
+    outcomeQuickActions: normalizeOutcomeQuickActions(saved.outcomeQuickActions),
     quickActions: normalizeQuickActions(saved.quickActions),
     dividendGoals: normalizeDividendGoals(saved.dividendGoals),
     victoryGoals: normalizeVictoryGoals(saved.victoryGoals),
@@ -384,6 +392,25 @@ function normalizeQuickActions(items) {
       label: String(item.label || item.text).trim().slice(0, 16),
       text: String(item.text || item.label).trim().slice(0, 40)
     }));
+}
+
+function normalizeOutcomeQuickActions(items) {
+  const source = Array.isArray(items) ? items : defaultState.outcomeQuickActions;
+  const validTypes = ["profit", "saving"];
+  return source
+    .filter((item) => item && validTypes.includes(item.type) && String(item.label || "").trim() && Number(item.amount) > 0)
+    .slice(0, 8)
+    .map((item, index) => {
+      const type = validTypes.includes(item.type) ? item.type : "profit";
+      const label = String(item.label).trim().slice(0, 18);
+      return {
+        id: String(item.id || `outcome-quick-${index}-${label.slice(0, 10)}`),
+        type,
+        label,
+        category: String(item.category || outcomeCategories[type]?.[0] || outcomeTypeLabels[type]).trim().slice(0, 24),
+        amount: Math.max(1, Math.round(Number(item.amount) || 0))
+      };
+    });
 }
 
 function normalizeDividendGoals(items) {
@@ -1032,6 +1059,7 @@ function render() {
 
   renderSideHustles();
   renderDividendPower();
+  renderOutcomeQuickActions();
   renderCustomizationSettings();
   renderInvestmentHoldings();
   renderOutcomeFormOptions();
@@ -1197,6 +1225,23 @@ function renderQuickActions() {
     .join("");
 }
 
+function renderOutcomeQuickActions() {
+  const container = document.getElementById("outcomeQuickActions");
+  if (!container) return;
+  if (!state.outcomeQuickActions.length) {
+    container.innerHTML = '<p class="quick-actions-empty">設定で成果ボタンを追加できます</p>';
+    return;
+  }
+
+  container.innerHTML = state.outcomeQuickActions
+    .map((item) => `
+      <button type="button" data-outcome-quick-id="${escapeHtml(item.id)}">
+        ${escapeHtml(item.label)}
+      </button>
+    `)
+    .join("");
+}
+
 function holdingPresetOptions(selectedSymbol) {
   const filtered = filteredHoldingPresets(selectedSymbol);
   return filtered
@@ -1356,9 +1401,24 @@ function renderHoldingSearchResults() {
 }
 
 function renderCustomizationSettings() {
+  const outcomeQuickList = document.getElementById("outcomeQuickSettingsList");
   const quickList = document.getElementById("quickActionSettingsList");
   const rewardList = document.getElementById("dividendGoalSettingsList");
   const victoryList = document.getElementById("victoryGoalSettingsList");
+
+  if (outcomeQuickList) {
+    outcomeQuickList.innerHTML = state.outcomeQuickActions.length
+      ? state.outcomeQuickActions.map((item) => `
+        <div class="custom-setting-row outcome-quick-setting-row" data-outcome-quick-setting="${escapeHtml(item.id)}">
+          <label><span>種類</span><select data-outcome-quick-field="type"><option value="profit" ${item.type === "profit" ? "selected" : ""}>副業</option><option value="saving" ${item.type === "saving" ? "selected" : ""}>節約</option></select></label>
+          <label><span>表示名</span><input data-outcome-quick-field="label" value="${escapeHtml(item.label)}" maxlength="18" /></label>
+          <label><span>内容</span><input data-outcome-quick-field="category" value="${escapeHtml(item.category)}" maxlength="24" /></label>
+          <label><span>金額</span><input data-outcome-quick-field="amount" type="text" inputmode="numeric" data-number-input value="${formatInputNumber(item.amount)}" /></label>
+          <button class="delete-custom-item" type="button" data-delete-outcome-quick="${escapeHtml(item.id)}">削除</button>
+        </div>
+      `).join("")
+      : '<p class="custom-empty">成果ボタンは未設定です</p>';
+  }
 
   if (quickList) {
     quickList.innerHTML = state.quickActions.length
@@ -1949,6 +2009,25 @@ function showOutcomeStatus(message) {
   }, 2400);
 }
 
+function hideOutcomeSnack() {
+  const snack = document.getElementById("outcomeSnack");
+  if (!snack) return;
+  snack.hidden = true;
+  delete snack.dataset.entryId;
+  window.clearTimeout(outcomeSnackTimer);
+}
+
+function showOutcomeSnack(entry) {
+  const snack = document.getElementById("outcomeSnack");
+  const message = document.getElementById("outcomeSnackMessage");
+  if (!snack || !message) return;
+  snack.dataset.entryId = entry.id;
+  message.textContent = `${formatSignedYen(outcomeContribution(entry))} を記録しました`;
+  snack.hidden = false;
+  window.clearTimeout(outcomeSnackTimer);
+  outcomeSnackTimer = window.setTimeout(hideOutcomeSnack, 5200);
+}
+
 function showHoldingsStatus(message) {
   const status = document.getElementById("holdingsStatus");
   if (!status) return;
@@ -2277,24 +2356,57 @@ document.getElementById("outcomeForm").addEventListener("submit", (event) => {
 const outcomeQuickActions = document.getElementById("outcomeQuickActions");
 if (outcomeQuickActions) {
   outcomeQuickActions.addEventListener("click", (event) => {
-    const button = event.target.closest("[data-outcome-quick-type]");
+    const button = event.target.closest("[data-outcome-quick-id]");
     if (!button) return;
-    const type = Object.hasOwn(outcomeCategories, button.dataset.outcomeQuickType) ? button.dataset.outcomeQuickType : "profit";
-    const amount = Math.max(0, Number(button.dataset.outcomeQuickAmount) || 0);
-    if (!amount) return;
+    const action = state.outcomeQuickActions.find((item) => item.id === button.dataset.outcomeQuickId);
+    if (!action) return;
     const entry = {
       id: `outcome-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       date: todayKey(),
-      type,
-      category: button.dataset.outcomeQuickCategory || outcomeCategories[type]?.at(-1) || "成果",
+      type: action.type,
+      category: action.category,
       sales: 0,
-      amount,
+      amount: action.amount,
       appliedToMonthlyTotals: false
     };
     state.outcomeEntries.push(entry);
     saveState();
     render();
-    setText("dailyMomentumMessage", `${formatSignedYen(amount)}で自由まで${formatSignedImpact(signedDaysShortenedByAmount(amount))}`);
+    showOutcomeSnack(entry);
+    setText("dailyMomentumMessage", `${formatSignedYen(action.amount)}で自由まで${formatSignedImpact(signedDaysShortenedByAmount(action.amount))}`);
+  });
+}
+
+const outcomeSnack = document.getElementById("outcomeSnack");
+if (outcomeSnack) {
+  outcomeSnack.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-snack-action]");
+    if (!button) return;
+    const entryId = outcomeSnack.dataset.entryId;
+    const entry = state.outcomeEntries.find((item) => item.id === entryId);
+    if (!entry) {
+      hideOutcomeSnack();
+      return;
+    }
+
+    if (button.dataset.snackAction === "undo") {
+      state.outcomeEntries = state.outcomeEntries.filter((item) => item.id !== entryId);
+      saveState();
+      render();
+      hideOutcomeSnack();
+      return;
+    }
+
+    if (button.dataset.snackAction === "edit") {
+      const value = window.prompt("金額を修正", String(entry.amount));
+      if (value === null) return;
+      const amount = parseInputNumber(value);
+      if (amount <= 0) return;
+      entry.amount = amount;
+      saveState();
+      render();
+      showOutcomeSnack(entry);
+    }
   });
 }
 
@@ -2566,6 +2678,67 @@ if (quickActionForm) {
   });
 }
 
+const outcomeQuickSettingsList = document.getElementById("outcomeQuickSettingsList");
+if (outcomeQuickSettingsList) {
+  outcomeQuickSettingsList.addEventListener("input", (event) => {
+    if (!event.target.matches("[data-number-input]")) return;
+    event.target.value = formatNumericInputValue(event.target.value);
+  });
+
+  outcomeQuickSettingsList.addEventListener("change", (event) => {
+    const row = event.target.closest("[data-outcome-quick-setting]");
+    if (!row || !event.target.matches("[data-outcome-quick-field]")) return;
+    const item = state.outcomeQuickActions.find((action) => action.id === row.dataset.outcomeQuickSetting);
+    if (!item) return;
+    const field = event.target.dataset.outcomeQuickField;
+    const value = event.target.value.trim();
+    if ((field === "amount" && parseInputNumber(value) <= 0) || (field !== "amount" && !value)) {
+      render();
+      showCustomizationStatus("表示名・内容・1円以上の金額を入力してください");
+      return;
+    }
+    item[field] = field === "amount" ? parseInputNumber(value) : value;
+    state.outcomeQuickActions = normalizeOutcomeQuickActions(state.outcomeQuickActions);
+    saveState();
+    render();
+    showCustomizationStatus("成果ボタンを更新しました");
+  });
+}
+
+const outcomeQuickForm = document.getElementById("outcomeQuickForm");
+if (outcomeQuickForm) {
+  outcomeQuickForm.addEventListener("input", (event) => {
+    if (!event.target.matches("[data-number-input]")) return;
+    event.target.value = formatNumericInputValue(event.target.value);
+  });
+
+  outcomeQuickForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    if (state.outcomeQuickActions.length >= 8) {
+      showCustomizationStatus("成果ボタンは8件までです");
+      return;
+    }
+    const form = event.currentTarget;
+    const label = form.elements.label.value.trim();
+    const category = form.elements.category.value.trim();
+    const amount = parseInputNumber(form.elements.amount.value);
+    const type = form.elements.type.value === "saving" ? "saving" : "profit";
+    if (!label || !category || amount <= 0) return;
+    state.outcomeQuickActions.push({
+      id: `outcome-quick-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      type,
+      label,
+      category,
+      amount
+    });
+    state.outcomeQuickActions = normalizeOutcomeQuickActions(state.outcomeQuickActions);
+    saveState();
+    form.reset();
+    render();
+    showCustomizationStatus("成果ボタンを追加しました");
+  });
+}
+
 document.getElementById("dividendGoalForm").addEventListener("input", (event) => {
   if (!event.target.matches("[data-number-input]")) return;
   event.target.value = formatNumericInputValue(event.target.value);
@@ -2652,6 +2825,16 @@ if (victoryGoalForm) {
 }
 
 document.getElementById("customizationPanel").addEventListener("click", (event) => {
+  const outcomeQuickButton = event.target.closest("[data-delete-outcome-quick]");
+  if (outcomeQuickButton) {
+    if (!confirmDelete("この成果ボタンを削除しますか？")) return;
+    state.outcomeQuickActions = state.outcomeQuickActions.filter((item) => item.id !== outcomeQuickButton.dataset.deleteOutcomeQuick);
+    saveState();
+    render();
+    showCustomizationStatus("成果ボタンを削除しました");
+    return;
+  }
+
   const quickButton = event.target.closest("[data-delete-quick-action]");
   if (quickButton) {
     if (!confirmDelete("このワンタップ前進を削除しますか？")) return;
