@@ -42,20 +42,20 @@ const holdingReturnScenarios = {
   "emaxis-slim-sp500": { conservative: 6, standard: 8.5, aggressive: 10 },
   "rakuten-plus-sp500": { conservative: 6, standard: 8.5, aggressive: 10 },
   "rakuten-plus-all-country": { conservative: 5, standard: 7, aggressive: 8.5 },
-  "rakuten-schd": { conservative: 5.5, standard: 7, aggressive: 8.5 },
+  "rakuten-schd": { conservative: 2.5, standard: 4, aggressive: 5.5 },
   "sbi-v-sp500": { conservative: 6, standard: 8.5, aggressive: 10 },
   "sbi-v-total-stock-market": { conservative: 5.8, standard: 8, aggressive: 9.5 },
   "ifree-next-fang-plus": { conservative: 6, standard: 10, aggressive: 13 },
   "nissay-nasdaq100": { conservative: 6, standard: 9.5, aggressive: 12 },
   "rakuten-vti": { conservative: 5.8, standard: 8, aggressive: 9.5 },
   "emaxis-slim-all-country-ex-japan": { conservative: 5, standard: 7, aggressive: 8.5 },
-  SPYD: { conservative: 4.5, standard: 6.5, aggressive: 8 },
-  HDV: { conservative: 4.5, standard: 6, aggressive: 7.5 },
-  VYM: { conservative: 5, standard: 7, aggressive: 8.5 },
-  "nf-nikkei-high-dividend-50": { conservative: 4, standard: 6, aggressive: 7.5 },
+  SPYD: { conservative: 0.5, standard: 2, aggressive: 3.5 },
+  HDV: { conservative: 1, standard: 2.5, aggressive: 4 },
+  VYM: { conservative: 2, standard: 4, aggressive: 5.5 },
+  "nf-nikkei-high-dividend-50": { conservative: 0.5, standard: 2.5, aggressive: 4 },
   NVDA: { conservative: 6, standard: 10, aggressive: 15 },
-  KDDI: { conservative: 3.5, standard: 5, aggressive: 6.5 },
-  BTI: { conservative: 4, standard: 6, aggressive: 8 }
+  KDDI: { conservative: 0.5, standard: 2, aggressive: 3.5 },
+  BTI: { conservative: 0, standard: 0, aggressive: 2 }
 };
 
 const holdingPresets = [
@@ -63,21 +63,21 @@ const holdingPresets = [
   { symbol: "emaxis-slim-sp500", name: "eMAXIS Slim S&P500", category: "fund", source: "apps-script", ticker: "emaxis-slim-sp500", dividendYield: 0, expectedReturnRate: 6, rank: 2, broker: "楽天/SBI" },
   { symbol: "rakuten-plus-sp500", name: "楽天プラス S&P500", category: "fund", source: "apps-script", ticker: "rakuten-plus-sp500", dividendYield: 0, expectedReturnRate: 6, rank: 3, broker: "楽天" },
   { symbol: "rakuten-plus-all-country", name: "楽天プラス オールカントリー", category: "fund", source: "apps-script", ticker: "rakuten-plus-all-country", dividendYield: 0, expectedReturnRate: 5, rank: 4, broker: "楽天" },
-  { symbol: "rakuten-schd", name: "楽天SCHD", category: "fund", source: "apps-script", ticker: "rakuten-schd", dividendYield: 3.3, expectedReturnRate: 5.5, dividendMonths: [2, 5, 8, 11], dividendDay: 25, rank: 5, broker: "楽天/SBI" },
+  { symbol: "rakuten-schd", name: "楽天SCHD", category: "fund", source: "apps-script", ticker: "rakuten-schd", dividendYield: 3.3, expectedReturnRate: 4, dividendMonths: [2, 5, 8, 11], dividendDay: 25, rank: 5, broker: "楽天/SBI" },
   { symbol: "sbi-v-sp500", name: "SBI・V・S&P500", category: "fund", source: "apps-script", ticker: "sbi-v-sp500", dividendYield: 0, expectedReturnRate: 6, rank: 6, broker: "SBI" },
   { symbol: "sbi-v-total-stock-market", name: "SBI・V・全米株式", category: "fund", source: "apps-script", ticker: "sbi-v-total-stock-market", dividendYield: 0, expectedReturnRate: 5.5, rank: 7, broker: "SBI" },
   { symbol: "ifree-next-fang-plus", name: "iFreeNEXT FANG+インデックス", category: "fund", source: "apps-script", ticker: "ifree-next-fang-plus", dividendYield: 0, expectedReturnRate: 7, rank: 8, broker: "楽天/SBI" },
   { symbol: "nissay-nasdaq100", name: "ニッセイNASDAQ100インデックス", category: "fund", source: "apps-script", ticker: "nissay-nasdaq100", dividendYield: 0, expectedReturnRate: 7, rank: 9, broker: "楽天/SBI" },
   { symbol: "rakuten-vti", name: "楽天・全米株式インデックス", category: "fund", source: "apps-script", ticker: "rakuten-vti", dividendYield: 0, expectedReturnRate: 5.5, rank: 10, broker: "楽天" },
   { symbol: "emaxis-slim-all-country-ex-japan", name: "eMAXIS Slim 全世界株式 除く日本", category: "fund", source: "apps-script", ticker: "emaxis-slim-all-country-ex-japan", dividendYield: 0, expectedReturnRate: 5, rank: 11, broker: "楽天/SBI" },
-  { symbol: "SPYD", name: "SPYD", category: "etf", source: "googlefinance", ticker: "NYSEARCA:SPYD", dividendYield: 4.5, expectedReturnRate: 4.5, dividendMonths: [3, 6, 9, 12], dividendDay: 25, rank: 101, broker: "米国ETF" },
-  { symbol: "HDV", name: "HDV", category: "etf", source: "googlefinance", ticker: "NYSEARCA:HDV", dividendYield: 3.5, expectedReturnRate: 4.5, dividendMonths: [3, 6, 9, 12], dividendDay: 25, rank: 102, broker: "米国ETF" },
-  { symbol: "VYM", name: "VYM", category: "etf", source: "googlefinance", ticker: "NYSEARCA:VYM", dividendYield: 2.7, expectedReturnRate: 5, dividendMonths: [3, 6, 9, 12], dividendDay: 25, rank: 103, broker: "米国ETF" },
-  { symbol: "nf-nikkei-high-dividend-50", name: "NF日経高配当50", category: "etf", source: "googlefinance", ticker: "TYO:1489", dividendYield: 3.4, expectedReturnRate: 4.5, dividendMonths: [1, 4, 7, 10], dividendDay: 15, rank: 104, broker: "国内ETF" },
+  { symbol: "SPYD", name: "SPYD", category: "etf", source: "googlefinance", ticker: "NYSEARCA:SPYD", dividendYield: 4.5, expectedReturnRate: 2, dividendMonths: [3, 6, 9, 12], dividendDay: 25, rank: 101, broker: "米国ETF" },
+  { symbol: "HDV", name: "HDV", category: "etf", source: "googlefinance", ticker: "NYSEARCA:HDV", dividendYield: 3.5, expectedReturnRate: 2.5, dividendMonths: [3, 6, 9, 12], dividendDay: 25, rank: 102, broker: "米国ETF" },
+  { symbol: "VYM", name: "VYM", category: "etf", source: "googlefinance", ticker: "NYSEARCA:VYM", dividendYield: 2.7, expectedReturnRate: 4, dividendMonths: [3, 6, 9, 12], dividendDay: 25, rank: 103, broker: "米国ETF" },
+  { symbol: "nf-nikkei-high-dividend-50", name: "NF日経高配当50", category: "etf", source: "googlefinance", ticker: "TYO:1489", dividendYield: 3.4, expectedReturnRate: 2.5, dividendMonths: [1, 4, 7, 10], dividendDay: 15, rank: 104, broker: "国内ETF" },
   { symbol: "SPCX", name: "スペースX", category: "stock", source: "googlefinance", ticker: "NASDAQ:SPCX", dividendYield: 0, expectedReturnRate: 0, rank: 201, broker: "米国株" },
   { symbol: "NVDA", name: "エヌビディア", category: "stock", source: "googlefinance", ticker: "NASDAQ:NVDA", dividendYield: 0.03, expectedReturnRate: 7, dividendMonths: [3, 6, 9, 12], dividendDay: 25, rank: 202, broker: "米国株" },
-  { symbol: "KDDI", name: "KDDI", category: "stock", source: "googlefinance", ticker: "TYO:9433", dividendYield: 3.0, expectedReturnRate: 4, dividendMonths: [6, 12], dividendDay: 20, rank: 203, broker: "国内株" },
-  { symbol: "BTI", name: "BTI", category: "stock", source: "googlefinance", ticker: "NYSE:BTI", dividendYield: 7.0, expectedReturnRate: 5, dividendMonths: [2, 5, 8, 11], dividendDay: 10, rank: 204, broker: "米国株" },
+  { symbol: "KDDI", name: "KDDI", category: "stock", source: "googlefinance", ticker: "TYO:9433", dividendYield: 3.0, expectedReturnRate: 2, dividendMonths: [6, 12], dividendDay: 20, rank: 203, broker: "国内株" },
+  { symbol: "BTI", name: "BTI", category: "stock", source: "googlefinance", ticker: "NYSE:BTI", dividendYield: 7.0, expectedReturnRate: 0, dividendMonths: [2, 5, 8, 11], dividendDay: 10, rank: 204, broker: "米国株" },
   { symbol: "BTC", name: "ビットコイン", category: "crypto", source: "coingecko", ticker: "bitcoin", dividendYield: 0, expectedReturnRate: 0, rank: 301, broker: "暗号資産", aliases: ["bitcoin"] },
   { symbol: "ETH", name: "イーサリアム", category: "crypto", source: "coingecko", ticker: "ethereum", dividendYield: 0, expectedReturnRate: 0, rank: 302, broker: "暗号資産", aliases: ["ethereum"] },
   { symbol: "XRP", name: "リップル", category: "crypto", source: "coingecko", ticker: "ripple", dividendYield: 0, expectedReturnRate: 0, rank: 303, broker: "暗号資産", aliases: ["ripple"] },
@@ -391,7 +391,7 @@ function growthRateNoteText() {
     const scenario = Object.hasOwn(returnScenarioLabels, state.profile.returnScenario) ? state.profile.returnScenario : "standard";
     const sp500Rate = holdingReturnScenarios["emaxis-slim-sp500"][scenario];
     const allCountryRate = holdingReturnScenarios["emaxis-slim-all-country"][scenario];
-    return `保有銘柄の想定リターンは、${returnScenarioLabels[scenario]}前提（S&P500 ${sp500Rate}%・全世界 ${allCountryRate}%目安）を評価額で加重平均した概算です。将来リターンを保証するものではありません。`;
+    return `保有銘柄の想定リターンは株価・基準価額成長の前提です。${returnScenarioLabels[scenario]}前提（S&P500 ${sp500Rate}%・全世界 ${allCountryRate}%目安）を評価額で加重平均し、配当・分配金は年間配当として別計上します。`;
   }
   return "想定利回りは自分で決めた前提です。FIRE年数の目安計算に使うもので、将来リターンを保証するものではありません。";
 }
