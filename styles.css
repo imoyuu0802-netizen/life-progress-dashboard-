@@ -318,6 +318,82 @@ small {
   white-space: pre-line;
 }
 
+.daily-countdown-action {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  margin: 14px 0 12px;
+  padding: 13px 14px;
+  border: 1px solid rgba(70, 209, 139, 0.42);
+  border-radius: var(--radius);
+  background: linear-gradient(135deg, rgba(70, 209, 139, 0.18), rgba(240, 200, 106, 0.1));
+  box-shadow: 0 0 0 1px rgba(70, 209, 139, 0.08) inset;
+  opacity: 0;
+  transform: translateY(-8px) scale(0.98);
+}
+
+.daily-countdown-action span {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  border: 1px solid rgba(70, 209, 139, 0.46);
+  border-radius: 999px;
+  background: rgba(70, 209, 139, 0.14);
+  color: var(--green);
+  font-size: 20px;
+  font-weight: 950;
+  font-variant-numeric: tabular-nums;
+}
+
+.daily-countdown-action strong {
+  display: block;
+  color: var(--ink);
+  font-size: 17px;
+  line-height: 1.25;
+}
+
+.daily-countdown-action small {
+  display: block;
+  margin-top: 3px;
+  color: rgba(247, 244, 232, 0.68);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.daily-countdown-action.is-visible {
+  animation: countdown-action-pop 3600ms ease both;
+}
+
+.daily-countdown-action.is-settled {
+  animation: none;
+  opacity: 0.78;
+  transform: translateY(0) scale(1);
+}
+
+@keyframes countdown-action-pop {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.96);
+  }
+
+  10% {
+    opacity: 1;
+    transform: translateY(0) scale(1.01);
+  }
+
+  82% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  100% {
+    opacity: 0.78;
+    transform: translateY(0) scale(1);
+  }
+}
+
 .time-buyback-hero {
   display: grid;
   gap: 8px;
@@ -349,6 +425,18 @@ small {
   letter-spacing: 0;
   line-height: 1.02;
   overflow-wrap: anywhere;
+}
+
+.time-buyback-hero.is-secondary {
+  margin-top: 16px;
+  padding: 13px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.time-buyback-hero.is-secondary > strong {
+  font-size: clamp(26px, 7vw, 38px);
 }
 
 .today-buyback {
@@ -625,19 +713,15 @@ small {
   color: var(--danger);
 }
 
-.focus-panel .progress-track,
-.focus-panel .fire-days-row {
-  display: none;
-}
-
+.focus-panel > .progress-track,
 .focus-panel .micro-goal-card .progress-track,
 .focus-panel .fire-countdown-details .progress-track {
   display: block;
 }
 
+.focus-panel > .fire-days-row,
 .focus-panel .fire-countdown-details .fire-days-row {
   display: grid;
-  margin: 0 12px 12px;
 }
 
 .shortening-basis.is-secondary {
@@ -719,6 +803,7 @@ small {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .daily-countdown-action.is-visible,
   .buyback-toast,
   .buyback-toast.is-visible {
     animation: none;
@@ -2701,12 +2786,17 @@ button:disabled {
     gap: 14px;
   }
 
+  .focus-panel > .fire-countdown-head,
+  .focus-panel > .daily-countdown-action,
+  .focus-panel > .progress-track,
+  .focus-panel > .fire-days-row {
+    grid-column: 1 / -1;
+  }
+
   .time-buyback-hero {
     grid-column: 1;
-    grid-row: span 2;
-    min-height: 100%;
     align-content: center;
-    padding: 8px 10px;
+    margin-top: 0;
   }
 
   .today-buyback {

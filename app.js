@@ -125,6 +125,7 @@ const defaultState = {
   lastUpdatedAt: null,
   lastMonthlyChange: null,
   fireCountdownPlan: null,
+  lastCountdownActionDate: null,
   totalConfirmedSavedTime: 0,
   currentMicroGoal: null,
   progressEntries: [],
@@ -167,6 +168,7 @@ let holdingsAutoSaveTimer = null;
 let refreshAllTimer = null;
 let outcomeSnackTimer = null;
 let buybackToastTimer = null;
+let dailyCountdownActionTimer = null;
 let fireCountdownBaseSeconds = 0;
 let fireCountdownTargetAt = null;
 let forceFireCountdownReplan = false;
@@ -254,6 +256,7 @@ function normalizeState(saved = {}) {
     assetHistory: ensureBaselineAssetHistory(saved.assetHistory || []),
     sideHustles: normalizeSideHustles(saved.sideHustles),
     fireCountdownPlan: normalizeFireCountdownPlan(saved.fireCountdownPlan),
+    lastCountdownActionDate: typeof saved.lastCountdownActionDate === "string" ? saved.lastCountdownActionDate : null,
     totalConfirmedSavedTime: Math.max(0, Math.round(Number(saved.totalConfirmedSavedTime) || 0)),
     currentMicroGoal: saved.currentMicroGoal && typeof saved.currentMicroGoal === "object" ? saved.currentMicroGoal : null,
     progressEntries,
@@ -1093,13 +1096,46 @@ function formatFireCountdown(totalSeconds) {
   return `${numberFormatter.format(days)}日\n${padClock(hours)}時間${padClock(minutes)}分${padClock(remainingSeconds)}秒`;
 }
 
+function showDailyCountdownAction(animate = true) {
+  const element = document.getElementById("dailyCountdownAction");
+  if (!element) return;
+  element.hidden = false;
+  element.classList.remove("is-visible", "is-settled");
+  if (!animate) {
+    element.classList.add("is-settled");
+    return;
+  }
+  void element.offsetWidth;
+  element.classList.add("is-visible");
+  window.clearTimeout(dailyCountdownActionTimer);
+  dailyCountdownActionTimer = window.setTimeout(() => {
+    element.classList.add("is-settled");
+  }, 3600);
+}
+
+function maybeTriggerDailyCountdownAction() {
+  if (fireCountdownTargetAt === null) return;
+  const date = todayKey();
+  if (state.lastCountdownActionDate === date) {
+    const element = document.getElementById("dailyCountdownAction");
+    if (element?.hidden) showDailyCountdownAction(false);
+    return;
+  }
+  state.lastCountdownActionDate = date;
+  saveState();
+  showDailyCountdownAction();
+}
+
 function updateFireCountdown() {
   if (fireCountdownTargetAt === null) {
     setText("fireDistanceHero", "計画未設定\n積立額を入力");
+    const action = document.getElementById("dailyCountdownAction");
+    if (action) action.hidden = true;
     return;
   }
   const remainingSeconds = Math.max(0, Math.floor((fireCountdownTargetAt - Date.now()) / 1000));
   setText("fireDistanceHero", formatFireCountdown(remainingSeconds));
+  maybeTriggerDailyCountdownAction();
 }
 
 function renderFireProjection() {
