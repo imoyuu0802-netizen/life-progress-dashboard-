@@ -38,7 +38,7 @@ function authErrorMessage(error) {
 
 if (!isConfigured) {
   setControlsDisabled(true);
-  setCloudStatus("Firebase初期設定後にログインできます");
+  setCloudStatus("アカウントを作成してデータを同期できます");
 } else {
   initializeCloudSync().catch((error) => {
     console.error("Firebase initialization failed", error);

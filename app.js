@@ -61,6 +61,7 @@ const defaultState = {
     growthRateMode: "manual",
     investmentGrowthRate: 5,
     monthlyInvestmentAmount: 50000,
+    monthlyExpense: 0,
     yearlyAssetGrowth: 0,
     fireGoal: 50000000
   },
@@ -481,17 +482,26 @@ function totalAssets() {
   return state.assets.investments + state.assets.cash;
 }
 
+function fourPercentFireGoal() {
+  const monthlyExpense = Math.max(0, Number(state.profile.monthlyExpense) || 0);
+  return monthlyExpense > 0 ? Math.round(monthlyExpense * 12 * 25) : 0;
+}
+
+function fireGoalAmount() {
+  return fourPercentFireGoal() || Math.max(1, Number(state.profile.fireGoal) || defaultState.profile.fireGoal);
+}
+
 function fireRate() {
-  return Math.min(100, Math.round((totalAssets() / state.profile.fireGoal) * 100));
+  return Math.min(100, Math.round((totalAssets() / fireGoalAmount()) * 100));
 }
 
 function remainingToFire() {
-  return Math.max(0, state.profile.fireGoal - totalAssets());
+  return Math.max(0, fireGoalAmount() - totalAssets());
 }
 
 function nextOnePercentAmount() {
   if (remainingToFire() <= 0) return 0;
-  const onePercent = state.profile.fireGoal / 100;
+  const onePercent = fireGoalAmount() / 100;
   const currentRemainder = totalAssets() % onePercent;
   const amount = currentRemainder === 0 ? onePercent : onePercent - currentRemainder;
   return Math.max(0, Math.ceil(amount));
@@ -585,7 +595,7 @@ function recurringMonthlyFireContribution() {
 }
 
 function compoundYearsToFire() {
-  const target = Number(state.profile.fireGoal) || 0;
+  const target = fireGoalAmount();
   const currentTotal = totalAssets();
   if (!target || currentTotal >= target) return 0;
 
@@ -620,15 +630,18 @@ function fireAgeWithAnnualPower(annualPower) {
 }
 
 function daysShortenedByAmount(amount) {
-  return Math.max(0, Math.round((amount / annualFirePower()) * 365));
+  return Math.max(0, Math.round(signedDaysShortenedByAmount(amount)));
 }
 
 function exactDaysShortenedByAmount(amount) {
-  return Math.max(0, (Math.max(0, Number(amount) || 0) / annualFirePower()) * 365);
+  return Math.max(0, signedDaysShortenedByAmount(Math.max(0, Number(amount) || 0)));
 }
 
 function signedDaysShortenedByAmount(amount) {
-  return ((Number(amount) || 0) / annualFirePower()) * 365;
+  const years = yearsToFireDecimal();
+  const remaining = remainingToFire();
+  if (typeof years !== "number" || years <= 0 || remaining <= 0) return 0;
+  return ((Number(amount) || 0) / remaining) * years * 365;
 }
 
 function outcomeEntriesFor(period) {
@@ -659,15 +672,40 @@ function outcomeContribution(entry) {
   return amount;
 }
 
+function confirmedOutcomeAmount(entries) {
+  const totals = outcomeTotals(entries);
+  return Math.max(0, totals.profit + totals.saving);
+}
+
+function monthDistanceInclusive(fromMonth, toMonth = currentMonthKey()) {
+  const [fromYear, fromMonthNumber] = fromMonth.split("-").map(Number);
+  const [toYear, toMonthNumber] = toMonth.split("-").map(Number);
+  if (!fromYear || !fromMonthNumber || !toYear || !toMonthNumber) return 1;
+  return Math.max(1, (toYear - fromYear) * 12 + toMonthNumber - fromMonthNumber + 1);
+}
+
+function trackingStartMonth() {
+  const months = [
+    currentMonthKey(),
+    ...state.outcomeEntries.map((entry) => entry.date?.slice(0, 7)).filter(Boolean),
+    ...state.assetHistory.map((entry) => entry.month).filter(Boolean)
+  ];
+  return months.sort()[0] || currentMonthKey();
+}
+
+function confirmedMonthlyPrincipal(period = "month") {
+  const monthlyInvestment = Math.max(0, Number(state.profile.monthlyInvestmentAmount) || 0);
+  if (period === "today") return confirmedOutcomeAmount(outcomeEntriesFor("today"));
+  if (period === "month") return confirmedOutcomeAmount(outcomeEntriesFor("month")) + monthlyInvestment;
+  return confirmedOutcomeAmount(outcomeEntriesFor("lifetime")) + monthlyInvestment * monthDistanceInclusive(trackingStartMonth());
+}
+
 function monthlyShorteningDays() {
-  const monthlyProfit = monthlySideProfit();
-  const monthlySavings = outcomeTotals(outcomeEntriesFor("month")).saving;
-  const diff = state.lastMonthlyChange?.diff || 0;
-  return exactDaysShortenedByAmount(Math.max(0, monthlyProfit + monthlySavings + diff));
+  return exactDaysShortenedByAmount(confirmedMonthlyPrincipal("month"));
 }
 
 function todayShorteningDays() {
-  return signedDaysShortenedByAmount(outcomeTotals(outcomeEntriesFor("today")).total);
+  return signedDaysShortenedByAmount(confirmedOutcomeAmount(outcomeEntriesFor("today")));
 }
 
 function monthlySideProfit(month = currentMonthKey()) {
@@ -806,16 +844,16 @@ function setSignedText(id, value, text = formatSignedYen(value)) {
 }
 
 function renderShorteningBasis(todayAmount, todayImpact) {
-  const rawAnnualPower = projectedAnnualFirePower();
-  if (rawAnnualPower <= 0) {
+  const years = yearsToFireDecimal();
+  const remaining = remainingToFire();
+  if (typeof years !== "number" || years <= 0 || remaining <= 0) {
     setText("shorteningBasisMain", "毎月積立額を入れると計算開始");
     setSignedClass("shorteningBasisMain", 0);
-    setText("shorteningBasisFormula", "FIRE計画の毎月積立額・成長率・配当・副業利益をもとに短縮時間を換算します");
-    setText("shorteningBasisBreakdown", "共有用の初期状態では資産額と投資額をゼロにしています");
+    setText("shorteningBasisFormula", "4%ルールの目標資産額と積立計画をもとに短縮時間を換算します");
+    setText("shorteningBasisBreakdown", "月間支出を入れると、年間支出の25倍をFIRE目標額として使います");
     return;
   }
-  const annualPower = annualFirePower();
-  const dailyPower = annualPower / 365;
+  const dailyPower = remaining / Math.max(1, years * 365);
   setText(
     "shorteningBasisMain",
     `${formatSignedYen(todayAmount)}で自由が${formatSignedImpact(todayImpact)}近づく`
@@ -824,22 +862,24 @@ function renderShorteningBasis(todayAmount, todayImpact) {
   setText("shorteningBasisFormula", `目安: ${yen.format(Math.round(dailyPower))}でFIREが1日近づく計算`);
   setText(
     "shorteningBasisBreakdown",
-    `毎月積立・利回り・配当・副業利益を年換算して日割り`
+    `FIRE目標額 ${yen.format(fireGoalAmount())} までの残り距離を日割り`
   );
 }
 
 function nextFreedomHourAmount(todayImpactDays) {
-  if (projectedAnnualFirePower() <= 0) return null;
+  const years = yearsToFireDecimal();
+  const remaining = remainingToFire();
+  if (typeof years !== "number" || years <= 0 || remaining <= 0) return null;
   const minutes = Math.max(0, todayImpactDays * 24 * 60);
   const nextHour = Math.floor(minutes / 60) + 1;
   const remainingHours = Math.max(0, nextHour - minutes / 60);
-  return Math.ceil((annualFirePower() / 365 / 24) * remainingHours);
+  const hourlyPace = remaining / Math.max(1, years * 365 * 24);
+  return Math.ceil(hourlyPace * remainingHours);
 }
 
 function renderDailyMomentum(todayImpact) {
   const streak = dailyOutcomeStreak();
-  const hasTodayEntry = outcomeEntriesFor("today")
-    .some((entry) => entry.type !== "market" && outcomeContribution(entry) > 0);
+  const hasTodayEntry = confirmedOutcomeAmount(outcomeEntriesFor("today")) > 0;
   const nextHour = nextFreedomHourAmount(Math.max(0, todayImpact));
   setText("streakPill", streak.count ? `${streak.count}日継続` : "今日から開始");
   if (nextHour === null) {
@@ -901,9 +941,11 @@ function renderFireProjection() {
   setText("monthlyShortening", formatShortening(monthlyShortening));
   setText("investmentGrowthAmount", yen.format(investmentGrowthAmount()));
   setText("effectiveGrowthRate", `${effectiveInvestmentGrowthRate()}%`);
+  setText("effectiveFireGoal", yen.format(fireGoalAmount()));
   setText("growthRateNote", growthRateNoteText());
   setText("retirementLead", formatRetirementComparison(leadYears));
   setText("currentAgeDisplay", formatAge(currentAgeYears()));
+  setText("fourPercentGoalDisplay", fourPercentFireGoal() ? yen.format(fourPercentFireGoal()) : "月間支出を入力");
   setPositiveNegativeClass("monthlyShortening", monthlyShortening);
   setPositiveNegativeClass("retirementLead", leadYears);
 }
@@ -915,6 +957,7 @@ function render() {
   const monthlySavings = outcomeTotals(outcomeEntriesFor("month")).saving;
   const todayTotals = outcomeTotals(outcomeEntriesFor("today"));
   const todayChange = todayTotals.total;
+  const todayConfirmedAmount = confirmedOutcomeAmount(outcomeEntriesFor("today"));
   const yearly = yearlyComparison();
 
   setText("fireRate", `${rate}%`);
@@ -946,6 +989,8 @@ function render() {
   setText("resultFireAge", formatAge(arrivalAge()));
   const todayImpact = todayShorteningDays();
   const shortening = monthlyShorteningDays();
+  const confirmedLifetimeDays = exactDaysShortenedByAmount(confirmedMonthlyPrincipal("lifetime"));
+  setText("confirmedLifetimeShortening", formatLifetimeShortening(confirmedLifetimeDays));
   setText(
     "fireShortenMessage",
     todayImpact > 0
@@ -962,7 +1007,7 @@ function render() {
   const monthlyFireAgeDiff = monthlyComparison().fireAgeDiffValue;
   setText("monthlyFireDelta", formatFireDaysDiff(monthlyFireAgeDiff));
   setSignedText("todayShortening", todayImpact, formatSignedImpact(todayImpact));
-  renderShorteningBasis(todayChange, todayImpact);
+  renderShorteningBasis(todayConfirmedAmount, todayImpact);
   renderDailyStreak();
   renderDailyMomentum(todayImpact);
   const yearlyShortening = yearlyShorteningDays();
@@ -1012,7 +1057,7 @@ function setPositiveNegativeClass(id, value) {
 function dailyOutcomeStreak() {
   const actionDates = new Set(
     state.outcomeEntries
-      .filter((entry) => entry.type !== "market" && outcomeContribution(entry) > 0)
+      .filter((entry) => ["profit", "saving"].includes(entry.type) && outcomeContribution(entry) > 0)
       .map((entry) => entry.date)
   );
 
@@ -1356,30 +1401,34 @@ function renderSideHustles() {
   const list = document.getElementById("sideHustleList");
   const today = outcomeTotals(outcomeEntriesFor("today"));
   const monthEntries = outcomeTotals(outcomeEntriesFor("month"));
-  const lifetime = outcomeTotals(outcomeEntriesFor("lifetime"));
+  const lifetimePrincipal = confirmedMonthlyPrincipal("lifetime");
 
   list.innerHTML = `
     ${renderImpactPeriod("今日の成果", today, "today")}
     ${renderImpactPeriod("今月累計", monthEntries, "month")}
     <div class="impact-lifetime">
       <small>人生累計（記録開始から）</small>
-      <span>FIRE短縮</span>
-      <strong>${formatLifetimeShortening(exactDaysShortenedByAmount(lifetime.total))}</strong>
+      <span>確定短縮時間</span>
+      <strong>${formatLifetimeShortening(exactDaysShortenedByAmount(lifetimePrincipal))}</strong>
     </div>
-    <p class="impact-note">現在の毎月積立額・その他増加・投資成長・配当・副業利益を基準に換算</p>
+    <p class="impact-note">市場変動を除き、副業利益・節約額・毎月の積立元本だけで積み上げ</p>
   `;
 
 }
 
 function renderImpactPeriod(title, totals, period) {
-  const days = exactDaysShortenedByAmount(totals.total);
+  const principal = period === "month"
+    ? confirmedMonthlyPrincipal("month")
+    : confirmedOutcomeAmount(outcomeEntriesFor("today"));
+  const days = exactDaysShortenedByAmount(principal);
   return `
     <section class="impact-period ${period === "today" ? "is-today" : ""}">
       <h3>${title}</h3>
       <div><span>副業利益</span><strong>+${yen.format(totals.profit)}</strong></div>
       <div><span>節約</span><strong>+${yen.format(totals.saving)}</strong></div>
-      <div class="impact-total"><span>利益＋節約</span><strong>+${yen.format(totals.total)}</strong></div>
-      <div class="impact-fire"><span>FIRE短縮</span><strong>${formatImpactDays(days)}</strong></div>
+      ${period === "month" ? `<div><span>積立元本</span><strong>+${yen.format(Math.max(0, Number(state.profile.monthlyInvestmentAmount) || 0))}</strong></div>` : ""}
+      <div class="impact-total"><span>確定成果</span><strong>+${yen.format(principal)}</strong></div>
+      <div class="impact-fire"><span>確定短縮</span><strong>${formatImpactDays(days)}</strong></div>
     </section>
   `;
 }
@@ -1754,6 +1803,7 @@ function hydrateSettings() {
   const profileForm = document.getElementById("profileForm");
   profileForm.elements.birthDate.value = state.profile.birthDate || "";
   profileForm.elements.targetAge.value = String(Number(state.profile.targetAge) || 45);
+  profileForm.elements.monthlyExpense.value = formatInputNumber(state.profile.monthlyExpense);
   profileForm.elements.householdType.value = state.profile.householdType === "single" ? "single" : "twoPlus";
   profileForm.elements.birthDate.max = todayKey();
   form.elements.investments.value = formatInputNumber(state.assets.investments);
@@ -2070,6 +2120,7 @@ async function saveInvestmentHoldings(options = {}) {
     const rate = fireRate();
     const todayTotals = outcomeTotals(outcomeEntriesFor("today"));
     const todayChange = todayTotals.total;
+    const todayConfirmedAmount = confirmedOutcomeAmount(outcomeEntriesFor("today"));
     const todayImpact = todayShorteningDays();
     setText("fireRate", `${rate}%`);
     setText("totalAssets", yen.format(total));
@@ -2077,6 +2128,7 @@ async function saveInvestmentHoldings(options = {}) {
     setText("annualDividendResult", yen.format(state.assets.dividends));
     setText("annualDividendPower", `${yen.format(state.assets.dividends)}/年`);
     setText("effectiveGrowthRate", `${effectiveInvestmentGrowthRate()}%`);
+    setText("effectiveFireGoal", yen.format(fireGoalAmount()));
     setText("growthRateNote", growthRateNoteText());
     setSignedText("heroTodayAssetChange", todayChange);
     setSignedText("heroTodayAssetRate", todayChange, `(${formatPrecisePercent(todayAssetChangeRate())})`);
@@ -2085,7 +2137,7 @@ async function saveInvestmentHoldings(options = {}) {
     setSignedText("todayDividendChange", todayTotals.dividend);
     setSignedText("todaySpendingChange", -todayTotals.spending);
     setSignedText("todayShortening", todayImpact, formatSignedImpact(todayImpact));
-    renderShorteningBasis(todayChange, todayImpact);
+    renderShorteningBasis(todayConfirmedAmount, todayImpact);
     renderDailyStreak();
     renderDailyMomentum(todayImpact);
     document.getElementById("fireProgress").style.width = `${rate}%`;
@@ -2214,6 +2266,30 @@ document.getElementById("outcomeForm").addEventListener("submit", (event) => {
   const contribution = outcomeContribution(entry);
   showOutcomeStatus(`${formatSignedYen(contribution)}で自由まで${formatSignedImpact(signedDaysShortenedByAmount(contribution))}`);
 });
+
+const outcomeQuickActions = document.getElementById("outcomeQuickActions");
+if (outcomeQuickActions) {
+  outcomeQuickActions.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-outcome-quick-type]");
+    if (!button) return;
+    const type = Object.hasOwn(outcomeCategories, button.dataset.outcomeQuickType) ? button.dataset.outcomeQuickType : "profit";
+    const amount = Math.max(0, Number(button.dataset.outcomeQuickAmount) || 0);
+    if (!amount) return;
+    const entry = {
+      id: `outcome-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      date: todayKey(),
+      type,
+      category: button.dataset.outcomeQuickCategory || outcomeCategories[type]?.at(-1) || "成果",
+      sales: 0,
+      amount,
+      appliedToMonthlyTotals: false
+    };
+    state.outcomeEntries.push(entry);
+    saveState();
+    render();
+    setText("dailyMomentumMessage", `${formatSignedYen(amount)}で自由まで${formatSignedImpact(signedDaysShortenedByAmount(amount))}`);
+  });
+}
 
 document.getElementById("investmentHoldingsForm").addEventListener("input", (event) => {
   if (event.target.id === "holdingSearchInput") {
@@ -2371,11 +2447,17 @@ document.getElementById("profileForm").addEventListener("submit", (event) => {
   const form = event.currentTarget;
   state.profile.birthDate = form.elements.birthDate.value;
   state.profile.targetAge = Math.max(1, Number(form.elements.targetAge.value) || 45);
+  state.profile.monthlyExpense = parseInputNumber(form.elements.monthlyExpense.value);
   state.profile.householdType = form.elements.householdType.value === "single" ? "single" : "twoPlus";
   state.profile.currentAge = currentAgeYears();
   saveState();
   render();
   showProfileStatus("プロフィールと資産比較条件を保存しました");
+});
+
+document.getElementById("profileForm").addEventListener("input", (event) => {
+  if (!event.target.matches("[data-number-input]")) return;
+  event.target.value = formatNumericInputValue(event.target.value);
 });
 
 function addProgress(text, date = todayKey()) {

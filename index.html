@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Life Progress" />
     <title>Life Progress Dashboard</title>
     <link rel="manifest" href="manifest.webmanifest?v=5" />
-    <link rel="stylesheet" href="styles.css?v=72" />
+    <link rel="stylesheet" href="styles.css?v=73" />
   </head>
   <body>
     <main class="app-shell">
@@ -102,6 +102,25 @@
               <span id="streakPill" class="pill momentum-pill">0日継続</span>
             </div>
             <p id="dailyMomentumMessage" class="daily-momentum">成果を1件記録するとFIRE時計が動きます</p>
+            <div class="home-outcome-quick" aria-label="今日の成果をクイック入力">
+              <div class="quick-head">
+                <div>
+                  <small>今日の成果</small>
+                  <strong>ワンタップ入力</strong>
+                </div>
+              </div>
+              <div class="confirmed-time-card">
+                <small>確定短縮時間（人生累計）</small>
+                <strong id="confirmedLifetimeShortening">0分</strong>
+                <span>市場が下がっても、自分の行動で買い戻した時間は減りません</span>
+              </div>
+              <div id="outcomeQuickActions" class="outcome-quick-actions">
+                <button type="button" data-outcome-quick-type="profit" data-outcome-quick-category="副業利益" data-outcome-quick-amount="1000">副業 +¥1,000</button>
+                <button type="button" data-outcome-quick-type="profit" data-outcome-quick-category="副業利益" data-outcome-quick-amount="3000">副業 +¥3,000</button>
+                <button type="button" data-outcome-quick-type="saving" data-outcome-quick-category="節約" data-outcome-quick-amount="500">節約 +¥500</button>
+                <button type="button" data-outcome-quick-type="saving" data-outcome-quick-category="節約" data-outcome-quick-amount="1000">節約 +¥1,000</button>
+              </div>
+            </div>
             <div class="breakdown-grid">
               <div>
                 <small>市場</small>
@@ -296,7 +315,7 @@
               <div class="monthly-summary">
                 <div>
                   <p class="eyebrow">Monthly Update</p>
-                  <h2>月次更新</h2>
+                  <h2>月次・投資更新</h2>
                   <p id="monthlyAutoLabel" class="auto-month-label">現在の日付で自動記録</p>
                 </div>
                 <div>
@@ -304,7 +323,7 @@
                   <strong id="settingsMonthlyDiff">--</strong>
                 </div>
               </div>
-              <details class="monthly-input-group" open>
+              <details class="monthly-input-group">
                 <summary>資産・配当</summary>
                 <div class="monthly-fields">
                   <label><span>投資資産（銘柄入力で更新）</span><input name="investments" type="text" inputmode="numeric" data-number-input autocomplete="off" /></label>
@@ -315,7 +334,7 @@
               <details class="monthly-input-group">
                 <summary>FIRE計画</summary>
                 <div class="monthly-fields">
-                  <label><span>FIRE目標額</span><input name="fireGoal" type="text" inputmode="numeric" data-number-input autocomplete="off" /></label>
+                  <label><span>FIRE目標額（支出未入力時）</span><input name="fireGoal" type="text" inputmode="numeric" data-number-input autocomplete="off" /></label>
                   <label><span>毎月積立額</span><input name="monthlyInvestmentAmount" type="text" inputmode="numeric" data-number-input autocomplete="off" /></label>
                   <label>
                     <span>投資成長率 / 年</span>
@@ -332,6 +351,7 @@
                     </select>
                   </label>
                   <label><span>その他年間増加見込み</span><input name="yearlyAssetGrowth" type="text" inputmode="numeric" data-number-input autocomplete="off" /></label>
+                  <div class="growth-preview"><small>現在のFIRE目標額</small><strong id="effectiveFireGoal">¥0</strong></div>
                   <div class="growth-preview"><small>投資成長見込み / 年</small><strong id="investmentGrowthAmount">¥0</strong></div>
                   <div class="growth-preview"><small>計算に使う利回り</small><strong id="effectiveGrowthRate">5%</strong></div>
                   <p id="growthRateNote" class="holdings-note growth-rate-note">想定利回りは将来を保証するものではなく、FIRE年数の目安計算に使います。</p>
@@ -407,6 +427,10 @@
               <input name="targetAge" type="number" inputmode="numeric" min="1" max="100" required />
             </label>
             <label>
+              <span>月間支出（4%ルール）</span>
+              <input name="monthlyExpense" type="text" inputmode="numeric" data-number-input autocomplete="off" placeholder="250,000" />
+            </label>
+            <label>
               <span>資産比較の世帯区分</span>
               <select name="householdType" required>
                 <option value="twoPlus">二人以上世帯</option>
@@ -416,6 +440,10 @@
             <div class="current-age-card">
               <small>現在の実年齢</small>
               <strong id="currentAgeDisplay">--歳</strong>
+            </div>
+            <div class="current-age-card">
+              <small>4%ルール目標資産</small>
+              <strong id="fourPercentGoalDisplay">--</strong>
             </div>
             <button type="submit">プロフィールを保存</button>
             <p id="profileStatus" class="save-status" role="status" aria-live="polite"></p>
@@ -474,7 +502,7 @@
             </div>
             <button type="button" id="signOutButton">ログアウト</button>
           </div>
-          <p id="cloudStatus" class="save-status" role="status" aria-live="polite">クラウド同期は未設定です</p>
+          <p id="cloudStatus" class="save-status" role="status" aria-live="polite">アカウントを作成してデータを同期</p>
         </article>
 
         <article class="panel backup-panel">
@@ -498,12 +526,12 @@
 
     <script src="firebase-config.js?v=53"></script>
     <script src="jflec-data.js?v=53"></script>
-    <script src="app.js?v=72"></script>
-    <script type="module" src="firebase-sync.js?v=53"></script>
+    <script src="app.js?v=73"></script>
+    <script type="module" src="firebase-sync.js?v=54"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js?v=72");
+          navigator.serviceWorker.register("sw.js?v=73");
         });
       }
     </script>
