@@ -629,19 +629,13 @@ function totalConfirmedSavedMinutes(period = "lifetime") {
   return savedTimeMinutesForAmount(confirmedActionAmount(entries));
 }
 
-function formatSavedMinutes(totalMinutes, options = {}) {
+function formatBuybackTime(totalMinutes, options = {}) {
   const minutes = Math.max(0, Math.round(Number(totalMinutes) || 0));
   const prefix = options.signed && minutes > 0 ? "+" : "";
   if (minutes < 60) return `${prefix}${minutes}分`;
   const hours = Math.floor(minutes / 60);
   const rest = minutes % 60;
-  if (hours < 24) return rest ? `${prefix}${hours}時間${rest}分` : `${prefix}${hours}時間`;
-  const days = minutes / 480;
-  return `${prefix}${days.toFixed(1)}日`;
-}
-
-function formatBuybackDays(totalMinutes) {
-  return `${(Math.max(0, Number(totalMinutes) || 0) / 480).toFixed(1)}日`;
+  return rest ? `${prefix}${numberFormatter.format(hours)}時間${rest}分` : `${prefix}${numberFormatter.format(hours)}時間`;
 }
 
 function microGoalState() {
@@ -1039,7 +1033,7 @@ function renderShorteningBasis(todayAmount) {
   const minutes = savedTimeMinutesForAmount(todayAmount);
   setText(
     "shorteningBasisMain",
-    `${formatSignedYen(todayAmount)}で${formatSavedMinutes(minutes, { signed: true })}買い戻し`
+    `${formatSignedYen(todayAmount)}で${formatBuybackTime(minutes, { signed: true })}買い戻し`
   );
   setSignedClass("shorteningBasisMain", todayAmount);
   setText("shorteningBasisFormula", `${yen.format(dailyCost)} = 8時間として換算`);
@@ -1189,8 +1183,8 @@ function render() {
 
   setText("fireRate", `${rate}%`);
   setText("heroTitle", state.profile.heroTitle || defaultState.profile.heroTitle);
-  setText("totalBuybackDays", `人生累計 ${formatBuybackDays(state.totalConfirmedSavedTime)}`);
-  setText("todayBuybackTime", formatSavedMinutes(todayBuybackMinutes, { signed: true }));
+  setText("totalBuybackDays", `人生累計 ${formatBuybackTime(state.totalConfirmedSavedTime)}`);
+  setText("todayBuybackTime", formatBuybackTime(todayBuybackMinutes, { signed: true }));
   setText("microGoalLevel", `Lv.${microGoal.level}`);
   setText("microGoalTitle", `${microGoal.title}（${yen.format(microGoal.targetAmount)}）`);
   setText("microGoalProgressLabel", `${microGoal.progressRate}%`);
@@ -1227,7 +1221,7 @@ function render() {
   setText("resultFireAge", formatAge(arrivalAge()));
   const todayImpact = todayShorteningDays();
   const shortening = monthlyShorteningDays();
-  setText("confirmedLifetimeShortening", formatSavedMinutes(state.totalConfirmedSavedTime));
+  setText("confirmedLifetimeShortening", formatBuybackTime(state.totalConfirmedSavedTime));
   setText(
     "fireShortenMessage",
     todayImpact > 0
@@ -1679,7 +1673,7 @@ function renderSideHustles() {
     <div class="impact-lifetime">
       <small>人生累計（記録開始から）</small>
       <span>確定短縮時間</span>
-      <strong>${formatSavedMinutes(lifetimeMinutes)}</strong>
+      <strong>${formatBuybackTime(lifetimeMinutes)}</strong>
     </div>
     <p class="impact-note">市場変動を除き、副業利益・節約額・配当だけで積み上げ</p>
   `;
@@ -1696,7 +1690,7 @@ function renderImpactPeriod(title, totals, period) {
       <div><span>節約</span><strong>+${yen.format(totals.saving)}</strong></div>
       <div><span>配当</span><strong>+${yen.format(totals.dividend)}</strong></div>
       <div class="impact-total"><span>確定成果</span><strong>+${yen.format(principal)}</strong></div>
-      <div class="impact-fire"><span>買い戻した自由</span><strong>${formatSavedMinutes(minutes, { signed: true })}</strong></div>
+      <div class="impact-fire"><span>買い戻した自由</span><strong>${formatBuybackTime(minutes, { signed: true })}</strong></div>
     </section>
   `;
 }
@@ -1772,7 +1766,7 @@ function renderOutcomeHistory() {
       </div>
       <div class="outcome-values">
         <span>${formatSignedYen(outcomeContribution(entry))}</span>
-        <b>${formatSavedMinutes(savedTimeMinutesForAmount(outcomeContribution(entry)), { signed: true })}</b>
+        <b>${formatBuybackTime(savedTimeMinutesForAmount(outcomeContribution(entry)), { signed: true })}</b>
       </div>
       <button type="button" data-delete-outcome="${escapeHtml(entry.id)}" aria-label="${escapeHtml(entry.category)}を削除">削除</button>
     </div>
@@ -2238,7 +2232,7 @@ function showBuybackToast(amount) {
   const time = document.getElementById("buybackToastTime");
   if (!toast || !time) return;
   const minutes = savedTimeMinutesForAmount(amount);
-  time.textContent = formatSavedMinutes(minutes, { signed: true });
+  time.textContent = formatBuybackTime(minutes, { signed: true });
   toast.hidden = false;
   toast.classList.remove("is-visible");
   void toast.offsetWidth;
@@ -2433,8 +2427,8 @@ async function saveInvestmentHoldings(options = {}) {
     const microGoal = updateTimeBuybackState();
     const todayBuybackMinutes = totalConfirmedSavedMinutes("today");
     setText("fireRate", `${rate}%`);
-    setText("totalBuybackDays", `人生累計 ${formatBuybackDays(state.totalConfirmedSavedTime)}`);
-    setText("todayBuybackTime", formatSavedMinutes(todayBuybackMinutes, { signed: true }));
+    setText("totalBuybackDays", `人生累計 ${formatBuybackTime(state.totalConfirmedSavedTime)}`);
+    setText("todayBuybackTime", formatBuybackTime(todayBuybackMinutes, { signed: true }));
     setText("microGoalLevel", `Lv.${microGoal.level}`);
     setText("microGoalTitle", `${microGoal.title}（${yen.format(microGoal.targetAmount)}）`);
     setText("microGoalProgressLabel", `${microGoal.progressRate}%`);
@@ -2584,7 +2578,7 @@ document.getElementById("outcomeForm").addEventListener("submit", (event) => {
   form.reset();
   render();
   const contribution = outcomeContribution(entry);
-  showOutcomeStatus(`${formatSignedYen(contribution)}で${formatSavedMinutes(savedTimeMinutesForAmount(contribution), { signed: true })}買い戻しました`);
+  showOutcomeStatus(`${formatSignedYen(contribution)}で${formatBuybackTime(savedTimeMinutesForAmount(contribution), { signed: true })}買い戻しました`);
   if (contribution > 0) showBuybackToast(contribution);
 });
 
@@ -2609,7 +2603,7 @@ if (outcomeQuickActions) {
     render();
     showOutcomeSnack(entry);
     showBuybackToast(outcomeContribution(entry));
-    setText("dailyMomentumMessage", `${formatSignedYen(action.amount)}で${formatSavedMinutes(savedTimeMinutesForAmount(outcomeContribution(entry)), { signed: true })}買い戻しました`);
+    setText("dailyMomentumMessage", `${formatSignedYen(action.amount)}で${formatBuybackTime(savedTimeMinutesForAmount(outcomeContribution(entry)), { signed: true })}買い戻しました`);
   });
 }
 

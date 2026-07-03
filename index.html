@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Life Progress" />
     <title>Life Progress Dashboard</title>
     <link rel="manifest" href="manifest.webmanifest?v=5" />
-    <link rel="stylesheet" href="styles.css?v=81" />
+    <link rel="stylesheet" href="styles.css?v=82" />
   </head>
   <body>
     <main class="app-shell">
@@ -73,7 +73,7 @@
             <div class="time-buyback-hero is-secondary">
               <span>Action Buyback</span>
               <small>自分の行動で買い戻した自由</small>
-              <strong id="totalBuybackDays">人生累計 0.0日</strong>
+              <strong id="totalBuybackDays">人生累計 0時間</strong>
               <div class="today-buyback">
                 <small>今日買い戻した時間</small>
                 <strong id="todayBuybackTime">+0分</strong>
@@ -597,12 +597,12 @@
 
     <script src="firebase-config.js?v=53"></script>
     <script src="jflec-data.js?v=53"></script>
-    <script src="app.js?v=81"></script>
+    <script src="app.js?v=82"></script>
     <script type="module" src="firebase-sync.js?v=54"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js?v=81");
+          navigator.serviceWorker.register("sw.js?v=82");
         });
       }
     </script>
