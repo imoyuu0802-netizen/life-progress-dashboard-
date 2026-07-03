@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Life Progress" />
     <title>Life Progress Dashboard</title>
     <link rel="manifest" href="manifest.webmanifest?v=5" />
-    <link rel="stylesheet" href="styles.css?v=79" />
+    <link rel="stylesheet" href="styles.css?v=80" />
   </head>
   <body>
     <main class="app-shell">
@@ -32,64 +32,76 @@
       <section id="view-overview" class="view is-active">
         <section class="top-grid" aria-label="主要ダッシュボード">
           <article class="panel focus-panel">
-            <div class="fire-countdown-head">
-              <span>🏝 FIREまで</span>
-              <strong id="fireDistanceHero">--日&#10;00時間00分00秒</strong>
-              <small id="fireYearsHero">約--年</small>
+            <div class="time-buyback-hero">
+              <span>Time Buyback</span>
+              <small>あなたの行動で買い戻した自由</small>
+              <strong id="totalBuybackDays">人生累計 0.0日</strong>
+              <div class="today-buyback">
+                <small>今日買い戻した時間</small>
+                <strong id="todayBuybackTime">+0分</strong>
+              </div>
             </div>
-            <div class="daily-fire-summary">
+            <div class="micro-goal-card" aria-label="直近の目標">
+              <div class="micro-goal-head">
+                <div>
+                  <small id="microGoalLevel">Lv.1</small>
+                  <strong id="microGoalTitle">1日分の有給を買い戻す</strong>
+                </div>
+                <span id="microGoalProgressLabel">0%</span>
+              </div>
+              <div class="progress-track micro" aria-label="直近目標の達成率">
+                <div id="microGoalProgress" class="progress-fill"></div>
+              </div>
+              <p id="microGoalRemaining">あと¥0で1日分</p>
+            </div>
+            <div class="buyback-basis" aria-label="労働時間換算の根拠">
               <div>
-                <small>総資産</small>
-                <strong id="heroTotalAssets">¥0</strong>
+                <span>換算ルール</span>
+                <strong id="buybackBasis">1日 ¥4,164 = 8時間</strong>
               </div>
-              <div class="today-change">
-                <small>今日</small>
-                <strong id="heroTodayAssetChange">+¥0</strong>
-                <span id="heroTodayAssetRate">+0.00%</span>
-              </div>
-              <div class="today-shortening">
-                <small>今日短縮した自由</small>
-                <strong id="todayShortening">+0分</strong>
-              </div>
-              <div class="daily-streak">
-                <small>連続成果</small>
-                <strong id="dailyStreak">0日</strong>
-                <span id="dailyStreakLabel">今日の成果待ち</span>
-              </div>
+              <small>節約・副業で得た金額を、労働から解放された時間に変換します</small>
             </div>
-            <div class="shortening-basis" aria-label="短縮時間の計算根拠">
+            <details class="fire-countdown-details">
+              <summary>FIRE全体カウントダウンを見る</summary>
+              <div class="fire-countdown-head compact">
+                <span>🏝 FIREまで</span>
+                <strong id="fireDistanceHero">--日&#10;00時間00分00秒</strong>
+                <small id="fireYearsHero">約--年</small>
+              </div>
+              <div class="progress-track thick" aria-label="FIRE達成率">
+                <div id="fireProgress" class="progress-fill"></div>
+                <span id="fireProgressLabel">0%</span>
+              </div>
+              <div class="fire-days-row">
+                <div class="yearly-shortening">
+                  <small>今年の短縮</small>
+                  <strong id="yearlyShortening">0日</strong>
+                </div>
+                <div>
+                  <small>今月の短縮</small>
+                  <strong id="monthlyShortening">0日</strong>
+                </div>
+                <div>
+                  <small>次の1%</small>
+                  <strong id="nextOnePercentAmount">--</strong>
+                </div>
+                <div>
+                  <small>現在予想</small>
+                  <strong id="arrivalAge">--歳</strong>
+                </div>
+                <div>
+                  <small>先月より</small>
+                  <strong id="monthlyFireDelta">--</strong>
+                </div>
+              </div>
+            </details>
+            <div class="shortening-basis is-secondary" aria-label="短縮時間の計算根拠">
               <div>
                 <span>短縮の根拠</span>
                 <strong id="shorteningBasisMain">--</strong>
               </div>
-              <small id="shorteningBasisFormula">年間FIRE前進力から日割りで換算</small>
+              <small id="shorteningBasisFormula">1日の生活費から労働時間に換算</small>
               <small id="shorteningBasisBreakdown">内訳を読み込み中</small>
-            </div>
-            <div class="progress-track thick" aria-label="FIRE達成率">
-              <div id="fireProgress" class="progress-fill"></div>
-              <span id="fireProgressLabel">0%</span>
-            </div>
-            <div class="fire-days-row">
-              <div class="yearly-shortening">
-                <small>今年の短縮</small>
-                <strong id="yearlyShortening">0日</strong>
-              </div>
-              <div>
-                <small>今月の短縮</small>
-                <strong id="monthlyShortening">0日</strong>
-              </div>
-              <div>
-                <small>次の1%</small>
-                <strong id="nextOnePercentAmount">--</strong>
-              </div>
-              <div>
-                <small>現在予想</small>
-                <strong id="arrivalAge">--歳</strong>
-              </div>
-              <div>
-                <small>先月より</small>
-                <strong id="monthlyFireDelta">--</strong>
-              </div>
             </div>
           </article>
 
@@ -97,11 +109,11 @@
             <div class="section-head">
               <div>
                 <p class="eyebrow">Today</p>
-                <h2>今日の資産増減</h2>
+                <h2>今日の成果（確定分）</h2>
               </div>
               <span id="streakPill" class="pill momentum-pill">0日継続</span>
             </div>
-            <p id="dailyMomentumMessage" class="daily-momentum">成果を1件記録するとFIRE時計が動きます</p>
+            <p id="dailyMomentumMessage" class="daily-momentum">成果を1件記録すると自由を買い戻せます</p>
             <div class="home-outcome-quick" aria-label="今日の成果をクイック入力">
               <div class="quick-head">
                 <div>
@@ -110,7 +122,7 @@
                 </div>
               </div>
               <div class="confirmed-time-card">
-                <small>確定短縮時間（人生累計）</small>
+                <small>買い戻した自由（人生累計）</small>
                 <strong id="confirmedLifetimeShortening">0分</strong>
                 <span>市場が下がっても、自分の行動で買い戻した時間は減りません</span>
               </div>
@@ -118,22 +130,31 @@
             </div>
             <div class="breakdown-grid">
               <div>
-                <small>市場</small>
-                <strong id="todayMarketChange">¥0</strong>
-              </div>
-              <div>
                 <small>副業</small>
                 <strong id="todayProfitChange">¥0</strong>
+              </div>
+              <div>
+                <small>節約</small>
+                <strong id="todaySavingChange">¥0</strong>
               </div>
               <div>
                 <small>配当</small>
                 <strong id="todayDividendChange">¥0</strong>
               </div>
-              <div>
-                <small>支出</small>
-                <strong id="todaySpendingChange">¥0</strong>
-              </div>
             </div>
+            <details class="market-details">
+              <summary>市場変動・支出を見る</summary>
+              <div class="breakdown-grid compact">
+                <div>
+                  <small>市場</small>
+                  <strong id="todayMarketChange">¥0</strong>
+                </div>
+                <div>
+                  <small>支出</small>
+                  <strong id="todaySpendingChange">¥0</strong>
+                </div>
+              </div>
+            </details>
           </article>
 
           <article class="panel result-panel">
@@ -450,6 +471,10 @@
               <input name="monthlyExpense" type="text" inputmode="numeric" data-number-input autocomplete="off" placeholder="250,000" />
             </label>
             <label>
+              <span>1日の目標生活費</span>
+              <input name="dailyCost" type="text" inputmode="numeric" data-number-input autocomplete="off" placeholder="4,164" />
+            </label>
+            <label>
               <span>資産比較の世帯区分</span>
               <select name="householdType" required>
                 <option value="twoPlus">二人以上世帯</option>
@@ -561,15 +586,19 @@
         <button type="button" data-snack-action="undo">取消</button>
       </div>
     </div>
+    <div id="buybackToast" class="buyback-toast" role="status" aria-live="polite" hidden>
+      <strong id="buybackToastTime">+0分</strong>
+      <span>労働を削りました</span>
+    </div>
 
     <script src="firebase-config.js?v=53"></script>
     <script src="jflec-data.js?v=53"></script>
-    <script src="app.js?v=79"></script>
+    <script src="app.js?v=80"></script>
     <script type="module" src="firebase-sync.js?v=54"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js?v=79");
+          navigator.serviceWorker.register("sw.js?v=80");
         });
       }
     </script>

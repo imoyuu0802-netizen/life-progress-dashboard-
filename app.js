@@ -105,6 +105,7 @@ const defaultState = {
     investmentGrowthRate: 5,
     monthlyInvestmentAmount: 50000,
     monthlyExpense: 0,
+    dailyCost: 4164,
     yearlyAssetGrowth: 0,
     fireGoal: 50000000
   },
@@ -124,6 +125,8 @@ const defaultState = {
   lastUpdatedAt: null,
   lastMonthlyChange: null,
   fireCountdownPlan: null,
+  totalConfirmedSavedTime: 0,
+  currentMicroGoal: null,
   progressEntries: [],
   outcomeEntries: [],
   outcomeQuickActions: [
@@ -163,6 +166,7 @@ let holdingsStatusTimer = null;
 let holdingsAutoSaveTimer = null;
 let refreshAllTimer = null;
 let outcomeSnackTimer = null;
+let buybackToastTimer = null;
 let fireCountdownBaseSeconds = 0;
 let fireCountdownTargetAt = null;
 let forceFireCountdownReplan = false;
@@ -237,6 +241,9 @@ function normalizeState(saved = {}) {
   if (!Object.hasOwn(returnScenarioLabels, profile.returnScenario)) {
     profile.returnScenario = defaultState.profile.returnScenario;
   }
+  if (!Number(profile.dailyCost)) {
+    profile.dailyCost = Math.max(1, Math.round((Number(profile.monthlyExpense) || 0) / 30) || defaultState.profile.dailyCost);
+  }
   return {
     ...cloneDefaultState(),
     ...saved,
@@ -247,6 +254,8 @@ function normalizeState(saved = {}) {
     assetHistory: ensureBaselineAssetHistory(saved.assetHistory || []),
     sideHustles: normalizeSideHustles(saved.sideHustles),
     fireCountdownPlan: normalizeFireCountdownPlan(saved.fireCountdownPlan),
+    totalConfirmedSavedTime: Math.max(0, Math.round(Number(saved.totalConfirmedSavedTime) || 0)),
+    currentMicroGoal: saved.currentMicroGoal && typeof saved.currentMicroGoal === "object" ? saved.currentMicroGoal : null,
     progressEntries,
     outcomeEntries: outcomeMigration.entries,
     outcomeQuickActions: normalizeOutcomeQuickActions(saved.outcomeQuickActions),
@@ -590,6 +599,71 @@ function fireGoalAmount() {
   return fourPercentFireGoal() || Math.max(1, Number(state.profile.fireGoal) || defaultState.profile.fireGoal);
 }
 
+function dailyCostAmount() {
+  return Math.max(1, Math.round(Number(state.profile.dailyCost) || Number(state.profile.monthlyExpense) / 30 || defaultState.profile.dailyCost));
+}
+
+function calculateSavedTime(amount, dailyCost) {
+  const safeDailyCost = Math.max(1, Number(dailyCost) || defaultState.profile.dailyCost);
+  const totalMinutes = Math.max(0, Math.round((Math.max(0, Number(amount) || 0) / safeDailyCost) * 480));
+  return {
+    hours: Math.floor(totalMinutes / 60),
+    minutes: totalMinutes % 60
+  };
+}
+
+function savedTimeMinutesForAmount(amount) {
+  const saved = calculateSavedTime(amount, dailyCostAmount());
+  return saved.hours * 60 + saved.minutes;
+}
+
+function confirmedActionAmount(entries) {
+  return confirmedOutcomeAmount(entries);
+}
+
+function totalConfirmedSavedMinutes(period = "lifetime") {
+  const entries = period === "today" ? outcomeEntriesFor("today") : outcomeEntriesFor("lifetime");
+  return savedTimeMinutesForAmount(confirmedActionAmount(entries));
+}
+
+function formatSavedMinutes(totalMinutes, options = {}) {
+  const minutes = Math.max(0, Math.round(Number(totalMinutes) || 0));
+  const prefix = options.signed && minutes > 0 ? "+" : "";
+  if (minutes < 60) return `${prefix}${minutes}分`;
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  if (hours < 24) return rest ? `${prefix}${hours}時間${rest}分` : `${prefix}${hours}時間`;
+  const days = minutes / 480;
+  return `${prefix}${days.toFixed(1)}日`;
+}
+
+function formatBuybackDays(totalMinutes) {
+  return `${(Math.max(0, Number(totalMinutes) || 0) / 480).toFixed(1)}日`;
+}
+
+function microGoalState() {
+  const dailyCost = dailyCostAmount();
+  const confirmedAmount = confirmedActionAmount(outcomeEntriesFor("lifetime"));
+  const completedDays = Math.floor(confirmedAmount / dailyCost);
+  const currentAmount = confirmedAmount % dailyCost;
+  const remainingAmount = Math.max(0, dailyCost - currentAmount);
+  const progressRate = dailyCost > 0 ? Math.min(100, Math.round((currentAmount / dailyCost) * 100)) : 0;
+  return {
+    level: completedDays + 1,
+    title: `${completedDays + 1}日分の有給を買い戻す`,
+    targetAmount: dailyCost,
+    currentAmount,
+    remainingAmount,
+    progressRate
+  };
+}
+
+function updateTimeBuybackState() {
+  state.totalConfirmedSavedTime = totalConfirmedSavedMinutes("lifetime");
+  state.currentMicroGoal = microGoalState();
+  return state.currentMicroGoal;
+}
+
 function fireRate() {
   return Math.min(100, Math.round((totalAssets() / fireGoalAmount()) * 100));
 }
@@ -788,7 +862,7 @@ function outcomeContribution(entry) {
 
 function confirmedOutcomeAmount(entries) {
   const totals = outcomeTotals(entries);
-  return Math.max(0, totals.profit + totals.saving);
+  return Math.max(0, totals.profit + totals.saving + totals.dividend);
 }
 
 function monthDistanceInclusive(fromMonth, toMonth = currentMonthKey()) {
@@ -957,49 +1031,34 @@ function setSignedText(id, value, text = formatSignedYen(value)) {
   setSignedClass(id, Number(value) || 0);
 }
 
-function renderShorteningBasis(todayAmount, todayImpact) {
-  const years = yearsToFireDecimal();
-  const remaining = remainingToFire();
-  if (typeof years !== "number" || years <= 0 || remaining <= 0) {
-    setText("shorteningBasisMain", "毎月積立額を入れると計算開始");
-    setSignedClass("shorteningBasisMain", 0);
-    setText("shorteningBasisFormula", "4%ルールの目標資産額と積立計画をもとに短縮時間を換算します");
-    setText("shorteningBasisBreakdown", "月間支出を入れると、年間支出の25倍をFIRE目標額として使います");
-    return;
-  }
-  const dailyPower = remaining / Math.max(1, years * 365);
+function renderShorteningBasis(todayAmount) {
+  const dailyCost = dailyCostAmount();
+  const minutes = savedTimeMinutesForAmount(todayAmount);
   setText(
     "shorteningBasisMain",
-    `${formatSignedYen(todayAmount)}で自由が${formatSignedImpact(todayImpact)}近づく`
+    `${formatSignedYen(todayAmount)}で${formatSavedMinutes(minutes, { signed: true })}買い戻し`
   );
-  setSignedClass("shorteningBasisMain", todayImpact);
-  setText("shorteningBasisFormula", `目安: ${yen.format(Math.round(dailyPower))}でFIREが1日近づく計算`);
+  setSignedClass("shorteningBasisMain", todayAmount);
+  setText("shorteningBasisFormula", `${yen.format(dailyCost)} = 8時間として換算`);
   setText(
     "shorteningBasisBreakdown",
-    `FIRE目標額 ${yen.format(fireGoalAmount())} までの残り距離を日割り`
+    `式: 金額 ÷ 1日の生活費 × 8時間。市場変動は含めません`
   );
 }
 
-function nextFreedomHourAmount(todayImpactDays) {
-  const years = yearsToFireDecimal();
-  const remaining = remainingToFire();
-  if (typeof years !== "number" || years <= 0 || remaining <= 0) return null;
-  const minutes = Math.max(0, todayImpactDays * 24 * 60);
+function nextFreedomHourAmount(todayMinutes) {
+  const dailyCost = dailyCostAmount();
+  const minutes = Math.max(0, Number(todayMinutes) || 0);
   const nextHour = Math.floor(minutes / 60) + 1;
   const remainingHours = Math.max(0, nextHour - minutes / 60);
-  const hourlyPace = remaining / Math.max(1, years * 365 * 24);
-  return Math.ceil(hourlyPace * remainingHours);
+  return Math.ceil((dailyCost / 8) * remainingHours);
 }
 
-function renderDailyMomentum(todayImpact) {
+function renderDailyMomentum() {
   const streak = dailyOutcomeStreak();
   const hasTodayEntry = confirmedOutcomeAmount(outcomeEntriesFor("today")) > 0;
-  const nextHour = nextFreedomHourAmount(Math.max(0, todayImpact));
+  const nextHour = nextFreedomHourAmount(totalConfirmedSavedMinutes("today"));
   setText("streakPill", streak.count ? `${streak.count}日継続` : "今日から開始");
-  if (nextHour === null) {
-    setText("dailyMomentumMessage", "まずはFIRE計画で毎月積立額を設定すると、自由までの時計が動きます");
-    return;
-  }
   setText(
     "dailyMomentumMessage",
     hasTodayEntry
@@ -1089,15 +1148,27 @@ function render() {
   const todayChange = todayTotals.total;
   const todayConfirmedAmount = confirmedOutcomeAmount(outcomeEntriesFor("today"));
   const yearly = yearlyComparison();
+  const microGoal = updateTimeBuybackState();
+  const todayBuybackMinutes = totalConfirmedSavedMinutes("today");
 
   setText("fireRate", `${rate}%`);
   setText("heroTitle", state.profile.heroTitle || defaultState.profile.heroTitle);
+  setText("totalBuybackDays", `人生累計 ${formatBuybackDays(state.totalConfirmedSavedTime)}`);
+  setText("todayBuybackTime", formatSavedMinutes(todayBuybackMinutes, { signed: true }));
+  setText("microGoalLevel", `Lv.${microGoal.level}`);
+  setText("microGoalTitle", `${microGoal.title}（${yen.format(microGoal.targetAmount)}）`);
+  setText("microGoalProgressLabel", `${microGoal.progressRate}%`);
+  setText("microGoalRemaining", `あと${yen.format(microGoal.remainingAmount)}で${microGoal.level}日分`);
+  setText("buybackBasis", `1日 ${yen.format(dailyCostAmount())} = 8時間`);
+  const microGoalProgress = document.getElementById("microGoalProgress");
+  if (microGoalProgress) microGoalProgress.style.width = `${microGoal.progressRate}%`;
   setText("totalAssets", yen.format(total));
   setText("heroTotalAssets", yen.format(total));
   setSignedText("heroTodayAssetChange", todayChange);
   setSignedText("heroTodayAssetRate", todayChange, `(${formatPrecisePercent(todayAssetChangeRate())})`);
   setSignedText("todayMarketChange", todayTotals.market);
   setSignedText("todayProfitChange", todayTotals.profit);
+  setSignedText("todaySavingChange", todayTotals.saving);
   setSignedText("todayDividendChange", todayTotals.dividend);
   setSignedText("todaySpendingChange", -todayTotals.spending);
   setText("annualDividendResult", yen.format(state.assets.dividends));
@@ -1120,8 +1191,7 @@ function render() {
   setText("resultFireAge", formatAge(arrivalAge()));
   const todayImpact = todayShorteningDays();
   const shortening = monthlyShorteningDays();
-  const confirmedLifetimeDays = exactDaysShortenedByAmount(confirmedMonthlyPrincipal("lifetime"));
-  setText("confirmedLifetimeShortening", formatLifetimeShortening(confirmedLifetimeDays));
+  setText("confirmedLifetimeShortening", formatSavedMinutes(state.totalConfirmedSavedTime));
   setText(
     "fireShortenMessage",
     todayImpact > 0
@@ -1140,7 +1210,7 @@ function render() {
   setSignedText("todayShortening", todayImpact, formatSignedImpact(todayImpact));
   renderShorteningBasis(todayConfirmedAmount, todayImpact);
   renderDailyStreak();
-  renderDailyMomentum(todayImpact);
+  renderDailyMomentum();
   const yearlyShortening = yearlyShorteningDays();
   setText("yearlyShortening", formatShortening(yearlyShortening));
   setText("nextOnePercentAmount", nextOnePercentAmount() ? `あと${yen.format(nextOnePercentAmount())}` : "達成済み");
@@ -1565,7 +1635,7 @@ function renderSideHustles() {
   const list = document.getElementById("sideHustleList");
   const today = outcomeTotals(outcomeEntriesFor("today"));
   const monthEntries = outcomeTotals(outcomeEntriesFor("month"));
-  const lifetimePrincipal = confirmedMonthlyPrincipal("lifetime");
+  const lifetimeMinutes = totalConfirmedSavedMinutes("lifetime");
 
   list.innerHTML = `
     ${renderImpactPeriod("今日の成果", today, "today")}
@@ -1573,26 +1643,24 @@ function renderSideHustles() {
     <div class="impact-lifetime">
       <small>人生累計（記録開始から）</small>
       <span>確定短縮時間</span>
-      <strong>${formatLifetimeShortening(exactDaysShortenedByAmount(lifetimePrincipal))}</strong>
+      <strong>${formatSavedMinutes(lifetimeMinutes)}</strong>
     </div>
-    <p class="impact-note">市場変動を除き、副業利益・節約額・毎月の積立元本だけで積み上げ</p>
+    <p class="impact-note">市場変動を除き、副業利益・節約額・配当だけで積み上げ</p>
   `;
 
 }
 
 function renderImpactPeriod(title, totals, period) {
-  const principal = period === "month"
-    ? confirmedMonthlyPrincipal("month")
-    : confirmedOutcomeAmount(outcomeEntriesFor("today"));
-  const days = exactDaysShortenedByAmount(principal);
+  const principal = confirmedOutcomeAmount(period === "month" ? outcomeEntriesFor("month") : outcomeEntriesFor("today"));
+  const minutes = savedTimeMinutesForAmount(principal);
   return `
     <section class="impact-period ${period === "today" ? "is-today" : ""}">
       <h3>${title}</h3>
       <div><span>副業利益</span><strong>+${yen.format(totals.profit)}</strong></div>
       <div><span>節約</span><strong>+${yen.format(totals.saving)}</strong></div>
-      ${period === "month" ? `<div><span>積立元本</span><strong>+${yen.format(Math.max(0, Number(state.profile.monthlyInvestmentAmount) || 0))}</strong></div>` : ""}
+      <div><span>配当</span><strong>+${yen.format(totals.dividend)}</strong></div>
       <div class="impact-total"><span>確定成果</span><strong>+${yen.format(principal)}</strong></div>
-      <div class="impact-fire"><span>確定短縮</span><strong>${formatImpactDays(days)}</strong></div>
+      <div class="impact-fire"><span>買い戻した自由</span><strong>${formatSavedMinutes(minutes, { signed: true })}</strong></div>
     </section>
   `;
 }
@@ -1668,7 +1736,7 @@ function renderOutcomeHistory() {
       </div>
       <div class="outcome-values">
         <span>${formatSignedYen(outcomeContribution(entry))}</span>
-        <b>${formatSignedImpact(signedDaysShortenedByAmount(outcomeContribution(entry)))}自由</b>
+        <b>${formatSavedMinutes(savedTimeMinutesForAmount(outcomeContribution(entry)), { signed: true })}</b>
       </div>
       <button type="button" data-delete-outcome="${escapeHtml(entry.id)}" aria-label="${escapeHtml(entry.category)}を削除">削除</button>
     </div>
@@ -1969,6 +2037,7 @@ function hydrateSettings() {
   profileForm.elements.targetAge.value = String(Number(state.profile.targetAge) || 45);
   profileForm.elements.heroTitle.value = heroTitleOptions.includes(state.profile.heroTitle) ? state.profile.heroTitle : defaultState.profile.heroTitle;
   profileForm.elements.monthlyExpense.value = formatInputNumber(state.profile.monthlyExpense);
+  profileForm.elements.dailyCost.value = formatInputNumber(dailyCostAmount());
   profileForm.elements.householdType.value = state.profile.householdType === "single" ? "single" : "twoPlus";
   profileForm.elements.birthDate.max = todayKey();
   form.elements.investments.value = formatInputNumber(state.assets.investments);
@@ -2126,6 +2195,23 @@ function showOutcomeSnack(entry) {
   snack.hidden = false;
   window.clearTimeout(outcomeSnackTimer);
   outcomeSnackTimer = window.setTimeout(hideOutcomeSnack, 5200);
+}
+
+function showBuybackToast(amount) {
+  const toast = document.getElementById("buybackToast");
+  const time = document.getElementById("buybackToastTime");
+  if (!toast || !time) return;
+  const minutes = savedTimeMinutesForAmount(amount);
+  time.textContent = formatSavedMinutes(minutes, { signed: true });
+  toast.hidden = false;
+  toast.classList.remove("is-visible");
+  void toast.offsetWidth;
+  toast.classList.add("is-visible");
+  window.clearTimeout(buybackToastTimer);
+  buybackToastTimer = window.setTimeout(() => {
+    toast.classList.remove("is-visible");
+    toast.hidden = true;
+  }, 1800);
 }
 
 function showHoldingsStatus(message) {
@@ -2308,7 +2394,18 @@ async function saveInvestmentHoldings(options = {}) {
     const todayChange = todayTotals.total;
     const todayConfirmedAmount = confirmedOutcomeAmount(outcomeEntriesFor("today"));
     const todayImpact = todayShorteningDays();
+    const microGoal = updateTimeBuybackState();
+    const todayBuybackMinutes = totalConfirmedSavedMinutes("today");
     setText("fireRate", `${rate}%`);
+    setText("totalBuybackDays", `人生累計 ${formatBuybackDays(state.totalConfirmedSavedTime)}`);
+    setText("todayBuybackTime", formatSavedMinutes(todayBuybackMinutes, { signed: true }));
+    setText("microGoalLevel", `Lv.${microGoal.level}`);
+    setText("microGoalTitle", `${microGoal.title}（${yen.format(microGoal.targetAmount)}）`);
+    setText("microGoalProgressLabel", `${microGoal.progressRate}%`);
+    setText("microGoalRemaining", `あと${yen.format(microGoal.remainingAmount)}で${microGoal.level}日分`);
+    setText("buybackBasis", `1日 ${yen.format(dailyCostAmount())} = 8時間`);
+    const microGoalProgress = document.getElementById("microGoalProgress");
+    if (microGoalProgress) microGoalProgress.style.width = `${microGoal.progressRate}%`;
     setText("totalAssets", yen.format(total));
     setText("heroTotalAssets", yen.format(total));
     setText("annualDividendResult", yen.format(state.assets.dividends));
@@ -2320,12 +2417,13 @@ async function saveInvestmentHoldings(options = {}) {
     setSignedText("heroTodayAssetRate", todayChange, `(${formatPrecisePercent(todayAssetChangeRate())})`);
     setSignedText("todayMarketChange", todayTotals.market);
     setSignedText("todayProfitChange", todayTotals.profit);
+    setSignedText("todaySavingChange", todayTotals.saving);
     setSignedText("todayDividendChange", todayTotals.dividend);
     setSignedText("todaySpendingChange", -todayTotals.spending);
     setSignedText("todayShortening", todayImpact, formatSignedImpact(todayImpact));
     renderShorteningBasis(todayConfirmedAmount, todayImpact);
     renderDailyStreak();
-    renderDailyMomentum(todayImpact);
+    renderDailyMomentum();
     document.getElementById("fireProgress").style.width = `${rate}%`;
     setText("fireProgressLabel", `${rate}%`);
     const yearsToFire = yearsToFireDecimal();
@@ -2450,7 +2548,8 @@ document.getElementById("outcomeForm").addEventListener("submit", (event) => {
   form.reset();
   render();
   const contribution = outcomeContribution(entry);
-  showOutcomeStatus(`${formatSignedYen(contribution)}で自由まで${formatSignedImpact(signedDaysShortenedByAmount(contribution))}`);
+  showOutcomeStatus(`${formatSignedYen(contribution)}で${formatSavedMinutes(savedTimeMinutesForAmount(contribution), { signed: true })}買い戻しました`);
+  if (contribution > 0) showBuybackToast(contribution);
 });
 
 const outcomeQuickActions = document.getElementById("outcomeQuickActions");
@@ -2473,7 +2572,8 @@ if (outcomeQuickActions) {
     saveState();
     render();
     showOutcomeSnack(entry);
-    setText("dailyMomentumMessage", `${formatSignedYen(action.amount)}で自由まで${formatSignedImpact(signedDaysShortenedByAmount(action.amount))}`);
+    showBuybackToast(outcomeContribution(entry));
+    setText("dailyMomentumMessage", `${formatSignedYen(action.amount)}で${formatSavedMinutes(savedTimeMinutesForAmount(outcomeContribution(entry)), { signed: true })}買い戻しました`);
   });
 }
 
@@ -2506,6 +2606,7 @@ if (outcomeSnack) {
       saveState();
       render();
       showOutcomeSnack(entry);
+      showBuybackToast(outcomeContribution(entry));
     }
   });
 }
@@ -2679,6 +2780,7 @@ document.getElementById("profileForm").addEventListener("submit", (event) => {
   state.profile.targetAge = Math.max(1, Number(form.elements.targetAge.value) || 45);
   state.profile.heroTitle = heroTitleOptions.includes(form.elements.heroTitle.value) ? form.elements.heroTitle.value : defaultState.profile.heroTitle;
   state.profile.monthlyExpense = parseInputNumber(form.elements.monthlyExpense.value);
+  state.profile.dailyCost = Math.max(1, parseInputNumber(form.elements.dailyCost.value));
   state.profile.householdType = form.elements.householdType.value === "single" ? "single" : "twoPlus";
   state.profile.currentAge = currentAgeYears();
   forceFireCountdownReplan = true;

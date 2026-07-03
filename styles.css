@@ -318,6 +318,225 @@ small {
   white-space: pre-line;
 }
 
+.time-buyback-hero {
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+  padding: 4px 0 10px;
+  text-align: center;
+}
+
+.time-buyback-hero > span {
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.time-buyback-hero > small {
+  color: rgba(247, 244, 232, 0.72);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.time-buyback-hero > strong {
+  max-width: 100%;
+  color: var(--ink);
+  font-size: clamp(38px, 11vw, 74px);
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+  line-height: 1.02;
+  overflow-wrap: anywhere;
+}
+
+.today-buyback {
+  display: grid;
+  gap: 5px;
+  width: min(100%, 360px);
+  margin-top: 8px;
+  padding: 13px 14px;
+  border: 1px solid rgba(70, 209, 139, 0.36);
+  border-radius: var(--radius);
+  background: linear-gradient(145deg, rgba(70, 209, 139, 0.14), rgba(255, 255, 255, 0.035));
+  box-shadow: 0 0 0 1px rgba(70, 209, 139, 0.06) inset;
+}
+
+.today-buyback small {
+  color: rgba(247, 244, 232, 0.66);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.today-buyback strong {
+  color: var(--green);
+  font-size: clamp(30px, 8.5vw, 46px);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.micro-goal-card {
+  display: grid;
+  gap: 11px;
+  margin: 12px 0;
+  padding: 13px;
+  border: 1px solid rgba(240, 200, 106, 0.32);
+  border-radius: var(--radius);
+  background: rgba(240, 200, 106, 0.075);
+}
+
+.micro-goal-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 12px;
+}
+
+.micro-goal-head div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.micro-goal-head small {
+  color: var(--gold);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.micro-goal-head strong {
+  font-size: 16px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.micro-goal-head span {
+  min-width: 52px;
+  padding: 6px 8px;
+  border: 1px solid rgba(240, 200, 106, 0.38);
+  border-radius: 999px;
+  color: var(--gold);
+  font-size: 13px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.micro-goal-card p {
+  color: rgba(247, 244, 232, 0.7);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.progress-track.micro {
+  height: 8px;
+  margin-top: 0;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.progress-track.micro .progress-fill {
+  background: linear-gradient(90deg, var(--gold), var(--green));
+}
+
+.buyback-basis {
+  display: grid;
+  gap: 7px;
+  margin: 0 0 12px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.buyback-basis div {
+  display: grid;
+  gap: 5px;
+}
+
+.buyback-basis span,
+.buyback-basis small {
+  color: rgba(247, 244, 232, 0.62);
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.buyback-basis strong {
+  color: var(--ink);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.fire-countdown-details {
+  margin-top: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.032);
+  overflow: hidden;
+}
+
+.fire-countdown-details summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 48px;
+  padding: 0 13px;
+  color: rgba(247, 244, 232, 0.78);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 900;
+  list-style: none;
+}
+
+.fire-countdown-details summary::-webkit-details-marker {
+  display: none;
+}
+
+.fire-countdown-details summary::after {
+  content: "＋";
+  color: var(--gold);
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.fire-countdown-details[open] summary {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.fire-countdown-details[open] summary::after {
+  content: "−";
+}
+
+.fire-countdown-head.compact {
+  gap: 6px;
+  margin: 14px 12px 12px;
+}
+
+.fire-countdown-head.compact span {
+  font-size: 12px;
+}
+
+.fire-countdown-head.compact strong {
+  color: var(--ink);
+  font-size: clamp(25px, 7.2vw, 44px);
+  line-height: 1.08;
+}
+
+.fire-countdown-head.compact small {
+  color: rgba(247, 244, 232, 0.6);
+  font-weight: 850;
+}
+
+.fire-countdown-details .progress-track.thick {
+  margin: 0 12px 12px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
 .daily-fire-summary {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -411,6 +630,102 @@ small {
   display: none;
 }
 
+.focus-panel .micro-goal-card .progress-track,
+.focus-panel .fire-countdown-details .progress-track {
+  display: block;
+}
+
+.focus-panel .fire-countdown-details .fire-days-row {
+  display: grid;
+  margin: 0 12px 12px;
+}
+
+.shortening-basis.is-secondary {
+  margin: 12px 0 0;
+  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.026);
+}
+
+.shortening-basis.is-secondary span,
+.shortening-basis.is-secondary small {
+  color: rgba(247, 244, 232, 0.52);
+}
+
+.shortening-basis.is-secondary strong {
+  color: rgba(247, 244, 232, 0.76);
+}
+
+.shortening-basis.is-secondary div {
+  display: grid;
+  gap: 5px;
+}
+
+.buyback-toast {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  z-index: 50;
+  display: grid;
+  gap: 4px;
+  width: min(calc(100vw - 32px), 360px);
+  padding: 16px 18px;
+  border: 1px solid rgba(70, 209, 139, 0.5);
+  border-radius: var(--radius);
+  background: rgba(15, 22, 17, 0.96);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(70, 209, 139, 0.08) inset;
+  color: var(--ink);
+  opacity: 0;
+  pointer-events: none;
+  text-align: center;
+  transform: translate(-50%, -42%) scale(0.96);
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.buyback-toast strong {
+  color: var(--green);
+  font-size: 24px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.05;
+}
+
+.buyback-toast span,
+.buyback-toast small {
+  color: rgba(247, 244, 232, 0.72);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.buyback-toast.is-visible {
+  animation: buyback-toast-pop 520ms ease both;
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+@keyframes buyback-toast-pop {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -38%) scale(0.92);
+  }
+
+  62% {
+    opacity: 1;
+    transform: translate(-50%, -51%) scale(1.02);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .buyback-toast,
+  .buyback-toast.is-visible {
+    animation: none;
+    transition: none;
+  }
+}
+
 .today-panel {
   background: linear-gradient(145deg, #102018, #101310);
   border-color: rgba(70, 209, 139, 0.42);
@@ -426,6 +741,10 @@ small {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
+}
+
+.breakdown-grid.compact {
+  margin-top: 8px;
 }
 
 .momentum-pill {
@@ -455,6 +774,40 @@ small {
   font-size: 22px;
   font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
+}
+
+.market-details {
+  margin-top: 10px;
+}
+
+.market-details summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.035);
+  color: rgba(247, 244, 232, 0.64);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 850;
+  list-style: none;
+}
+
+.market-details summary::-webkit-details-marker {
+  display: none;
+}
+
+.market-details summary::after {
+  content: "＋";
+  color: var(--muted);
+  font-weight: 900;
+}
+
+.market-details[open] summary::after {
+  content: "−";
 }
 
 .holdings-form,
@@ -2341,6 +2694,45 @@ button:disabled {
   }
 
   .focus-panel {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: minmax(0, 1.12fr) minmax(280px, 0.88fr);
+    align-items: start;
+    gap: 14px;
+  }
+
+  .time-buyback-hero {
+    grid-column: 1;
+    grid-row: span 2;
+    min-height: 100%;
+    align-content: center;
+    padding: 8px 10px;
+  }
+
+  .today-buyback {
+    width: min(100%, 420px);
+  }
+
+  .micro-goal-card {
+    grid-column: 2;
+    margin: 0;
+  }
+
+  .buyback-basis {
+    grid-column: 2;
+    margin: 0;
+  }
+
+  .buyback-basis div,
+  .shortening-basis.is-secondary div {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .fire-countdown-details,
+  .shortening-basis.is-secondary {
     grid-column: 1 / -1;
   }
 
@@ -2485,4 +2877,11 @@ button:disabled {
     grid-template-columns: 1.05fr 1fr;
   }
 
+  .time-buyback-hero > strong {
+    font-size: clamp(58px, 6vw, 86px);
+  }
+
+  .focus-panel .fire-countdown-details .fire-days-row {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
 }
