@@ -17,6 +17,20 @@ const outcomeTypeLabels = {
   saving: "節約"
 };
 
+const heroTitleOptions = [
+  "自由までの距離",
+  "本当の人生が始まるまで",
+  "自由を買い戻す旅",
+  "自分の人生を奪還するまで",
+  "残りの「縛られた」時間",
+  "労働から解放される日まで",
+  "ラットレース脱出への道",
+  "「働かなくていい」までの距離",
+  "目覚まし時計を捨てる日まで",
+  "日曜の夜に笑える日まで",
+  "「何もしない」を手に入れるまで"
+];
+
 const holdingPresets = [
   { symbol: "emaxis-slim-all-country", name: "eMAXIS Slim 全世界株式", category: "fund", source: "apps-script", ticker: "emaxis-slim-all-country", dividendYield: 0, expectedReturnRate: 5, rank: 1, broker: "楽天/SBI" },
   { symbol: "emaxis-slim-sp500", name: "eMAXIS Slim S&P500", category: "fund", source: "apps-script", ticker: "emaxis-slim-sp500", dividendYield: 0, expectedReturnRate: 6, rank: 2, broker: "楽天/SBI" },
@@ -57,6 +71,7 @@ const defaultState = {
     birthDate: "",
     currentAge: 29,
     targetAge: 45,
+    heroTitle: "自由までの距離",
     householdType: "twoPlus",
     growthRateMode: "manual",
     investmentGrowthRate: 5,
@@ -122,6 +137,7 @@ let refreshAllTimer = null;
 let outcomeSnackTimer = null;
 let fireCountdownBaseSeconds = 0;
 let fireCountdownTargetAt = null;
+let forceFireCountdownReplan = false;
 let holdingFilterType = localStorage.getItem("life-progress-holding-filter-type") || "fund";
 let holdingSearchQuery = localStorage.getItem("life-progress-holding-search") || "";
 
@@ -186,6 +202,9 @@ function normalizeState(saved = {}) {
   const profile = { ...defaultState.profile, ...(saved.profile || {}) };
   if (saved.profile && !Object.hasOwn(saved.profile, "monthlyInvestmentAmount")) {
     profile.monthlyInvestmentAmount = 0;
+  }
+  if (!heroTitleOptions.includes(profile.heroTitle)) {
+    profile.heroTitle = defaultState.profile.heroTitle;
   }
   return {
     ...cloneDefaultState(),
@@ -991,16 +1010,19 @@ function renderFireProjection() {
   if (fireCountdownBaseSeconds === null) {
     fireCountdownTargetAt = null;
     state.fireCountdownPlan = null;
+    forceFireCountdownReplan = false;
   } else {
     const signature = fireProjectionSignature();
     const savedPlan = normalizeFireCountdownPlan(state.fireCountdownPlan);
-    if (savedPlan && savedPlan.signature === signature && savedPlan.targetAt > Date.now()) {
-      fireCountdownTargetAt = savedPlan.targetAt;
+    const nextTargetAt = Date.now() + fireCountdownBaseSeconds * 1000;
+    if (!forceFireCountdownReplan && savedPlan && savedPlan.targetAt > Date.now()) {
+      fireCountdownTargetAt = Math.min(savedPlan.targetAt, nextTargetAt);
     } else {
-      fireCountdownTargetAt = Date.now() + fireCountdownBaseSeconds * 1000;
-      state.fireCountdownPlan = { signature, targetAt: fireCountdownTargetAt };
-      saveState();
+      fireCountdownTargetAt = nextTargetAt;
     }
+    state.fireCountdownPlan = { signature, targetAt: fireCountdownTargetAt };
+    forceFireCountdownReplan = false;
+    saveState();
   }
   updateFireCountdown();
   const monthlyShortening = monthlyShorteningDays();
@@ -1031,6 +1053,7 @@ function render() {
   const yearly = yearlyComparison();
 
   setText("fireRate", `${rate}%`);
+  setText("heroTitle", state.profile.heroTitle || defaultState.profile.heroTitle);
   setText("totalAssets", yen.format(total));
   setText("heroTotalAssets", yen.format(total));
   setSignedText("heroTodayAssetChange", todayChange);
@@ -1906,6 +1929,7 @@ function hydrateSettings() {
   const profileForm = document.getElementById("profileForm");
   profileForm.elements.birthDate.value = state.profile.birthDate || "";
   profileForm.elements.targetAge.value = String(Number(state.profile.targetAge) || 45);
+  profileForm.elements.heroTitle.value = heroTitleOptions.includes(state.profile.heroTitle) ? state.profile.heroTitle : defaultState.profile.heroTitle;
   profileForm.elements.monthlyExpense.value = formatInputNumber(state.profile.monthlyExpense);
   profileForm.elements.householdType.value = state.profile.householdType === "single" ? "single" : "twoPlus";
   profileForm.elements.birthDate.max = todayKey();
@@ -2565,6 +2589,7 @@ document.getElementById("settingsForm").addEventListener("input", (event) => {
 
 document.getElementById("settingsForm").elements.investmentGrowthRate.addEventListener("change", (event) => {
   state.profile.investmentGrowthRate = Number(event.target.value) || 0;
+  forceFireCountdownReplan = true;
   saveState();
   renderFireProjection();
   showSaveStatus(`利回り${state.profile.investmentGrowthRate}%で再計算しました`);
@@ -2572,6 +2597,7 @@ document.getElementById("settingsForm").elements.investmentGrowthRate.addEventLi
 
 document.getElementById("settingsForm").elements.growthRateMode.addEventListener("change", (event) => {
   state.profile.growthRateMode = event.target.value === "holdings" ? "holdings" : "manual";
+  forceFireCountdownReplan = true;
   saveState();
   render();
   const modeLabel = state.profile.growthRateMode === "holdings" ? "保有銘柄の利回り" : "想定利回り";
@@ -2604,9 +2630,11 @@ document.getElementById("profileForm").addEventListener("submit", (event) => {
   const form = event.currentTarget;
   state.profile.birthDate = form.elements.birthDate.value;
   state.profile.targetAge = Math.max(1, Number(form.elements.targetAge.value) || 45);
+  state.profile.heroTitle = heroTitleOptions.includes(form.elements.heroTitle.value) ? form.elements.heroTitle.value : defaultState.profile.heroTitle;
   state.profile.monthlyExpense = parseInputNumber(form.elements.monthlyExpense.value);
   state.profile.householdType = form.elements.householdType.value === "single" ? "single" : "twoPlus";
   state.profile.currentAge = currentAgeYears();
+  forceFireCountdownReplan = true;
   saveState();
   render();
   showProfileStatus("プロフィールと資産比較条件を保存しました");
@@ -2974,6 +3002,7 @@ document.getElementById("settingsForm").addEventListener("submit", (event) => {
   const form = event.currentTarget;
   const previousTotal = totalAssets();
   applySettingsFormValues(form);
+  forceFireCountdownReplan = true;
   const currentTotal = totalAssets();
   state.lastMonthlyChange = {
     previousTotal,

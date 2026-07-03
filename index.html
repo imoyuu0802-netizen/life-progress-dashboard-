@@ -8,14 +8,14 @@
     <meta name="apple-mobile-web-app-title" content="Life Progress" />
     <title>Life Progress Dashboard</title>
     <link rel="manifest" href="manifest.webmanifest?v=5" />
-    <link rel="stylesheet" href="styles.css?v=76" />
+    <link rel="stylesheet" href="styles.css?v=77" />
   </head>
   <body>
     <main class="app-shell">
       <header class="hero">
         <div>
           <p class="eyebrow">FIRE Countdown</p>
-          <h1>自由までの距離</h1>
+          <h1 id="heroTitle">自由までの距離</h1>
         </div>
         <div class="hero-actions">
           <button id="refreshAll" class="refresh-trigger" type="button" aria-label="全体を更新" title="全体を更新">↻<span>更新</span></button>
@@ -422,6 +422,22 @@
               <input name="targetAge" type="number" inputmode="numeric" min="1" max="100" required />
             </label>
             <label>
+              <span>トップの言葉</span>
+              <select name="heroTitle" required>
+                <option value="自由までの距離">自由までの距離</option>
+                <option value="本当の人生が始まるまで">本当の人生が始まるまで</option>
+                <option value="自由を買い戻す旅">自由を買い戻す旅</option>
+                <option value="自分の人生を奪還するまで">自分の人生を奪還するまで</option>
+                <option value="残りの「縛られた」時間">残りの「縛られた」時間</option>
+                <option value="労働から解放される日まで">労働から解放される日まで</option>
+                <option value="ラットレース脱出への道">ラットレース脱出への道</option>
+                <option value="「働かなくていい」までの距離">「働かなくていい」までの距離</option>
+                <option value="目覚まし時計を捨てる日まで">目覚まし時計を捨てる日まで</option>
+                <option value="日曜の夜に笑える日まで">日曜の夜に笑える日まで</option>
+                <option value="「何もしない」を手に入れるまで">「何もしない」を手に入れるまで</option>
+              </select>
+            </label>
+            <label>
               <span>月間支出（4%ルール）</span>
               <input name="monthlyExpense" type="text" inputmode="numeric" data-number-input autocomplete="off" placeholder="250,000" />
             </label>
@@ -540,12 +556,12 @@
 
     <script src="firebase-config.js?v=53"></script>
     <script src="jflec-data.js?v=53"></script>
-    <script src="app.js?v=76"></script>
+    <script src="app.js?v=77"></script>
     <script type="module" src="firebase-sync.js?v=54"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js?v=76");
+          navigator.serviceWorker.register("sw.js?v=77");
         });
       }
     </script>
