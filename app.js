@@ -31,6 +31,33 @@ const heroTitleOptions = [
   "「何もしない」を手に入れるまで"
 ];
 
+const returnScenarioLabels = {
+  conservative: "保守",
+  standard: "標準",
+  aggressive: "強気"
+};
+
+const holdingReturnScenarios = {
+  "emaxis-slim-all-country": { conservative: 5, standard: 7, aggressive: 8.5 },
+  "emaxis-slim-sp500": { conservative: 6, standard: 8.5, aggressive: 10 },
+  "rakuten-plus-sp500": { conservative: 6, standard: 8.5, aggressive: 10 },
+  "rakuten-plus-all-country": { conservative: 5, standard: 7, aggressive: 8.5 },
+  "rakuten-schd": { conservative: 5.5, standard: 7, aggressive: 8.5 },
+  "sbi-v-sp500": { conservative: 6, standard: 8.5, aggressive: 10 },
+  "sbi-v-total-stock-market": { conservative: 5.8, standard: 8, aggressive: 9.5 },
+  "ifree-next-fang-plus": { conservative: 6, standard: 10, aggressive: 13 },
+  "nissay-nasdaq100": { conservative: 6, standard: 9.5, aggressive: 12 },
+  "rakuten-vti": { conservative: 5.8, standard: 8, aggressive: 9.5 },
+  "emaxis-slim-all-country-ex-japan": { conservative: 5, standard: 7, aggressive: 8.5 },
+  SPYD: { conservative: 4.5, standard: 6.5, aggressive: 8 },
+  HDV: { conservative: 4.5, standard: 6, aggressive: 7.5 },
+  VYM: { conservative: 5, standard: 7, aggressive: 8.5 },
+  "nf-nikkei-high-dividend-50": { conservative: 4, standard: 6, aggressive: 7.5 },
+  NVDA: { conservative: 6, standard: 10, aggressive: 15 },
+  KDDI: { conservative: 3.5, standard: 5, aggressive: 6.5 },
+  BTI: { conservative: 4, standard: 6, aggressive: 8 }
+};
+
 const holdingPresets = [
   { symbol: "emaxis-slim-all-country", name: "eMAXIS Slim 全世界株式", category: "fund", source: "apps-script", ticker: "emaxis-slim-all-country", dividendYield: 0, expectedReturnRate: 5, rank: 1, broker: "楽天/SBI" },
   { symbol: "emaxis-slim-sp500", name: "eMAXIS Slim S&P500", category: "fund", source: "apps-script", ticker: "emaxis-slim-sp500", dividendYield: 0, expectedReturnRate: 6, rank: 2, broker: "楽天/SBI" },
@@ -74,6 +101,7 @@ const defaultState = {
     heroTitle: "自由までの距離",
     householdType: "twoPlus",
     growthRateMode: "manual",
+    returnScenario: "standard",
     investmentGrowthRate: 5,
     monthlyInvestmentAmount: 50000,
     monthlyExpense: 0,
@@ -206,6 +234,9 @@ function normalizeState(saved = {}) {
   if (!heroTitleOptions.includes(profile.heroTitle)) {
     profile.heroTitle = defaultState.profile.heroTitle;
   }
+  if (!Object.hasOwn(returnScenarioLabels, profile.returnScenario)) {
+    profile.returnScenario = defaultState.profile.returnScenario;
+  }
   return {
     ...cloneDefaultState(),
     ...saved,
@@ -333,6 +364,9 @@ function holdingDividendYield(item) {
 
 function holdingExpectedReturnRate(item) {
   const preset = holdingPresets.find((presetItem) => presetItem.symbol === item.symbol || presetItem.name === item.name);
+  const scenario = Object.hasOwn(returnScenarioLabels, state.profile.returnScenario) ? state.profile.returnScenario : "standard";
+  const scenarioRates = holdingReturnScenarios[item.symbol] || holdingReturnScenarios[preset?.symbol];
+  if (scenarioRates) return Math.max(0, Number(scenarioRates[scenario] ?? scenarioRates.standard) || 0);
   return Math.max(0, Number(item.expectedReturnRate ?? preset?.expectedReturnRate ?? state.profile.investmentGrowthRate) || 0);
 }
 
@@ -354,7 +388,10 @@ function effectiveInvestmentGrowthRate() {
 
 function growthRateNoteText() {
   if (state.profile.growthRateMode === "holdings") {
-    return "保有銘柄の想定リターンは、配当利回りとは別のFIRE計算用数値を評価額で加重平均した概算です。証券会社の実績利回りや将来リターンを保証するものではありません。";
+    const scenario = Object.hasOwn(returnScenarioLabels, state.profile.returnScenario) ? state.profile.returnScenario : "standard";
+    const sp500Rate = holdingReturnScenarios["emaxis-slim-sp500"][scenario];
+    const allCountryRate = holdingReturnScenarios["emaxis-slim-all-country"][scenario];
+    return `保有銘柄の想定リターンは、${returnScenarioLabels[scenario]}前提（S&P500 ${sp500Rate}%・全世界 ${allCountryRate}%目安）を評価額で加重平均した概算です。将来リターンを保証するものではありません。`;
   }
   return "想定利回りは自分で決めた前提です。FIRE年数の目安計算に使うもので、将来リターンを保証するものではありません。";
 }
@@ -627,6 +664,7 @@ function fireProjectionSignature() {
     fireGoal: fireGoalAmount(),
     monthlyContribution: recurringMonthlyFireContribution(),
     investmentRate: effectiveInvestmentGrowthRate(),
+    returnScenario: state.profile.returnScenario,
     monthlySideProfit: monthlySideProfit(),
     annualDividends: Math.max(0, Number(state.assets.dividends) || 0),
     yearlyAssetGrowth: Math.max(0, Number(state.profile.yearlyAssetGrowth) || 0)
@@ -1940,6 +1978,7 @@ function hydrateSettings() {
   form.elements.monthlyInvestmentAmount.value = formatInputNumber(state.profile.monthlyInvestmentAmount);
   form.elements.investmentGrowthRate.value = String(Number(state.profile.investmentGrowthRate) || 0);
   form.elements.growthRateMode.value = state.profile.growthRateMode === "holdings" ? "holdings" : "manual";
+  form.elements.returnScenario.value = Object.hasOwn(returnScenarioLabels, state.profile.returnScenario) ? state.profile.returnScenario : "standard";
   form.elements.yearlyAssetGrowth.value = formatInputNumber(state.profile.yearlyAssetGrowth);
 }
 
@@ -2600,8 +2639,16 @@ document.getElementById("settingsForm").elements.growthRateMode.addEventListener
   forceFireCountdownReplan = true;
   saveState();
   render();
-  const modeLabel = state.profile.growthRateMode === "holdings" ? "保有銘柄の利回り" : "想定利回り";
+  const modeLabel = state.profile.growthRateMode === "holdings" ? "保有銘柄の想定リターン" : "想定利回り";
   showSaveStatus(`${modeLabel}でFIRE年数を再計算しました`);
+});
+
+document.getElementById("settingsForm").elements.returnScenario.addEventListener("change", (event) => {
+  state.profile.returnScenario = Object.hasOwn(returnScenarioLabels, event.target.value) ? event.target.value : "standard";
+  forceFireCountdownReplan = true;
+  saveState();
+  render();
+  showSaveStatus(`${returnScenarioLabels[state.profile.returnScenario]}前提でFIRE年数を再計算しました`);
 });
 
 document.getElementById("exportBackup").addEventListener("click", exportBackup);
@@ -2994,6 +3041,7 @@ function applySettingsFormValues(form) {
   state.profile.monthlyInvestmentAmount = parseInputNumber(form.elements.monthlyInvestmentAmount.value);
   state.profile.investmentGrowthRate = Number(form.elements.investmentGrowthRate.value) || 0;
   state.profile.growthRateMode = form.elements.growthRateMode.value === "holdings" ? "holdings" : "manual";
+  state.profile.returnScenario = Object.hasOwn(returnScenarioLabels, form.elements.returnScenario.value) ? form.elements.returnScenario.value : "standard";
   state.profile.yearlyAssetGrowth = parseInputNumber(form.elements.yearlyAssetGrowth.value);
 }
 

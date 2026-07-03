@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Life Progress" />
     <title>Life Progress Dashboard</title>
     <link rel="manifest" href="manifest.webmanifest?v=5" />
-    <link rel="stylesheet" href="styles.css?v=77" />
+    <link rel="stylesheet" href="styles.css?v=78" />
   </head>
   <body>
     <main class="app-shell">
@@ -345,6 +345,14 @@
                       <option value="holdings">保有銘柄の想定リターンから自動</option>
                     </select>
                   </label>
+                  <label>
+                    <span>保有銘柄の前提</span>
+                    <select name="returnScenario">
+                      <option value="conservative">保守（米国株6%目安）</option>
+                      <option value="standard">標準（米国株8〜8.5%目安）</option>
+                      <option value="aggressive">強気（米国株10%目安）</option>
+                    </select>
+                  </label>
                   <label><span>その他年間増加見込み</span><input name="yearlyAssetGrowth" type="text" inputmode="numeric" data-number-input autocomplete="off" /></label>
                   <div class="growth-preview"><small>現在のFIRE目標額</small><strong id="effectiveFireGoal">¥0</strong></div>
                   <div class="growth-preview"><small>投資成長見込み / 年</small><strong id="investmentGrowthAmount">¥0</strong></div>
@@ -556,12 +564,12 @@
 
     <script src="firebase-config.js?v=53"></script>
     <script src="jflec-data.js?v=53"></script>
-    <script src="app.js?v=77"></script>
+    <script src="app.js?v=78"></script>
     <script type="module" src="firebase-sync.js?v=54"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js?v=77");
+          navigator.serviceWorker.register("sw.js?v=78");
         });
       }
     </script>
