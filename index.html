@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Life Progress" />
     <title>Life Progress Dashboard</title>
     <link rel="manifest" href="manifest.webmanifest?v=5" />
-    <link rel="stylesheet" href="styles.css?v=73" />
+    <link rel="stylesheet" href="styles.css?v=74" />
   </head>
   <body>
     <main class="app-shell">
@@ -344,16 +344,16 @@
                     </select>
                   </label>
                   <label>
-                    <span>利回りの計算方法</span>
+                    <span>FIRE計算の利回り</span>
                     <select name="growthRateMode">
                       <option value="manual">自分で決めた想定利回り</option>
-                      <option value="holdings">保有銘柄の利回りから自動</option>
+                      <option value="holdings">保有銘柄の想定リターンから自動</option>
                     </select>
                   </label>
                   <label><span>その他年間増加見込み</span><input name="yearlyAssetGrowth" type="text" inputmode="numeric" data-number-input autocomplete="off" /></label>
                   <div class="growth-preview"><small>現在のFIRE目標額</small><strong id="effectiveFireGoal">¥0</strong></div>
                   <div class="growth-preview"><small>投資成長見込み / 年</small><strong id="investmentGrowthAmount">¥0</strong></div>
-                  <div class="growth-preview"><small>計算に使う利回り</small><strong id="effectiveGrowthRate">5%</strong></div>
+                  <div class="growth-preview"><small>計算に使う想定リターン</small><strong id="effectiveGrowthRate">5%</strong></div>
                   <p id="growthRateNote" class="holdings-note growth-rate-note">想定利回りは将来を保証するものではなく、FIRE年数の目安計算に使います。</p>
                 </div>
               </details>
@@ -526,12 +526,12 @@
 
     <script src="firebase-config.js?v=53"></script>
     <script src="jflec-data.js?v=53"></script>
-    <script src="app.js?v=73"></script>
+    <script src="app.js?v=74"></script>
     <script type="module" src="firebase-sync.js?v=54"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js?v=73");
+          navigator.serviceWorker.register("sw.js?v=74");
         });
       }
     </script>

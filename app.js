@@ -18,29 +18,29 @@ const outcomeTypeLabels = {
 };
 
 const holdingPresets = [
-  { symbol: "emaxis-slim-all-country", name: "eMAXIS Slim 全世界株式", category: "fund", source: "apps-script", ticker: "emaxis-slim-all-country", dividendYield: 0, rank: 1, broker: "楽天/SBI" },
-  { symbol: "emaxis-slim-sp500", name: "eMAXIS Slim S&P500", category: "fund", source: "apps-script", ticker: "emaxis-slim-sp500", dividendYield: 0, rank: 2, broker: "楽天/SBI" },
-  { symbol: "rakuten-plus-sp500", name: "楽天プラス S&P500", category: "fund", source: "apps-script", ticker: "rakuten-plus-sp500", dividendYield: 0, rank: 3, broker: "楽天" },
-  { symbol: "rakuten-plus-all-country", name: "楽天プラス オールカントリー", category: "fund", source: "apps-script", ticker: "rakuten-plus-all-country", dividendYield: 0, rank: 4, broker: "楽天" },
-  { symbol: "rakuten-schd", name: "楽天SCHD", category: "fund", source: "apps-script", ticker: "rakuten-schd", dividendYield: 3.3, dividendMonths: [2, 5, 8, 11], dividendDay: 25, rank: 5, broker: "楽天/SBI" },
-  { symbol: "sbi-v-sp500", name: "SBI・V・S&P500", category: "fund", source: "apps-script", ticker: "sbi-v-sp500", dividendYield: 0, rank: 6, broker: "SBI" },
-  { symbol: "sbi-v-total-stock-market", name: "SBI・V・全米株式", category: "fund", source: "apps-script", ticker: "sbi-v-total-stock-market", dividendYield: 0, rank: 7, broker: "SBI" },
-  { symbol: "ifree-next-fang-plus", name: "iFreeNEXT FANG+インデックス", category: "fund", source: "apps-script", ticker: "ifree-next-fang-plus", dividendYield: 0, rank: 8, broker: "楽天/SBI" },
-  { symbol: "nissay-nasdaq100", name: "ニッセイNASDAQ100インデックス", category: "fund", source: "apps-script", ticker: "nissay-nasdaq100", dividendYield: 0, rank: 9, broker: "楽天/SBI" },
-  { symbol: "rakuten-vti", name: "楽天・全米株式インデックス", category: "fund", source: "apps-script", ticker: "rakuten-vti", dividendYield: 0, rank: 10, broker: "楽天" },
-  { symbol: "emaxis-slim-all-country-ex-japan", name: "eMAXIS Slim 全世界株式 除く日本", category: "fund", source: "apps-script", ticker: "emaxis-slim-all-country-ex-japan", dividendYield: 0, rank: 11, broker: "楽天/SBI" },
-  { symbol: "SPYD", name: "SPYD", category: "etf", source: "googlefinance", ticker: "NYSEARCA:SPYD", dividendYield: 4.5, dividendMonths: [3, 6, 9, 12], dividendDay: 25, rank: 101, broker: "米国ETF" },
-  { symbol: "HDV", name: "HDV", category: "etf", source: "googlefinance", ticker: "NYSEARCA:HDV", dividendYield: 3.5, dividendMonths: [3, 6, 9, 12], dividendDay: 25, rank: 102, broker: "米国ETF" },
-  { symbol: "VYM", name: "VYM", category: "etf", source: "googlefinance", ticker: "NYSEARCA:VYM", dividendYield: 2.7, dividendMonths: [3, 6, 9, 12], dividendDay: 25, rank: 103, broker: "米国ETF" },
-  { symbol: "nf-nikkei-high-dividend-50", name: "NF日経高配当50", category: "etf", source: "googlefinance", ticker: "TYO:1489", dividendYield: 3.4, dividendMonths: [1, 4, 7, 10], dividendDay: 15, rank: 104, broker: "国内ETF" },
-  { symbol: "SPCX", name: "スペースX", category: "stock", source: "googlefinance", ticker: "NASDAQ:SPCX", dividendYield: 0, rank: 201, broker: "米国株" },
-  { symbol: "NVDA", name: "エヌビディア", category: "stock", source: "googlefinance", ticker: "NASDAQ:NVDA", dividendYield: 0.03, dividendMonths: [3, 6, 9, 12], dividendDay: 25, rank: 202, broker: "米国株" },
-  { symbol: "KDDI", name: "KDDI", category: "stock", source: "googlefinance", ticker: "TYO:9433", dividendYield: 3.0, dividendMonths: [6, 12], dividendDay: 20, rank: 203, broker: "国内株" },
-  { symbol: "BTI", name: "BTI", category: "stock", source: "googlefinance", ticker: "NYSE:BTI", dividendYield: 7.0, dividendMonths: [2, 5, 8, 11], dividendDay: 10, rank: 204, broker: "米国株" },
-  { symbol: "BTC", name: "ビットコイン", category: "crypto", source: "coingecko", ticker: "bitcoin", dividendYield: 0, rank: 301, broker: "暗号資産", aliases: ["bitcoin"] },
-  { symbol: "ETH", name: "イーサリアム", category: "crypto", source: "coingecko", ticker: "ethereum", dividendYield: 0, rank: 302, broker: "暗号資産", aliases: ["ethereum"] },
-  { symbol: "XRP", name: "リップル", category: "crypto", source: "coingecko", ticker: "ripple", dividendYield: 0, rank: 303, broker: "暗号資産", aliases: ["ripple"] },
-  { symbol: "SOL", name: "ソラナ", category: "crypto", source: "coingecko", ticker: "solana", dividendYield: 0, rank: 304, broker: "暗号資産", aliases: ["solana"] },
+  { symbol: "emaxis-slim-all-country", name: "eMAXIS Slim 全世界株式", category: "fund", source: "apps-script", ticker: "emaxis-slim-all-country", dividendYield: 0, expectedReturnRate: 5, rank: 1, broker: "楽天/SBI" },
+  { symbol: "emaxis-slim-sp500", name: "eMAXIS Slim S&P500", category: "fund", source: "apps-script", ticker: "emaxis-slim-sp500", dividendYield: 0, expectedReturnRate: 6, rank: 2, broker: "楽天/SBI" },
+  { symbol: "rakuten-plus-sp500", name: "楽天プラス S&P500", category: "fund", source: "apps-script", ticker: "rakuten-plus-sp500", dividendYield: 0, expectedReturnRate: 6, rank: 3, broker: "楽天" },
+  { symbol: "rakuten-plus-all-country", name: "楽天プラス オールカントリー", category: "fund", source: "apps-script", ticker: "rakuten-plus-all-country", dividendYield: 0, expectedReturnRate: 5, rank: 4, broker: "楽天" },
+  { symbol: "rakuten-schd", name: "楽天SCHD", category: "fund", source: "apps-script", ticker: "rakuten-schd", dividendYield: 3.3, expectedReturnRate: 5.5, dividendMonths: [2, 5, 8, 11], dividendDay: 25, rank: 5, broker: "楽天/SBI" },
+  { symbol: "sbi-v-sp500", name: "SBI・V・S&P500", category: "fund", source: "apps-script", ticker: "sbi-v-sp500", dividendYield: 0, expectedReturnRate: 6, rank: 6, broker: "SBI" },
+  { symbol: "sbi-v-total-stock-market", name: "SBI・V・全米株式", category: "fund", source: "apps-script", ticker: "sbi-v-total-stock-market", dividendYield: 0, expectedReturnRate: 5.5, rank: 7, broker: "SBI" },
+  { symbol: "ifree-next-fang-plus", name: "iFreeNEXT FANG+インデックス", category: "fund", source: "apps-script", ticker: "ifree-next-fang-plus", dividendYield: 0, expectedReturnRate: 7, rank: 8, broker: "楽天/SBI" },
+  { symbol: "nissay-nasdaq100", name: "ニッセイNASDAQ100インデックス", category: "fund", source: "apps-script", ticker: "nissay-nasdaq100", dividendYield: 0, expectedReturnRate: 7, rank: 9, broker: "楽天/SBI" },
+  { symbol: "rakuten-vti", name: "楽天・全米株式インデックス", category: "fund", source: "apps-script", ticker: "rakuten-vti", dividendYield: 0, expectedReturnRate: 5.5, rank: 10, broker: "楽天" },
+  { symbol: "emaxis-slim-all-country-ex-japan", name: "eMAXIS Slim 全世界株式 除く日本", category: "fund", source: "apps-script", ticker: "emaxis-slim-all-country-ex-japan", dividendYield: 0, expectedReturnRate: 5, rank: 11, broker: "楽天/SBI" },
+  { symbol: "SPYD", name: "SPYD", category: "etf", source: "googlefinance", ticker: "NYSEARCA:SPYD", dividendYield: 4.5, expectedReturnRate: 4.5, dividendMonths: [3, 6, 9, 12], dividendDay: 25, rank: 101, broker: "米国ETF" },
+  { symbol: "HDV", name: "HDV", category: "etf", source: "googlefinance", ticker: "NYSEARCA:HDV", dividendYield: 3.5, expectedReturnRate: 4.5, dividendMonths: [3, 6, 9, 12], dividendDay: 25, rank: 102, broker: "米国ETF" },
+  { symbol: "VYM", name: "VYM", category: "etf", source: "googlefinance", ticker: "NYSEARCA:VYM", dividendYield: 2.7, expectedReturnRate: 5, dividendMonths: [3, 6, 9, 12], dividendDay: 25, rank: 103, broker: "米国ETF" },
+  { symbol: "nf-nikkei-high-dividend-50", name: "NF日経高配当50", category: "etf", source: "googlefinance", ticker: "TYO:1489", dividendYield: 3.4, expectedReturnRate: 4.5, dividendMonths: [1, 4, 7, 10], dividendDay: 15, rank: 104, broker: "国内ETF" },
+  { symbol: "SPCX", name: "スペースX", category: "stock", source: "googlefinance", ticker: "NASDAQ:SPCX", dividendYield: 0, expectedReturnRate: 0, rank: 201, broker: "米国株" },
+  { symbol: "NVDA", name: "エヌビディア", category: "stock", source: "googlefinance", ticker: "NASDAQ:NVDA", dividendYield: 0.03, expectedReturnRate: 7, dividendMonths: [3, 6, 9, 12], dividendDay: 25, rank: 202, broker: "米国株" },
+  { symbol: "KDDI", name: "KDDI", category: "stock", source: "googlefinance", ticker: "TYO:9433", dividendYield: 3.0, expectedReturnRate: 4, dividendMonths: [6, 12], dividendDay: 20, rank: 203, broker: "国内株" },
+  { symbol: "BTI", name: "BTI", category: "stock", source: "googlefinance", ticker: "NYSE:BTI", dividendYield: 7.0, expectedReturnRate: 5, dividendMonths: [2, 5, 8, 11], dividendDay: 10, rank: 204, broker: "米国株" },
+  { symbol: "BTC", name: "ビットコイン", category: "crypto", source: "coingecko", ticker: "bitcoin", dividendYield: 0, expectedReturnRate: 0, rank: 301, broker: "暗号資産", aliases: ["bitcoin"] },
+  { symbol: "ETH", name: "イーサリアム", category: "crypto", source: "coingecko", ticker: "ethereum", dividendYield: 0, expectedReturnRate: 0, rank: 302, broker: "暗号資産", aliases: ["ethereum"] },
+  { symbol: "XRP", name: "リップル", category: "crypto", source: "coingecko", ticker: "ripple", dividendYield: 0, expectedReturnRate: 0, rank: 303, broker: "暗号資産", aliases: ["ripple"] },
+  { symbol: "SOL", name: "ソラナ", category: "crypto", source: "coingecko", ticker: "solana", dividendYield: 0, expectedReturnRate: 0, rank: 304, broker: "暗号資産", aliases: ["solana"] },
   { symbol: "custom", name: "その他", category: "custom", source: "manual", ticker: "", dividendYield: 0, rank: 999, broker: "手入力" }
 ];
 
@@ -284,6 +284,7 @@ function normalizeInvestmentHoldings(items, savedAssets = {}) {
         source: preset?.source || item.source || "manual",
         ticker: preset?.ticker || item.ticker || "",
         dividendYield: typeof item.dividendYield === "number" ? item.dividendYield : Number(preset?.dividendYield) || 0,
+        expectedReturnRate: typeof item.expectedReturnRate === "number" ? item.expectedReturnRate : Number(preset?.expectedReturnRate ?? defaultState.profile.investmentGrowthRate) || 0,
         quantity: Math.max(0, Number(item.quantity) || 0),
         price: Math.max(0, Number(item.price) || 0),
         priceUpdatedAt: typeof item.priceUpdatedAt === "string" ? item.priceUpdatedAt : "",
@@ -301,12 +302,17 @@ function holdingDividendYield(item) {
   return Math.max(0, Number(item.dividendYield ?? preset?.dividendYield) || 0);
 }
 
+function holdingExpectedReturnRate(item) {
+  const preset = holdingPresets.find((presetItem) => presetItem.symbol === item.symbol || presetItem.name === item.name);
+  return Math.max(0, Number(item.expectedReturnRate ?? preset?.expectedReturnRate ?? state.profile.investmentGrowthRate) || 0);
+}
+
 function weightedHoldingYield() {
   const total = state.investmentHoldings.reduce((sum, item) => sum + Math.max(0, Number(item.value) || 0), 0);
-  if (total <= 0) return 0;
+  if (total <= 0) return Math.max(0, Number(state.profile.investmentGrowthRate) || 0);
   const weighted = state.investmentHoldings.reduce((sum, item) => {
     const value = Math.max(0, Number(item.value) || 0);
-    return sum + value * holdingDividendYield(item);
+    return sum + value * holdingExpectedReturnRate(item);
   }, 0);
   return roundOne(weighted / total);
 }
@@ -319,7 +325,7 @@ function effectiveInvestmentGrowthRate() {
 
 function growthRateNoteText() {
   if (state.profile.growthRateMode === "holdings") {
-    return "保有銘柄の利回りは、登録済み利回りを評価額で加重平均した概算です。証券会社の実績利回りや将来リターンを保証するものではありません。";
+    return "保有銘柄の想定リターンは、配当利回りとは別のFIRE計算用数値を評価額で加重平均した概算です。証券会社の実績利回りや将来リターンを保証するものではありません。";
   }
   return "想定利回りは自分で決めた前提です。FIRE年数の目安計算に使うもので、将来リターンを保証するものではありません。";
 }
@@ -2005,6 +2011,7 @@ function readInvestmentHoldingRows() {
         source: preset?.source || "manual",
         ticker: preset?.ticker || "",
         dividendYield: Number(preset?.dividendYield) || 0,
+        expectedReturnRate: Number(preset?.expectedReturnRate ?? state.profile.investmentGrowthRate) || 0,
         quantity,
         price: parseDecimalInputNumber(row.dataset.holdingPrice || ""),
         priceUpdatedAt: row.dataset.holdingPriceUpdatedAt || "",
@@ -2343,6 +2350,7 @@ function addHoldingFromPreset(preset = filteredHoldingPresets()[0] || holdingPre
     source: preset.source,
     ticker: preset.ticker,
     dividendYield: Number(preset.dividendYield) || 0,
+    expectedReturnRate: Number(preset.expectedReturnRate ?? state.profile.investmentGrowthRate) || 0,
     quantity: 0,
     price: 0,
     priceUpdatedAt: "",
