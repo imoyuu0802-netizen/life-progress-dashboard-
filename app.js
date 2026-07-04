@@ -1139,7 +1139,7 @@ function renderFireProjection() {
     const signature = fireProjectionSignature();
     const savedPlan = normalizeFireCountdownPlan(state.fireCountdownPlan);
     const nextTargetAt = Date.now() + fireCountdownBaseSeconds * 1000;
-    if (!forceFireCountdownReplan && savedPlan?.signature === signature && savedPlan.targetAt > Date.now()) {
+    if (!forceFireCountdownReplan && savedPlan && savedPlan.targetAt > Date.now()) {
       fireCountdownTargetAt = Math.min(savedPlan.targetAt, nextTargetAt);
     } else {
       fireCountdownTargetAt = nextTargetAt;
