@@ -647,7 +647,7 @@ function microGoalState() {
   const progressRate = dailyCost > 0 ? Math.min(100, Math.round((currentAmount / dailyCost) * 100)) : 0;
   return {
     level: completedDays + 1,
-    title: `${completedDays + 1}日分の有給を買い戻す`,
+    title: `${completedDays + 1}日分の日常を買い戻した`,
     targetAmount: dailyCost,
     currentAmount,
     remainingAmount,
