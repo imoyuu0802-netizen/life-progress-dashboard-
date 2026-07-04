@@ -1788,7 +1788,7 @@ function renderOutcomeHistory() {
     container.innerHTML = '<p class="outcome-empty">成果を記録すると、FIRE短縮がここに積み上がります</p>';
     return;
   }
-  container.innerHTML = entries.map((entry) => `
+  const renderRows = (items) => items.map((entry) => `
     <div class="outcome-row">
       <div class="outcome-main">
         <strong>${escapeHtml(entry.category)}</strong>
@@ -1801,6 +1801,21 @@ function renderOutcomeHistory() {
       <button type="button" data-delete-outcome="${escapeHtml(entry.id)}" aria-label="${escapeHtml(entry.category)}を削除">削除</button>
     </div>
   `).join("");
+  const visibleEntries = entries.slice(0, 5);
+  const olderEntries = entries.slice(5);
+  container.innerHTML = `
+    <div class="outcome-history-head">
+      <small>直近5件</small>
+      <span>${entries.length}件</span>
+    </div>
+    ${renderRows(visibleEntries)}
+    ${olderEntries.length ? `
+      <details class="outcome-history-more">
+        <summary>過去の成果 ${olderEntries.length}件を表示</summary>
+        ${renderRows(olderEntries)}
+      </details>
+    ` : ""}
+  `;
 }
 
 function renderJourney() {
