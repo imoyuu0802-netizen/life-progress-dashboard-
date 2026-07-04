@@ -1143,12 +1143,33 @@ small {
   background: var(--soft);
 }
 
+.result-hero.is-good,
+.result-grid div.is-good {
+  border-color: rgba(70, 209, 139, 0.34);
+  background: linear-gradient(145deg, rgba(70, 209, 139, 0.14), rgba(255, 255, 255, 0.035));
+  box-shadow: 0 0 0 1px rgba(70, 209, 139, 0.06) inset;
+}
+
+.result-grid div.is-bad {
+  border-color: rgba(255, 98, 98, 0.28);
+  background: linear-gradient(145deg, rgba(255, 98, 98, 0.1), rgba(255, 255, 255, 0.025));
+}
+
 .result-grid strong {
   color: var(--ink);
   font-size: 17px;
   line-height: 1.08;
   font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
+}
+
+.result-hero.is-good strong,
+.result-grid div.is-good strong {
+  color: var(--green);
+}
+
+.result-grid div.is-bad strong {
+  color: var(--danger);
 }
 
 .benchmark-note {

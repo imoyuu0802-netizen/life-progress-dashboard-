@@ -1250,6 +1250,7 @@ function render() {
   setSignedClass("peerAverageDiff", peerAverage ? total - peerAverage : null);
   setPositiveNegativeClass("monthlyFireDelta", monthlyFireAgeDiff);
   setPositiveNegativeClass("yearlyShortening", yearlyShortening);
+  renderResultHighlights();
   setText("fireProgressLabel", `${rate}%`);
   document.getElementById("fireProgress").style.width = `${rate}%`;
   renderFireProjection();
@@ -1284,6 +1285,38 @@ function setSignedClass(id, value) {
 
 function setPositiveNegativeClass(id, value) {
   setSignedClass(id, typeof value === "number" ? value : null);
+}
+
+function setResultCardState(id, stateName) {
+  const element = document.getElementById(id);
+  const card = element?.closest(".result-grid > div, .result-hero");
+  if (!card) return;
+  card.classList.remove("is-good", "is-bad");
+  if (stateName) card.classList.add(stateName);
+}
+
+function renderResultHighlights() {
+  const total = totalAssets();
+  const peerRanking = peerAssetRanking();
+  const peerAverage = peerAverageAssetAmount(peerRanking);
+  const yearsToFire = yearsToFireDecimal();
+  const fireAge = arrivalAge();
+  const leadYears = retirementLeadYears();
+  const yearly = yearlyComparison();
+  const sideProfit = monthlySideProfit();
+  const monthlySavings = outcomeTotals(outcomeEntriesFor("month")).saving;
+
+  setResultCardState("totalAssets", total > 0 ? "is-good" : null);
+  setResultCardState("peerPercentile", peerRanking && peerRanking.percent <= 50 ? "is-good" : null);
+  setResultCardState("peerRatio", peerAverage && total > peerAverage ? "is-good" : null);
+  setResultCardState("peerAverageDiff", peerAverage ? (total > peerAverage ? "is-good" : total < peerAverage ? "is-bad" : null) : null);
+  setResultCardState("resultYearsToFire", typeof yearsToFire === "number" && yearsToFire <= yearsToTargetAge() ? "is-good" : null);
+  setResultCardState("resultFireAge", typeof fireAge === "number" && fireAge <= state.profile.targetAge ? "is-good" : null);
+  setResultCardState("annualDividendResult", state.assets.dividends > 0 ? "is-good" : null);
+  setResultCardState("monthlySideProfitResult", sideProfit > 0 ? "is-good" : null);
+  setResultCardState("monthlySavingResult", monthlySavings > 0 ? "is-good" : null);
+  setResultCardState("yearlyAssetDiffResult", yearly.assetDiff > 0 ? "is-good" : yearly.assetDiff < 0 ? "is-bad" : null);
+  setResultCardState("retirementLead", leadYears > 0 ? "is-good" : leadYears < 0 ? "is-bad" : null);
 }
 
 function dailyOutcomeStreak() {
@@ -2459,6 +2492,7 @@ async function saveInvestmentHoldings(options = {}) {
     const yearsToFire = yearsToFireDecimal();
     setText("resultYearsToFire", typeof yearsToFire === "number" ? `約${yearsToFire.toFixed(1)}年` : "積立額を入力");
     setText("resultFireAge", formatAge(arrivalAge()));
+    renderResultHighlights();
     renderFireProjection();
     renderAssets();
     renderAssetTrend();
