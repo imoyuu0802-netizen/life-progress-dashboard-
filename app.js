@@ -736,7 +736,6 @@ function fireProjectionSignature() {
     monthlyContribution: recurringMonthlyFireContribution(),
     investmentRate: effectiveInvestmentGrowthRate(),
     returnScenario: state.profile.returnScenario,
-    monthlySideProfit: monthlySideProfit(),
     annualDividends: Math.max(0, Number(state.assets.dividends) || 0),
     yearlyAssetGrowth: Math.max(0, Number(state.profile.yearlyAssetGrowth) || 0)
   });
@@ -768,15 +767,13 @@ function selectedProgressDate() {
 }
 
 function projectedAnnualFirePower() {
-  const monthlyProfit = monthlySideProfit();
-  return state.profile.yearlyAssetGrowth + annualInvestmentContribution() + investmentGrowthAmount() + state.assets.dividends + monthlyProfit * 12;
+  return state.profile.yearlyAssetGrowth + annualInvestmentContribution() + investmentGrowthAmount() + state.assets.dividends;
 }
 
 function recurringMonthlyFireContribution() {
   return Math.max(0, Number(state.profile.monthlyInvestmentAmount) || 0)
     + Math.max(0, Number(state.profile.yearlyAssetGrowth) || 0) / 12
-    + Math.max(0, Number(state.assets.dividends) || 0) / 12
-    + Math.max(0, monthlySideProfit());
+    + Math.max(0, Number(state.assets.dividends) || 0) / 12;
 }
 
 function compoundYearsToFire() {
@@ -1142,7 +1139,7 @@ function renderFireProjection() {
     const signature = fireProjectionSignature();
     const savedPlan = normalizeFireCountdownPlan(state.fireCountdownPlan);
     const nextTargetAt = Date.now() + fireCountdownBaseSeconds * 1000;
-    if (!forceFireCountdownReplan && savedPlan && savedPlan.targetAt > Date.now()) {
+    if (!forceFireCountdownReplan && savedPlan?.signature === signature && savedPlan.targetAt > Date.now()) {
       fireCountdownTargetAt = Math.min(savedPlan.targetAt, nextTargetAt);
     } else {
       fireCountdownTargetAt = nextTargetAt;
