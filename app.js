@@ -1077,14 +1077,33 @@ function padClock(value) {
   return String(value).padStart(2, "0");
 }
 
-function formatFireCountdown(totalSeconds) {
-  const seconds = Math.max(0, Math.floor(Number(totalSeconds) || 0));
+function fireCountdownDisplayOffsetMs() {
+  return Math.max(0, totalConfirmedSavedMinutes("lifetime")) * 60 * 1000;
+}
+
+function formatFireCountdown(totalMs) {
+  const milliseconds = Math.max(0, Math.floor(Number(totalMs) || 0));
+  const seconds = Math.floor(milliseconds / 1000);
+  const centiseconds = Math.floor((milliseconds % 1000) / 10);
   const days = Math.floor(seconds / 86400);
   const rest = seconds % 86400;
   const hours = Math.floor(rest / 3600);
   const minutes = Math.floor((rest % 3600) / 60);
   const remainingSeconds = rest % 60;
-  return `${numberFormatter.format(days)}日\n${padClock(hours)}時間${padClock(minutes)}分${padClock(remainingSeconds)}秒`;
+  return `${numberFormatter.format(days)}日\n${padClock(hours)}時間${padClock(minutes)}分${padClock(remainingSeconds)}秒.${padClock(centiseconds)}`;
+}
+
+function showFireCountdownImpact(minutes) {
+  const impact = document.getElementById("fireCountdownImpact");
+  const time = document.getElementById("fireCountdownImpactTime");
+  if (!impact || !time) return;
+  const safeMinutes = Math.max(0, Math.round(Number(minutes) || 0));
+  if (!safeMinutes) return;
+  time.textContent = `−${formatBuybackTime(safeMinutes)}`;
+  impact.hidden = false;
+  impact.classList.remove("is-visible");
+  void impact.offsetWidth;
+  impact.classList.add("is-visible");
 }
 
 function showDailyCountdownAction(animate = true) {
@@ -1124,8 +1143,8 @@ function updateFireCountdown() {
     if (action) action.hidden = true;
     return;
   }
-  const remainingSeconds = Math.max(0, Math.floor((fireCountdownTargetAt - Date.now()) / 1000));
-  setText("fireDistanceHero", formatFireCountdown(remainingSeconds));
+  const remainingMs = Math.max(0, fireCountdownTargetAt - Date.now() - fireCountdownDisplayOffsetMs());
+  setText("fireDistanceHero", formatFireCountdown(remainingMs));
   maybeTriggerDailyCountdownAction();
 }
 
@@ -2625,7 +2644,12 @@ document.getElementById("outcomeForm").addEventListener("submit", (event) => {
   render();
   const contribution = outcomeContribution(entry);
   showOutcomeStatus(`${formatSignedYen(contribution)}で${formatBuybackTime(savedTimeMinutesForAmount(contribution), { signed: true })}買い戻しました`);
-  if (contribution > 0) showBuybackToast(contribution);
+  if (contribution > 0) {
+    const savedMinutes = savedTimeMinutesForAmount(contribution);
+    showBuybackToast(contribution);
+    showFireCountdownImpact(savedMinutes);
+    updateFireCountdown();
+  }
 });
 
 const outcomeQuickActions = document.getElementById("outcomeQuickActions");
@@ -2648,7 +2672,11 @@ if (outcomeQuickActions) {
     saveState();
     render();
     showOutcomeSnack(entry);
-    showBuybackToast(outcomeContribution(entry));
+    const contribution = outcomeContribution(entry);
+    const savedMinutes = savedTimeMinutesForAmount(contribution);
+    showBuybackToast(contribution);
+    showFireCountdownImpact(savedMinutes);
+    updateFireCountdown();
     setText("dailyMomentumMessage", `${formatSignedYen(action.amount)}で${formatBuybackTime(savedTimeMinutesForAmount(outcomeContribution(entry)), { signed: true })}買い戻しました`);
   });
 }
@@ -3251,4 +3279,4 @@ window.fireDashboard = {
 
 render();
 refreshCryptoPricesOnOpen();
-window.setInterval(updateFireCountdown, 1000);
+window.setInterval(updateFireCountdown, 100);

@@ -318,6 +318,55 @@ small {
   white-space: pre-line;
 }
 
+.fire-countdown-impact {
+  display: inline-grid;
+  gap: 3px;
+  min-width: min(100%, 260px);
+  margin-top: 12px;
+  padding: 10px 13px;
+  border: 1px solid rgba(70, 209, 139, 0.42);
+  border-radius: 999px;
+  background: rgba(70, 209, 139, 0.12);
+  box-shadow: 0 0 0 1px rgba(70, 209, 139, 0.08) inset;
+  opacity: 0;
+  transform: translateY(8px) scale(0.98);
+}
+
+.fire-countdown-impact span {
+  color: var(--green);
+  font-size: 18px;
+  font-weight: 950;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.fire-countdown-impact small {
+  color: rgba(247, 244, 232, 0.68);
+  font-size: 10px;
+  font-weight: 850;
+}
+
+.fire-countdown-impact.is-visible {
+  animation: fire-impact-pop 1800ms ease both;
+}
+
+@keyframes fire-impact-pop {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.94);
+  }
+
+  18% {
+    opacity: 1;
+    transform: translateY(0) scale(1.04);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 .daily-countdown-action {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
@@ -803,6 +852,7 @@ small {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .fire-countdown-impact.is-visible,
   .daily-countdown-action.is-visible,
   .buyback-toast,
   .buyback-toast.is-visible {
