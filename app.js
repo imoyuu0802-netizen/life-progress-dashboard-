@@ -1084,13 +1084,12 @@ function fireCountdownDisplayOffsetMs() {
 function formatFireCountdown(totalMs) {
   const milliseconds = Math.max(0, Math.floor(Number(totalMs) || 0));
   const seconds = Math.floor(milliseconds / 1000);
-  const centiseconds = Math.floor((milliseconds % 1000) / 10);
   const days = Math.floor(seconds / 86400);
   const rest = seconds % 86400;
   const hours = Math.floor(rest / 3600);
   const minutes = Math.floor((rest % 3600) / 60);
   const remainingSeconds = rest % 60;
-  return `${numberFormatter.format(days)}日\n${padClock(hours)}時間${padClock(minutes)}分${padClock(remainingSeconds)}秒.${padClock(centiseconds)}`;
+  return `${numberFormatter.format(days)}日\n${padClock(hours)}時間${padClock(minutes)}分${padClock(remainingSeconds)}秒`;
 }
 
 function showFireCountdownImpact(minutes) {
@@ -3279,4 +3278,4 @@ window.fireDashboard = {
 
 render();
 refreshCryptoPricesOnOpen();
-window.setInterval(updateFireCountdown, 100);
+window.setInterval(updateFireCountdown, 1000);
