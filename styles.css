@@ -911,6 +911,11 @@ small {
   overflow-wrap: anywhere;
 }
 
+.breakdown-grid .is-expense small,
+.breakdown-grid .is-expense strong {
+  color: var(--danger);
+}
+
 .market-details {
   margin-top: 10px;
 }
@@ -1714,6 +1719,12 @@ small {
 .outcome-row b {
   color: var(--gold);
   font-size: 12px;
+}
+
+.outcome-row.is-spending .outcome-main small,
+.outcome-row.is-spending .outcome-values span,
+.outcome-row.is-spending .outcome-values b {
+  color: var(--danger);
 }
 
 .outcome-row button {

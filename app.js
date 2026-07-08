@@ -1806,19 +1806,24 @@ function renderOutcomeHistory() {
     container.innerHTML = '<p class="outcome-empty">成果を記録すると、FIRE短縮がここに積み上がります</p>';
     return;
   }
-  const renderRows = (items) => items.map((entry) => `
-    <div class="outcome-row">
+  const renderRows = (items) => items.map((entry) => {
+    const contribution = outcomeContribution(entry);
+    const signedClass = getSignedClass(contribution);
+    const typeClass = entry.type === "spending" ? " is-spending" : "";
+    return `
+    <div class="outcome-row${typeClass}">
       <div class="outcome-main">
         <strong>${escapeHtml(entry.category)}</strong>
         <small>${formatEntryDate(entry.date)}・${outcomeTypeLabels[entry.type] || "成果"}</small>
       </div>
       <div class="outcome-values">
-        <span>${formatSignedYen(outcomeContribution(entry))}</span>
-        <b>${formatBuybackTime(savedTimeMinutesForAmount(outcomeContribution(entry)), { signed: true })}</b>
+        <span class="${signedClass}">${formatSignedYen(contribution)}</span>
+        <b class="${signedClass}">${formatBuybackTime(savedTimeMinutesForAmount(contribution), { signed: true })}</b>
       </div>
       <button type="button" data-delete-outcome="${escapeHtml(entry.id)}" aria-label="${escapeHtml(entry.category)}を削除">削除</button>
     </div>
-  `).join("");
+  `;
+  }).join("");
   const visibleEntries = entries.slice(0, 5);
   const olderEntries = entries.slice(5);
   container.innerHTML = `

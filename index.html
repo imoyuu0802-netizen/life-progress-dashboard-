@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Life Progress" />
     <title>Life Progress Dashboard</title>
     <link rel="manifest" href="manifest.webmanifest?v=5" />
-    <link rel="stylesheet" href="styles.css?v=91" />
+    <link rel="stylesheet" href="styles.css?v=92" />
   </head>
   <body>
     <main class="app-shell">
@@ -157,7 +157,7 @@
                   <small>市場</small>
                   <strong id="todayMarketChange">¥0</strong>
                 </div>
-                <div>
+                <div class="is-expense">
                   <small>支出</small>
                   <strong id="todaySpendingChange">¥0</strong>
                 </div>
@@ -601,12 +601,12 @@
 
     <script src="firebase-config.js?v=53"></script>
     <script src="jflec-data.js?v=53"></script>
-    <script src="app.js?v=91"></script>
+    <script src="app.js?v=92"></script>
     <script type="module" src="firebase-sync.js?v=54"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js?v=91");
+          navigator.serviceWorker.register("sw.js?v=92");
         });
       }
     </script>
