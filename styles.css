@@ -442,6 +442,31 @@ small {
   white-space: pre-line;
 }
 
+.hero-asset-total {
+  display: inline-grid;
+  gap: 3px;
+  min-width: min(100%, 220px);
+  padding: 8px 12px;
+  border: 1px solid rgba(240, 200, 106, 0.26);
+  border-radius: 999px;
+  background: rgba(240, 200, 106, 0.08);
+}
+
+.hero-asset-total small {
+  color: rgba(247, 244, 232, 0.58);
+  font-size: 10px;
+  font-weight: 850;
+  line-height: 1;
+}
+
+.hero-asset-total b {
+  color: var(--ink);
+  font-size: 18px;
+  font-weight: 950;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
 .fire-countdown-impact {
   display: inline-grid;
   gap: 3px;
@@ -2956,6 +2981,14 @@ button:disabled {
 
   .fire-countdown-head small {
     line-height: 1.1;
+  }
+
+  .hero-asset-total {
+    padding: 7px 11px;
+  }
+
+  .hero-asset-total b {
+    font-size: 16px;
   }
 
   .fire-countdown-impact {
