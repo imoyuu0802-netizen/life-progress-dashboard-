@@ -169,6 +169,7 @@ let refreshAllTimer = null;
 let outcomeSnackTimer = null;
 let buybackToastTimer = null;
 let dailyCountdownActionTimer = null;
+let fireCountdownTimer = null;
 let fireCountdownBaseSeconds = 0;
 let fireCountdownTargetAt = null;
 let forceFireCountdownReplan = false;
@@ -1152,6 +1153,20 @@ function updateFireCountdown() {
   const remainingMs = Math.max(0, fireCountdownTargetAt - Date.now() - fireCountdownDisplayOffsetMs());
   setText("fireDistanceHero", formatFireCountdown(remainingMs));
   maybeTriggerDailyCountdownAction();
+}
+
+function scheduleFireCountdownTick() {
+  window.clearTimeout(fireCountdownTimer);
+  const delay = 1000 - (Date.now() % 1000) + 24;
+  fireCountdownTimer = window.setTimeout(() => {
+    updateFireCountdown();
+    scheduleFireCountdownTick();
+  }, delay);
+}
+
+function restartFireCountdownTick() {
+  updateFireCountdown();
+  scheduleFireCountdownTick();
 }
 
 function renderFireProjection() {
@@ -3392,6 +3407,13 @@ window.fireDashboard = {
   storageKey
 };
 
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) restartFireCountdownTick();
+});
+
+window.addEventListener("pageshow", restartFireCountdownTick);
+window.addEventListener("focus", restartFireCountdownTick);
+
 render();
 refreshCryptoPricesOnOpen();
-window.setInterval(updateFireCountdown, 1000);
+restartFireCountdownTick();
