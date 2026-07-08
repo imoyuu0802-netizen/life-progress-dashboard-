@@ -174,6 +174,7 @@ small {
   backdrop-filter: blur(10px);
   border: 1px solid var(--line);
   border-radius: var(--radius);
+  touch-action: pan-y;
 }
 
 .view-tab {
@@ -197,6 +198,7 @@ small {
 
 .view {
   display: none;
+  touch-action: pan-y;
 }
 
 .view.is-active {

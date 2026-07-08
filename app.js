@@ -175,6 +175,12 @@ let forceFireCountdownReplan = false;
 let holdingFilterType = localStorage.getItem("life-progress-holding-filter-type") || "fund";
 let holdingSearchQuery = localStorage.getItem("life-progress-holding-search") || "";
 let activeHoldingId = null;
+const swipeViewOrder = ["overview", "review", "input"];
+const swipeState = {
+  startX: 0,
+  startY: 0,
+  tracking: false
+};
 
 const yen = new Intl.NumberFormat("ja-JP", {
   style: "currency",
@@ -2613,6 +2619,13 @@ document.querySelectorAll("[data-view-target]").forEach((button) => {
   });
 });
 
+const appShell = document.querySelector(".app-shell");
+if (appShell) {
+  appShell.addEventListener("touchstart", handleViewSwipeStart, { passive: true });
+  appShell.addEventListener("touchend", handleViewSwipeEnd, { passive: true });
+  appShell.addEventListener("touchcancel", resetViewSwipe, { passive: true });
+}
+
 document.getElementById("outcomeForm").elements.type.addEventListener("change", (event) => {
   event.currentTarget.form.elements.category.value = "";
   renderOutcomeFormOptions();
@@ -3228,6 +3241,48 @@ function switchView(viewName) {
   document.querySelectorAll("[data-view-target]").forEach((button) => {
     button.classList.toggle("is-active", button.dataset.viewTarget === nextView);
   });
+}
+
+function resetViewSwipe() {
+  swipeState.startX = 0;
+  swipeState.startY = 0;
+  swipeState.tracking = false;
+}
+
+function canStartViewSwipe(target) {
+  return !target.closest("button, input, select, textarea, summary, a, label, [contenteditable='true']");
+}
+
+function handleViewSwipeStart(event) {
+  if (event.touches.length !== 1 || !canStartViewSwipe(event.target)) {
+    resetViewSwipe();
+    return;
+  }
+  const touch = event.touches[0];
+  swipeState.startX = touch.clientX;
+  swipeState.startY = touch.clientY;
+  swipeState.tracking = true;
+}
+
+function handleViewSwipeEnd(event) {
+  if (!swipeState.tracking || currentView === "settings") {
+    resetViewSwipe();
+    return;
+  }
+  const touch = event.changedTouches[0];
+  const deltaX = touch.clientX - swipeState.startX;
+  const deltaY = touch.clientY - swipeState.startY;
+  resetViewSwipe();
+  if (Math.abs(deltaX) < 64 || Math.abs(deltaX) < Math.abs(deltaY) * 1.35) return;
+  switchAdjacentSwipeView(deltaX < 0 ? 1 : -1);
+}
+
+function switchAdjacentSwipeView(direction) {
+  const currentIndex = swipeViewOrder.indexOf(currentView);
+  if (currentIndex === -1) return;
+  const nextIndex = Math.max(0, Math.min(swipeViewOrder.length - 1, currentIndex + direction));
+  if (nextIndex === currentIndex) return;
+  switchView(swipeViewOrder[nextIndex]);
 }
 
 function recordAssetSnapshot(previousTotal, currentTotal) {
