@@ -2795,8 +2795,27 @@ button:disabled {
     display: none;
   }
 
+  .fire-countdown-head {
+    gap: 7px;
+    margin-bottom: 8px;
+  }
+
   .fire-countdown-head strong {
     font-size: clamp(31px, 9.1vw, 40px);
+    line-height: 0.98;
+    margin-bottom: -2px;
+  }
+
+  .fire-countdown-head small {
+    line-height: 1.1;
+  }
+
+  .fire-countdown-impact {
+    margin-top: 6px;
+  }
+
+  .daily-countdown-action {
+    margin: 8px 0 10px;
   }
 
   .holding-toolbar {
