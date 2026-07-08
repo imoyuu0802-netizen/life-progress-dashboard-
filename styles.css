@@ -399,6 +399,10 @@ small {
   transform: translateY(8px) scale(0.98);
 }
 
+.fire-countdown-impact[hidden] {
+  display: none;
+}
+
 .fire-countdown-impact span {
   color: var(--green);
   font-size: 18px;
@@ -2881,8 +2885,8 @@ button:disabled {
   }
 
   .fire-countdown-head {
-    gap: 7px;
-    margin-bottom: 8px;
+    gap: 5px;
+    margin-bottom: 4px;
   }
 
   .fire-countdown-head strong {
@@ -2900,7 +2904,7 @@ button:disabled {
   }
 
   .daily-countdown-action {
-    margin: 8px 0 10px;
+    margin: 4px 0 10px;
   }
 
   .holding-toolbar {
