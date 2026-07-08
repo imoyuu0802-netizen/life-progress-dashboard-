@@ -1231,6 +1231,7 @@ function render() {
   if (microGoalProgress) microGoalProgress.style.width = `${microGoal.progressRate}%`;
   setText("totalAssets", yen.format(total));
   setText("heroTotalAssets", yen.format(total));
+  setText("assetPanelTotal", yen.format(total));
   setSignedText("heroTodayAssetChange", todayChange);
   setSignedText("heroTodayAssetRate", todayChange, `(${formatPrecisePercent(todayAssetChangeRate())})`);
   setSignedText("todayMarketChange", todayTotals.market);
@@ -2538,6 +2539,7 @@ async function saveInvestmentHoldings(options = {}) {
     if (microGoalProgress) microGoalProgress.style.width = `${microGoal.progressRate}%`;
     setText("totalAssets", yen.format(total));
     setText("heroTotalAssets", yen.format(total));
+    setText("assetPanelTotal", yen.format(total));
     setText("annualDividendResult", yen.format(state.assets.dividends));
     setText("annualDividendPower", `${yen.format(state.assets.dividends)}/年`);
     setText("effectiveGrowthRate", `${effectiveInvestmentGrowthRate()}%`);

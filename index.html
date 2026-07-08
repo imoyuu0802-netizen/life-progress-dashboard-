@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Life Progress" />
     <title>Life Progress Dashboard</title>
     <link rel="manifest" href="manifest.webmanifest?v=5" />
-    <link rel="stylesheet" href="styles.css?v=102" />
+    <link rel="stylesheet" href="styles.css?v=103" />
   </head>
   <body>
     <main class="app-shell">
@@ -266,6 +266,10 @@
                 <p class="eyebrow">Assets</p>
                 <h2>資産合計</h2>
               </div>
+            </div>
+            <div class="asset-total-hero">
+              <small>現在の資産合計</small>
+              <strong id="assetPanelTotal">¥0</strong>
             </div>
             <div class="asset-chart" aria-label="資産構成グラフ">
               <div id="assetDonut" class="donut"></div>
@@ -625,12 +629,12 @@
 
     <script src="firebase-config.js?v=53"></script>
     <script src="jflec-data.js?v=53"></script>
-    <script src="app.js?v=102"></script>
+    <script src="app.js?v=103"></script>
     <script type="module" src="firebase-sync.js?v=54"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js?v=102");
+          navigator.serviceWorker.register("sw.js?v=103");
         });
       }
     </script>
