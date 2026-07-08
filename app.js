@@ -2565,12 +2565,38 @@ function showRefreshAllDone() {
   const label = button.querySelector("span");
   const originalText = label?.textContent || "";
   if (label) label.textContent = "完了";
+  button.disabled = false;
+  button.classList.remove("is-refreshing");
   button.classList.add("is-done");
+  button.setAttribute("aria-label", "更新完了");
   window.clearTimeout(refreshAllTimer);
   refreshAllTimer = window.setTimeout(() => {
     if (label) label.textContent = originalText || "更新";
     button.classList.remove("is-done");
+    button.setAttribute("aria-label", "全体を更新");
   }, 1400);
+}
+
+function showRefreshAllLoading() {
+  const button = document.getElementById("refreshAll");
+  if (!button) return;
+  const label = button.querySelector("span");
+  if (label) label.textContent = "更新中";
+  button.disabled = true;
+  button.classList.remove("is-done");
+  button.classList.add("is-refreshing");
+  button.setAttribute("aria-label", "更新中");
+  window.clearTimeout(refreshAllTimer);
+}
+
+function resetRefreshAllButton() {
+  const button = document.getElementById("refreshAll");
+  if (!button) return;
+  const label = button.querySelector("span");
+  if (label) label.textContent = "更新";
+  button.disabled = false;
+  button.classList.remove("is-refreshing", "is-done");
+  button.setAttribute("aria-label", "全体を更新");
 }
 
 function refreshCryptoPricesOnOpen() {
@@ -2815,8 +2841,18 @@ document.getElementById("addHoldingRow").addEventListener("click", () => {
 });
 
 document.getElementById("refreshAll").addEventListener("click", async () => {
-  const updated = await saveInvestmentHoldings({ statusMessage: "全体を更新しました" });
-  if (updated) showRefreshAllDone();
+  showRefreshAllLoading();
+  try {
+    const updated = await saveInvestmentHoldings({ statusMessage: "全体を更新しました" });
+    if (updated) {
+      showRefreshAllDone();
+    } else {
+      resetRefreshAllButton();
+    }
+  } catch (error) {
+    resetRefreshAllButton();
+    throw error;
+  }
 });
 
 document.getElementById("holdingSearchResults").addEventListener("click", (event) => {

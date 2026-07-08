@@ -70,6 +70,7 @@ select {
 }
 
 .refresh-trigger {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -80,11 +81,75 @@ select {
   font-weight: 850;
   line-height: 1;
   white-space: nowrap;
+  transition: background 180ms ease, border-color 180ms ease, box-shadow 180ms ease, color 180ms ease, transform 180ms ease;
+}
+
+.refresh-trigger.is-refreshing {
+  border-color: rgba(240, 200, 106, 0.62);
+  background: rgba(240, 200, 106, 0.14);
+  color: var(--gold);
+  box-shadow: 0 0 0 1px rgba(240, 200, 106, 0.1) inset, 0 0 22px rgba(240, 200, 106, 0.22);
+}
+
+.refresh-trigger.is-refreshing {
+  animation: refresh-pulse 900ms ease-in-out infinite;
 }
 
 .refresh-trigger.is-done {
   border-color: rgba(70, 209, 139, 0.46);
+  background: rgba(70, 209, 139, 0.16);
   color: var(--green);
+  box-shadow: 0 0 0 1px rgba(70, 209, 139, 0.1) inset, 0 0 24px rgba(70, 209, 139, 0.28);
+  transform: scale(1.04);
+}
+
+.refresh-trigger.is-done::after {
+  content: "更新完了";
+  position: absolute;
+  top: calc(100% + 7px);
+  right: 0;
+  min-width: max-content;
+  padding: 5px 8px;
+  border: 1px solid rgba(70, 209, 139, 0.38);
+  border-radius: 999px;
+  background: rgba(7, 10, 8, 0.94);
+  color: var(--green);
+  font-size: 11px;
+  font-weight: 900;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
+  animation: refresh-done-pop 1400ms ease both;
+}
+
+.refresh-trigger:disabled {
+  cursor: wait;
+}
+
+@keyframes refresh-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.08);
+  }
+}
+
+@keyframes refresh-done-pop {
+  0% {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.94);
+  }
+
+  18% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .settings-trigger {
@@ -854,6 +919,8 @@ small {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .refresh-trigger.is-refreshing,
+  .refresh-trigger.is-done::after,
   .fire-countdown-impact.is-visible,
   .daily-countdown-action.is-visible,
   .buyback-toast,
