@@ -1679,17 +1679,25 @@ small {
   background: rgba(240, 200, 106, 0.08);
 }
 
-.fire-days-row .fire-age-card {
-  grid-column: span 2;
+.fire-age-card {
+  display: grid;
+  gap: 5px;
+  width: 100%;
+  min-height: 58px;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px solid rgba(240, 200, 106, 0.28);
+  border-radius: var(--radius);
   background: rgba(240, 200, 106, 0.12);
 }
 
-.fire-days-row .fire-age-card small {
+.fire-age-card small {
   white-space: nowrap;
 }
 
-.fire-days-row .fire-age-card strong {
+.fire-age-card strong {
   font-size: 20px;
+  font-variant-numeric: tabular-nums;
 }
 
 .fire-days-row strong {
