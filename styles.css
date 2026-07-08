@@ -270,6 +270,63 @@ small {
   display: block;
 }
 
+.app-shell[data-view-motion="forward"] .view.is-active,
+.app-shell[data-view-motion="back"] .view.is-active {
+  animation-duration: 260ms;
+  animation-timing-function: cubic-bezier(0.2, 0.8, 0.2, 1);
+  animation-fill-mode: both;
+  will-change: transform, opacity;
+}
+
+.app-shell[data-view-motion="forward"] .view.is-active {
+  animation-name: view-slide-forward;
+}
+
+.app-shell[data-view-motion="back"] .view.is-active {
+  animation-name: view-slide-back;
+}
+
+.app-shell[data-view-motion="forward"] #view-settings.is-active,
+.app-shell[data-view-motion="back"] #view-settings.is-active {
+  animation-name: view-soft-enter;
+}
+
+@keyframes view-slide-forward {
+  0% {
+    opacity: 0.62;
+    transform: translateX(34px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes view-slide-back {
+  0% {
+    opacity: 0.62;
+    transform: translateX(-34px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes view-soft-enter {
+  0% {
+    opacity: 0.72;
+    transform: translateY(8px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .back-to-top {
   position: fixed;
   right: max(16px, env(safe-area-inset-right));
@@ -925,6 +982,8 @@ small {
 @media (prefers-reduced-motion: reduce) {
   .refresh-trigger.is-refreshing,
   .refresh-trigger.is-done::after,
+  .app-shell[data-view-motion="forward"] .view.is-active,
+  .app-shell[data-view-motion="back"] .view.is-active,
   .fire-countdown-impact.is-visible,
   .daily-countdown-action.is-visible,
   .buyback-toast,

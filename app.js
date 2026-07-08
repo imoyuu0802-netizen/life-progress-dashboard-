@@ -3269,8 +3269,15 @@ function deleteOutcome(id) {
 
 function switchView(viewName) {
   const nextView = !document.getElementById(`view-${viewName}`) ? "overview" : viewName;
+  const previousView = currentView;
+  const previousIndex = swipeViewOrder.indexOf(previousView);
+  const nextIndex = swipeViewOrder.indexOf(nextView);
+  const direction = previousIndex !== -1 && nextIndex !== -1 && nextIndex !== previousIndex
+    ? nextIndex > previousIndex ? "forward" : "back"
+    : "neutral";
   currentView = nextView;
   localStorage.setItem("life-progress-view", nextView);
+  document.querySelector(".app-shell")?.setAttribute("data-view-motion", direction);
   document.querySelectorAll(".view").forEach((view) => {
     view.classList.toggle("is-active", view.id === `view-${nextView}`);
   });
