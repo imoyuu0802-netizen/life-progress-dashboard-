@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Life Progress" />
     <title>Life Progress Dashboard</title>
     <link rel="manifest" href="manifest.webmanifest?v=5" />
-    <link rel="stylesheet" href="styles.css?v=98" />
+    <link rel="stylesheet" href="styles.css?v=99" />
   </head>
   <body>
     <main class="app-shell">
@@ -69,8 +69,8 @@
                 <small>次の1%</small>
                 <strong id="nextOnePercentAmount">--</strong>
               </div>
-              <div>
-                <small>現在予想</small>
+              <div class="fire-age-card">
+                <small>FIRE達成予想年齢</small>
                 <strong id="arrivalAge">--歳</strong>
               </div>
               <div>
@@ -605,12 +605,12 @@
 
     <script src="firebase-config.js?v=53"></script>
     <script src="jflec-data.js?v=53"></script>
-    <script src="app.js?v=98"></script>
+    <script src="app.js?v=99"></script>
     <script type="module" src="firebase-sync.js?v=54"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js?v=98");
+          navigator.serviceWorker.register("sw.js?v=99");
         });
       }
     </script>
