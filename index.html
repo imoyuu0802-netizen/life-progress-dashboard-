@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Life Progress" />
     <title>Life Progress Dashboard</title>
     <link rel="manifest" href="manifest.webmanifest?v=5" />
-    <link rel="stylesheet" href="styles.css?v=100" />
+    <link rel="stylesheet" href="styles.css?v=101" />
   </head>
   <body>
     <main class="app-shell">
@@ -33,6 +33,26 @@
         <section class="top-grid" aria-label="主要ダッシュボード">
           <article class="panel focus-panel">
             <div class="fire-countdown-head">
+              <div class="ornate-clock" aria-hidden="true">
+                <svg viewBox="0 0 120 120" role="img">
+                  <circle class="clock-aura" cx="60" cy="60" r="54"></circle>
+                  <circle class="clock-ring" cx="60" cy="60" r="46"></circle>
+                  <g class="clock-gear">
+                    <path d="M60 19v8M60 93v8M19 60h8M93 60h8M31 31l6 6M83 83l6 6M89 31l-6 6M37 83l-6 6"></path>
+                    <circle cx="60" cy="60" r="31"></circle>
+                  </g>
+                  <g class="clock-marks">
+                    <text x="60" y="34">XII</text>
+                    <text x="86" y="64">III</text>
+                    <text x="60" y="91">VI</text>
+                    <text x="34" y="64">IX</text>
+                  </g>
+                  <line class="clock-hour-hand" x1="60" y1="60" x2="49" y2="50"></line>
+                  <line class="clock-minute-hand" x1="60" y1="60" x2="75" y2="42"></line>
+                  <line class="clock-second-hand" x1="60" y1="64" x2="60" y2="29"></line>
+                  <circle class="clock-pin" cx="60" cy="60" r="4"></circle>
+                </svg>
+              </div>
               <span>🏝 FIREまで</span>
               <strong id="fireDistanceHero">--日&#10;00時間00分00秒</strong>
               <small id="fireYearsHero">約--年</small>
@@ -605,12 +625,12 @@
 
     <script src="firebase-config.js?v=53"></script>
     <script src="jflec-data.js?v=53"></script>
-    <script src="app.js?v=100"></script>
+    <script src="app.js?v=101"></script>
     <script type="module" src="firebase-sync.js?v=54"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js?v=100");
+          navigator.serviceWorker.register("sw.js?v=101");
         });
       }
     </script>
