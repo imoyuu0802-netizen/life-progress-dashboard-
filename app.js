@@ -174,6 +174,7 @@ let fireCountdownTargetAt = null;
 let forceFireCountdownReplan = false;
 let holdingFilterType = localStorage.getItem("life-progress-holding-filter-type") || "fund";
 let holdingSearchQuery = localStorage.getItem("life-progress-holding-search") || "";
+let activeHoldingId = null;
 
 const yen = new Intl.NumberFormat("ja-JP", {
   style: "currency",
@@ -1584,11 +1585,18 @@ function renderInvestmentHoldings() {
     ? state.investmentHoldings
     : normalizeInvestmentHoldings([], state.assets);
   const total = holdings.reduce((sum, item) => sum + item.value, 0);
+  const topHoldings = [...holdings]
+    .sort((a, b) => (Number(b.value) || 0) - (Number(a.value) || 0))
+    .slice(0, 3);
+  const displayHoldings = activeHoldingId && !topHoldings.some((item) => item.id === activeHoldingId)
+    ? [...topHoldings.slice(0, 2), holdings.find((item) => item.id === activeHoldingId)].filter(Boolean)
+    : topHoldings;
+  const hiddenCount = Math.max(0, holdings.length - displayHoldings.length);
 
   setText("holdingsTotal", yen.format(total));
-  setText("holdingsSummary", `${holdings.length}件 / ${yen.format(total)}`);
+  setText("holdingsSummary", `上位${displayHoldings.length}件 / ${holdings.length}件`);
   renderHoldingSearchResults();
-  list.innerHTML = holdings
+  list.innerHTML = displayHoldings
     .map((item) => {
       const crypto = isCryptoHolding(item);
       const priceNote = crypto && item.price ? ` / ${yen.format(item.price)}` : "";
@@ -1614,7 +1622,7 @@ function renderInvestmentHoldings() {
       </div>
     `;
     })
-    .join("");
+    .join("") + (hiddenCount ? `<p class="holdings-note compact">他${hiddenCount}件は保存済みです。上位3銘柄だけ表示しています。</p>` : "");
 }
 
 function renderHoldingSearchResults() {
@@ -1824,11 +1832,11 @@ function renderOutcomeHistory() {
     </div>
   `;
   }).join("");
-  const visibleEntries = entries.slice(0, 5);
-  const olderEntries = entries.slice(5);
+  const visibleEntries = entries.slice(0, 3);
+  const olderEntries = entries.slice(3);
   container.innerHTML = `
     <div class="outcome-history-head">
-      <small>直近5件</small>
+      <small>直近3件</small>
       <span>${entries.length}件</span>
     </div>
     ${renderRows(visibleEntries)}
@@ -2360,7 +2368,7 @@ function importBackupFile(file) {
 }
 
 function readInvestmentHoldingRows() {
-  return [...document.querySelectorAll("[data-holding-row]")]
+  const renderedHoldings = [...document.querySelectorAll("[data-holding-row]")]
     .map((row, index) => {
       const symbol = row.querySelector("[data-holding-field='symbol']")?.value || "custom";
       const preset = holdingPresets.find((item) => item.symbol === symbol);
@@ -2382,6 +2390,9 @@ function readInvestmentHoldingRows() {
       };
     })
     .filter((item) => item.name && item.value >= 0);
+  const renderedIds = new Set(renderedHoldings.map((item) => item.id));
+  const preservedHoldings = state.investmentHoldings.filter((item) => item.id && !renderedIds.has(item.id));
+  return [...renderedHoldings, ...preservedHoldings];
 }
 
 async function applyCryptoMarketPrices(holdings) {
@@ -2763,6 +2774,7 @@ document.getElementById("investmentHoldingsForm").addEventListener("submit", (ev
 
 function addHoldingFromPreset(preset = filteredHoldingPresets()[0] || holdingPresets[0]) {
   const id = `holding-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+  activeHoldingId = id;
   state.investmentHoldings.unshift({
     id,
     symbol: preset.symbol,
@@ -2816,6 +2828,7 @@ document.addEventListener("click", (event) => {
   if (!confirmDelete(`${name}を削除しますか？`)) return;
   const rows = readInvestmentHoldingRows();
   state.investmentHoldings = rows.filter((item) => item.id !== button.dataset.deleteHolding);
+  if (activeHoldingId === button.dataset.deleteHolding) activeHoldingId = null;
   if (!state.investmentHoldings.length) {
     state.investmentHoldings = [{ id: `holding-${Date.now()}`, symbol: "custom", name: "投資合計", value: state.assets.investments }];
   }

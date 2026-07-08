@@ -1151,6 +1151,11 @@ small {
   line-height: 1.6;
 }
 
+.holdings-note.compact {
+  margin: -2px 2px 0;
+  font-size: 11px;
+}
+
 .result-hero {
   display: grid;
   gap: 6px;
