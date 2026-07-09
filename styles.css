@@ -976,10 +976,6 @@ small {
   visibility: hidden;
 }
 
-.buyback-toast[hidden] {
-  display: grid;
-}
-
 .buyback-toast strong {
   color: var(--green);
   font-size: 34px;

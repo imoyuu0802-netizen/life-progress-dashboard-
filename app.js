@@ -540,10 +540,113 @@ function cloneState(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
+function stateAssetTotal(candidate) {
+  const assets = candidate?.assets || {};
+  return Math.max(0, Number(assets.investments) || 0)
+    + Math.max(0, Number(assets.cash) || 0);
+}
+
+function stateDataScore(candidate = {}) {
+  const profile = candidate.profile || {};
+  const holdings = Array.isArray(candidate.investmentHoldings) ? candidate.investmentHoldings : [];
+  const outcomeEntries = Array.isArray(candidate.outcomeEntries) ? candidate.outcomeEntries : [];
+  const progressEntries = Array.isArray(candidate.progressEntries) ? candidate.progressEntries : [];
+  const assetHistory = Array.isArray(candidate.assetHistory) ? candidate.assetHistory : [];
+  let score = 0;
+  if (profile.birthDate) score += 12;
+  if (Number(profile.monthlyExpense) > 0) score += 4;
+  if (Number(profile.monthlyInvestmentAmount) > 0) score += 4;
+  if (stateAssetTotal(candidate) > 0) score += 18;
+  if (holdings.length) score += 8 + holdings.filter((item) => Number(item.value) > 0 || Number(item.quantity) > 0).length;
+  if (outcomeEntries.length) score += Math.min(10, outcomeEntries.length);
+  if (progressEntries.length) score += Math.min(6, progressEntries.length);
+  if (assetHistory.some((item) => Number(item.total) > 0)) score += 5;
+  return score;
+}
+
+function mergeUniqueByKey(primary = [], secondary = [], keyFn = (item) => item?.id) {
+  const result = [];
+  const seen = new Set();
+  [...primary, ...secondary].forEach((item) => {
+    if (!item) return;
+    const key = keyFn(item) || JSON.stringify(item);
+    if (seen.has(key)) return;
+    seen.add(key);
+    result.push(item);
+  });
+  return result;
+}
+
+function isMeaningfulValue(value) {
+  return value !== undefined && value !== null && value !== "";
+}
+
+function preserveMeaningfulProfileFields(base, other) {
+  Object.keys(defaultState.profile).forEach((field) => {
+    const baseValue = base.profile[field];
+    const otherValue = other.profile[field];
+    const defaultValue = defaultState.profile[field];
+    const baseIsEmptyOrDefault = !isMeaningfulValue(baseValue) || baseValue === defaultValue;
+    const otherIsMeaningful = isMeaningfulValue(otherValue);
+    const otherIsCustomized = otherValue !== defaultValue;
+    if (baseIsEmptyOrDefault && otherIsMeaningful && otherIsCustomized) {
+      base.profile[field] = otherValue;
+    }
+  });
+}
+
+function preserveMeaningfulAssetFields(base, other) {
+  ["investments", "cash", "dividends"].forEach((field) => {
+    const baseValue = Number(base.assets[field]) || 0;
+    const otherValue = Number(other.assets[field]) || 0;
+    if (baseValue <= 0 && otherValue > 0) {
+      base.assets[field] = other.assets[field];
+    }
+  });
+}
+
+function mergeCloudStateWithLocal(localState, cloudState) {
+  const local = normalizeState(localState || {});
+  const cloud = normalizeState(cloudState || {});
+  const preferLocal = stateDataScore(local) > stateDataScore(cloud);
+  const base = preferLocal ? cloneState(local) : cloneState(cloud);
+  const other = preferLocal ? cloud : local;
+
+  base.outcomeEntries = mergeUniqueByKey(base.outcomeEntries, other.outcomeEntries);
+  base.progressEntries = mergeUniqueByKey(base.progressEntries, other.progressEntries);
+  base.assetHistory = mergeUniqueByKey(base.assetHistory, other.assetHistory, (item) => item?.month);
+  base.investmentHoldings = mergeUniqueByKey(base.investmentHoldings, other.investmentHoldings, (item) => item?.id || `${item?.symbol}-${item?.name}`);
+  base.outcomeQuickActions = mergeUniqueByKey(base.outcomeQuickActions, other.outcomeQuickActions);
+  base.quickActions = mergeUniqueByKey(base.quickActions, other.quickActions);
+  base.dividendGoals = mergeUniqueByKey(base.dividendGoals, other.dividendGoals);
+  base.victoryGoals = mergeUniqueByKey(base.victoryGoals, other.victoryGoals);
+  base.totalConfirmedSavedTime = Math.max(Number(base.totalConfirmedSavedTime) || 0, Number(other.totalConfirmedSavedTime) || 0);
+
+  preserveMeaningfulProfileFields(base, other);
+  preserveMeaningfulAssetFields(base, other);
+  if (!base.profile.birthDate && other.profile.birthDate) base.profile.birthDate = other.profile.birthDate;
+  if (stateAssetTotal(base) <= 0 && stateAssetTotal(other) > 0) base.assets = cloneState(other.assets);
+  if (!base.investmentHoldings.length && other.investmentHoldings.length) base.investmentHoldings = cloneState(other.investmentHoldings);
+  if (!base.investmentValuationBaseline && other.investmentValuationBaseline) {
+    base.investmentValuationBaseline = cloneState(other.investmentValuationBaseline);
+  }
+
+  return normalizeState(base);
+}
+
 function applyCloudState(cloudState) {
-  state = normalizeState(cloudState);
+  const normalizedCloud = normalizeState(cloudState);
+  const nextState = mergeCloudStateWithLocal(state, normalizedCloud);
+  const cloudJson = JSON.stringify(normalizedCloud);
+  const nextJson = JSON.stringify(nextState);
+  state = nextState;
   localStorage.setItem(storageKey, JSON.stringify(state));
   render();
+  if (nextJson !== cloudJson) {
+    window.dispatchEvent(new CustomEvent("fire-dashboard-state-saved", {
+      detail: { state: cloneState(state) }
+    }));
+  }
 }
 
 function migrateProgressEntries(entries) {
@@ -2342,7 +2445,7 @@ function showBuybackToast(amount) {
   if (!toast || !time) return;
   const minutes = savedTimeMinutesForAmount(amount);
   time.textContent = formatBuybackTime(minutes, { signed: true });
-  toast.hidden = false;
+  toast.setAttribute("aria-hidden", "false");
   toast.classList.remove("is-visible");
   flashBuybackSurface();
   void toast.offsetWidth;
@@ -2350,7 +2453,7 @@ function showBuybackToast(amount) {
   window.clearTimeout(buybackToastTimer);
   buybackToastTimer = window.setTimeout(() => {
     toast.classList.remove("is-visible");
-    toast.hidden = true;
+    toast.setAttribute("aria-hidden", "true");
   }, 2600);
 }
 
