@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Life Progress" />
     <title>Life Progress Dashboard</title>
     <link rel="manifest" href="manifest.webmanifest?v=5" />
-    <link rel="stylesheet" href="styles.css?v=99" />
+    <link rel="stylesheet" href="styles.css?v=96" />
   </head>
   <body>
     <main class="app-shell">
@@ -594,19 +594,19 @@
         <button type="button" data-snack-action="undo">取消</button>
       </div>
     </div>
-    <div id="buybackToast" class="buyback-toast" role="status" aria-live="polite" aria-hidden="true">
+    <div id="buybackToast" class="buyback-toast" role="status" aria-live="polite" hidden>
       <strong id="buybackToastTime">+0分</strong>
-      <span>自由を買い戻しました</span>
+      <span>労働を削りました</span>
     </div>
 
     <script src="firebase-config.js?v=53"></script>
     <script src="jflec-data.js?v=53"></script>
-    <script src="app.js?v=99"></script>
+    <script src="app.js?v=96"></script>
     <script type="module" src="firebase-sync.js?v=54"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js?v=99");
+          navigator.serviceWorker.register("sw.js?v=96");
         });
       }
     </script>

@@ -167,6 +167,7 @@ let holdingsStatusTimer = null;
 let holdingsAutoSaveTimer = null;
 let refreshAllTimer = null;
 let outcomeSnackTimer = null;
+let buybackToastTimer = null;
 let dailyCountdownActionTimer = null;
 let fireCountdownBaseSeconds = 0;
 let fireCountdownTargetAt = null;
@@ -2309,36 +2310,20 @@ function showOutcomeSnack(entry) {
 }
 
 function showBuybackToast(amount) {
+  const toast = document.getElementById("buybackToast");
+  const time = document.getElementById("buybackToastTime");
+  if (!toast || !time) return;
   const minutes = savedTimeMinutesForAmount(amount);
-  const toast = document.createElement("div");
-  toast.className = "buyback-burst";
-  toast.setAttribute("role", "status");
-  toast.setAttribute("aria-live", "polite");
-  toast.innerHTML = `
-    <strong>${escapeHtml(formatBuybackTime(minutes, { signed: true }))}</strong>
-    <span>自由を買い戻しました</span>
-  `;
-  document.body.appendChild(toast);
-  flashOutcomeQuickArea();
-  window.requestAnimationFrame(() => {
-    toast.classList.add("is-visible");
-  });
-  window.setTimeout(() => {
+  time.textContent = formatBuybackTime(minutes, { signed: true });
+  toast.hidden = false;
+  toast.classList.remove("is-visible");
+  void toast.offsetWidth;
+  toast.classList.add("is-visible");
+  window.clearTimeout(buybackToastTimer);
+  buybackToastTimer = window.setTimeout(() => {
     toast.classList.remove("is-visible");
-    toast.addEventListener("transitionend", () => toast.remove(), { once: true });
-    window.setTimeout(() => toast.remove(), 500);
+    toast.hidden = true;
   }, 1800);
-}
-
-function flashOutcomeQuickArea() {
-  const area = document.querySelector(".home-outcome-quick");
-  if (!area) return;
-  area.classList.remove("is-flashing");
-  void area.offsetWidth;
-  area.classList.add("is-flashing");
-  window.setTimeout(() => {
-    area.classList.remove("is-flashing");
-  }, 900);
 }
 
 function showHoldingsStatus(message) {
@@ -3301,7 +3286,7 @@ function resetViewSwipe() {
 }
 
 function canStartViewSwipe(target) {
-  return !target.closest(".home-outcome-quick, .outcome-quick-actions, .outcome-form, button, input, select, textarea, summary, a, label, [contenteditable='true']");
+  return !target.closest("button, input, select, textarea, summary, a, label, [contenteditable='true']");
 }
 
 function handleViewSwipeStart(event) {
