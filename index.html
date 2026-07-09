@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Life Progress" />
     <title>Life Progress Dashboard</title>
     <link rel="manifest" href="manifest.webmanifest?v=5" />
-    <link rel="stylesheet" href="styles.css?v=107" />
+    <link rel="stylesheet" href="styles.css?v=96" />
   </head>
   <body>
     <main class="app-shell">
@@ -36,10 +36,6 @@
               <span>🏝 FIREまで</span>
               <strong id="fireDistanceHero">--日&#10;00時間00分00秒</strong>
               <small id="fireYearsHero">約--年</small>
-              <div class="hero-asset-total">
-                <small>資産合計</small>
-                <b id="heroTotalAssets">¥0</b>
-              </div>
               <div id="fireCountdownImpact" class="fire-countdown-impact" hidden>
                 <span id="fireCountdownImpactTime">−0分</span>
                 <small>行動で時間をねじ伏せた</small>
@@ -56,10 +52,6 @@
               <div id="fireProgress" class="progress-fill"></div>
               <span id="fireProgressLabel">0%</span>
             </div>
-            <div class="fire-age-card">
-              <small>FIRE達成予想年齢</small>
-              <strong id="arrivalAge">--歳</strong>
-            </div>
             <div class="fire-days-row">
               <div class="yearly-shortening">
                 <small>今年の短縮</small>
@@ -72,6 +64,10 @@
               <div>
                 <small>次の1%</small>
                 <strong id="nextOnePercentAmount">--</strong>
+              </div>
+              <div>
+                <small>現在予想</small>
+                <strong id="arrivalAge">--歳</strong>
               </div>
               <div>
                 <small>先月より</small>
@@ -187,16 +183,6 @@
               <strong id="totalAssets">¥0</strong>
               <span id="peerBenchmarkSummary">同年代の金融資産分布と比較</span>
             </div>
-            <details class="result-holdings-details">
-              <summary>
-                <span>
-                  <small>投資評価額</small>
-                  <strong id="resultInvestmentTotal">¥0</strong>
-                </span>
-                <b>上位3銘柄</b>
-              </summary>
-              <div id="resultTopHoldings" class="result-top-holdings"></div>
-            </details>
             <div class="result-grid">
               <div>
                 <small>同年代の資産順位</small>
@@ -256,10 +242,6 @@
                 <p class="eyebrow">Assets</p>
                 <h2>資産合計</h2>
               </div>
-            </div>
-            <div class="asset-total-hero">
-              <small>現在の資産合計</small>
-              <strong id="assetPanelTotal">¥0</strong>
             </div>
             <div class="asset-chart" aria-label="資産構成グラフ">
               <div id="assetDonut" class="donut"></div>
@@ -612,19 +594,19 @@
         <button type="button" data-snack-action="undo">取消</button>
       </div>
     </div>
-    <div id="buybackToast" class="buyback-toast" role="status" aria-live="polite" aria-hidden="true">
+    <div id="buybackToast" class="buyback-toast" role="status" aria-live="polite" hidden>
       <strong id="buybackToastTime">+0分</strong>
       <span>労働を削りました</span>
     </div>
 
     <script src="firebase-config.js?v=53"></script>
     <script src="jflec-data.js?v=53"></script>
-    <script src="app.js?v=107"></script>
+    <script src="app.js?v=96"></script>
     <script type="module" src="firebase-sync.js?v=54"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js?v=107");
+          navigator.serviceWorker.register("sw.js?v=96");
         });
       }
     </script>

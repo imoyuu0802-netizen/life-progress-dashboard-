@@ -169,7 +169,6 @@ let refreshAllTimer = null;
 let outcomeSnackTimer = null;
 let buybackToastTimer = null;
 let dailyCountdownActionTimer = null;
-let fireCountdownTimer = null;
 let fireCountdownBaseSeconds = 0;
 let fireCountdownTargetAt = null;
 let forceFireCountdownReplan = false;
@@ -540,113 +539,10 @@ function cloneState(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
-function stateAssetTotal(candidate) {
-  const assets = candidate?.assets || {};
-  return Math.max(0, Number(assets.investments) || 0)
-    + Math.max(0, Number(assets.cash) || 0);
-}
-
-function stateDataScore(candidate = {}) {
-  const profile = candidate.profile || {};
-  const holdings = Array.isArray(candidate.investmentHoldings) ? candidate.investmentHoldings : [];
-  const outcomeEntries = Array.isArray(candidate.outcomeEntries) ? candidate.outcomeEntries : [];
-  const progressEntries = Array.isArray(candidate.progressEntries) ? candidate.progressEntries : [];
-  const assetHistory = Array.isArray(candidate.assetHistory) ? candidate.assetHistory : [];
-  let score = 0;
-  if (profile.birthDate) score += 12;
-  if (Number(profile.monthlyExpense) > 0) score += 4;
-  if (Number(profile.monthlyInvestmentAmount) > 0) score += 4;
-  if (stateAssetTotal(candidate) > 0) score += 18;
-  if (holdings.length) score += 8 + holdings.filter((item) => Number(item.value) > 0 || Number(item.quantity) > 0).length;
-  if (outcomeEntries.length) score += Math.min(10, outcomeEntries.length);
-  if (progressEntries.length) score += Math.min(6, progressEntries.length);
-  if (assetHistory.some((item) => Number(item.total) > 0)) score += 5;
-  return score;
-}
-
-function mergeUniqueByKey(primary = [], secondary = [], keyFn = (item) => item?.id) {
-  const result = [];
-  const seen = new Set();
-  [...primary, ...secondary].forEach((item) => {
-    if (!item) return;
-    const key = keyFn(item) || JSON.stringify(item);
-    if (seen.has(key)) return;
-    seen.add(key);
-    result.push(item);
-  });
-  return result;
-}
-
-function isMeaningfulValue(value) {
-  return value !== undefined && value !== null && value !== "";
-}
-
-function preserveMeaningfulProfileFields(base, other) {
-  Object.keys(defaultState.profile).forEach((field) => {
-    const baseValue = base.profile[field];
-    const otherValue = other.profile[field];
-    const defaultValue = defaultState.profile[field];
-    const baseIsEmptyOrDefault = !isMeaningfulValue(baseValue) || baseValue === defaultValue;
-    const otherIsMeaningful = isMeaningfulValue(otherValue);
-    const otherIsCustomized = otherValue !== defaultValue;
-    if (baseIsEmptyOrDefault && otherIsMeaningful && otherIsCustomized) {
-      base.profile[field] = otherValue;
-    }
-  });
-}
-
-function preserveMeaningfulAssetFields(base, other) {
-  ["investments", "cash", "dividends"].forEach((field) => {
-    const baseValue = Number(base.assets[field]) || 0;
-    const otherValue = Number(other.assets[field]) || 0;
-    if (baseValue <= 0 && otherValue > 0) {
-      base.assets[field] = other.assets[field];
-    }
-  });
-}
-
-function mergeCloudStateWithLocal(localState, cloudState) {
-  const local = normalizeState(localState || {});
-  const cloud = normalizeState(cloudState || {});
-  const preferLocal = stateDataScore(local) > stateDataScore(cloud);
-  const base = preferLocal ? cloneState(local) : cloneState(cloud);
-  const other = preferLocal ? cloud : local;
-
-  base.outcomeEntries = mergeUniqueByKey(base.outcomeEntries, other.outcomeEntries);
-  base.progressEntries = mergeUniqueByKey(base.progressEntries, other.progressEntries);
-  base.assetHistory = mergeUniqueByKey(base.assetHistory, other.assetHistory, (item) => item?.month);
-  base.investmentHoldings = mergeUniqueByKey(base.investmentHoldings, other.investmentHoldings, (item) => item?.id || `${item?.symbol}-${item?.name}`);
-  base.outcomeQuickActions = mergeUniqueByKey(base.outcomeQuickActions, other.outcomeQuickActions);
-  base.quickActions = mergeUniqueByKey(base.quickActions, other.quickActions);
-  base.dividendGoals = mergeUniqueByKey(base.dividendGoals, other.dividendGoals);
-  base.victoryGoals = mergeUniqueByKey(base.victoryGoals, other.victoryGoals);
-  base.totalConfirmedSavedTime = Math.max(Number(base.totalConfirmedSavedTime) || 0, Number(other.totalConfirmedSavedTime) || 0);
-
-  preserveMeaningfulProfileFields(base, other);
-  preserveMeaningfulAssetFields(base, other);
-  if (!base.profile.birthDate && other.profile.birthDate) base.profile.birthDate = other.profile.birthDate;
-  if (stateAssetTotal(base) <= 0 && stateAssetTotal(other) > 0) base.assets = cloneState(other.assets);
-  if (!base.investmentHoldings.length && other.investmentHoldings.length) base.investmentHoldings = cloneState(other.investmentHoldings);
-  if (!base.investmentValuationBaseline && other.investmentValuationBaseline) {
-    base.investmentValuationBaseline = cloneState(other.investmentValuationBaseline);
-  }
-
-  return normalizeState(base);
-}
-
 function applyCloudState(cloudState) {
-  const normalizedCloud = normalizeState(cloudState);
-  const nextState = mergeCloudStateWithLocal(state, normalizedCloud);
-  const cloudJson = JSON.stringify(normalizedCloud);
-  const nextJson = JSON.stringify(nextState);
-  state = nextState;
+  state = normalizeState(cloudState);
   localStorage.setItem(storageKey, JSON.stringify(state));
   render();
-  if (nextJson !== cloudJson) {
-    window.dispatchEvent(new CustomEvent("fire-dashboard-state-saved", {
-      detail: { state: cloneState(state) }
-    }));
-  }
 }
 
 function migrateProgressEntries(entries) {
@@ -1216,17 +1112,6 @@ function showFireCountdownImpact(minutes) {
   impact.classList.add("is-visible");
 }
 
-function flashBuybackSurface() {
-  const shell = document.querySelector(".app-shell");
-  const focusPanel = document.querySelector(".focus-panel");
-  [shell, focusPanel].forEach((element) => {
-    if (!element) return;
-    element.classList.remove("is-buyback-flash");
-    void element.offsetWidth;
-    element.classList.add("is-buyback-flash");
-  });
-}
-
 function showDailyCountdownAction(animate = true) {
   const element = document.getElementById("dailyCountdownAction");
   if (!element) return;
@@ -1267,20 +1152,6 @@ function updateFireCountdown() {
   const remainingMs = Math.max(0, fireCountdownTargetAt - Date.now() - fireCountdownDisplayOffsetMs());
   setText("fireDistanceHero", formatFireCountdown(remainingMs));
   maybeTriggerDailyCountdownAction();
-}
-
-function scheduleFireCountdownTick() {
-  window.clearTimeout(fireCountdownTimer);
-  const delay = 1000 - (Date.now() % 1000) + 24;
-  fireCountdownTimer = window.setTimeout(() => {
-    updateFireCountdown();
-    scheduleFireCountdownTick();
-  }, delay);
-}
-
-function restartFireCountdownTick() {
-  updateFireCountdown();
-  scheduleFireCountdownTick();
 }
 
 function renderFireProjection() {
@@ -1345,7 +1216,6 @@ function render() {
   if (microGoalProgress) microGoalProgress.style.width = `${microGoal.progressRate}%`;
   setText("totalAssets", yen.format(total));
   setText("heroTotalAssets", yen.format(total));
-  setText("assetPanelTotal", yen.format(total));
   setSignedText("heroTodayAssetChange", todayChange);
   setSignedText("heroTodayAssetRate", todayChange, `(${formatPrecisePercent(todayAssetChangeRate())})`);
   setSignedText("todayMarketChange", todayTotals.market);
@@ -1413,7 +1283,6 @@ function render() {
   renderOutcomeQuickActions();
   renderCustomizationSettings();
   renderInvestmentHoldings();
-  renderResultTopHoldings();
   renderOutcomeFormOptions();
   renderOutcomeHistory();
   renderAssets();
@@ -1722,11 +1591,18 @@ function renderInvestmentHoldings() {
     ? state.investmentHoldings
     : normalizeInvestmentHoldings([], state.assets);
   const total = holdings.reduce((sum, item) => sum + item.value, 0);
+  const topHoldings = [...holdings]
+    .sort((a, b) => (Number(b.value) || 0) - (Number(a.value) || 0))
+    .slice(0, 3);
+  const displayHoldings = activeHoldingId && !topHoldings.some((item) => item.id === activeHoldingId)
+    ? [...topHoldings.slice(0, 2), holdings.find((item) => item.id === activeHoldingId)].filter(Boolean)
+    : topHoldings;
+  const hiddenCount = Math.max(0, holdings.length - displayHoldings.length);
 
   setText("holdingsTotal", yen.format(total));
-  setText("holdingsSummary", `${holdings.length}件`);
+  setText("holdingsSummary", `上位${displayHoldings.length}件 / ${holdings.length}件`);
   renderHoldingSearchResults();
-  list.innerHTML = holdings
+  list.innerHTML = displayHoldings
     .map((item) => {
       const crypto = isCryptoHolding(item);
       const priceNote = crypto && item.price ? ` / ${yen.format(item.price)}` : "";
@@ -1752,39 +1628,7 @@ function renderInvestmentHoldings() {
       </div>
     `;
     })
-    .join("");
-}
-
-function renderResultTopHoldings() {
-  const container = document.getElementById("resultTopHoldings");
-  if (!container) return;
-  setText("resultInvestmentTotal", yen.format(state.assets.investments));
-  const holdings = [...state.investmentHoldings]
-    .filter((item) => Number(item.value) > 0)
-    .sort((a, b) => (Number(b.value) || 0) - (Number(a.value) || 0))
-    .slice(0, 3);
-
-  if (!holdings.length) {
-    container.innerHTML = '<p class="holdings-note compact">記録タブで銘柄を追加すると、上位3件をここに表示します。</p>';
-    return;
-  }
-
-  container.innerHTML = holdings.map((item, index) => {
-    const share = state.assets.investments > 0
-      ? Math.round((Number(item.value) || 0) / state.assets.investments * 100)
-      : 0;
-    return `
-      <div class="result-top-holding">
-        <span>${index + 1}</span>
-        <div>
-          <strong>${escapeHtml(item.name || item.symbol || "未設定")}</strong>
-          <small>${escapeHtml(item.symbol || "")}</small>
-        </div>
-        <b>${yen.format(Number(item.value) || 0)}</b>
-        <em>${share}%</em>
-      </div>
-    `;
-  }).join("");
+    .join("") + (hiddenCount ? `<p class="holdings-note compact">他${hiddenCount}件は保存済みです。上位3銘柄だけ表示しています。</p>` : "");
 }
 
 function renderHoldingSearchResults() {
@@ -2471,16 +2315,15 @@ function showBuybackToast(amount) {
   if (!toast || !time) return;
   const minutes = savedTimeMinutesForAmount(amount);
   time.textContent = formatBuybackTime(minutes, { signed: true });
-  toast.setAttribute("aria-hidden", "false");
+  toast.hidden = false;
   toast.classList.remove("is-visible");
-  flashBuybackSurface();
   void toast.offsetWidth;
   toast.classList.add("is-visible");
   window.clearTimeout(buybackToastTimer);
   buybackToastTimer = window.setTimeout(() => {
     toast.classList.remove("is-visible");
-    toast.setAttribute("aria-hidden", "true");
-  }, 2600);
+    toast.hidden = true;
+  }, 1800);
 }
 
 function showHoldingsStatus(message) {
@@ -2680,7 +2523,6 @@ async function saveInvestmentHoldings(options = {}) {
     if (microGoalProgress) microGoalProgress.style.width = `${microGoal.progressRate}%`;
     setText("totalAssets", yen.format(total));
     setText("heroTotalAssets", yen.format(total));
-    setText("assetPanelTotal", yen.format(total));
     setText("annualDividendResult", yen.format(state.assets.dividends));
     setText("annualDividendPower", `${yen.format(state.assets.dividends)}/年`);
     setText("effectiveGrowthRate", `${effectiveInvestmentGrowthRate()}%`);
@@ -3427,15 +3269,8 @@ function deleteOutcome(id) {
 
 function switchView(viewName) {
   const nextView = !document.getElementById(`view-${viewName}`) ? "overview" : viewName;
-  const previousView = currentView;
-  const previousIndex = swipeViewOrder.indexOf(previousView);
-  const nextIndex = swipeViewOrder.indexOf(nextView);
-  const direction = previousIndex !== -1 && nextIndex !== -1 && nextIndex !== previousIndex
-    ? nextIndex > previousIndex ? "forward" : "back"
-    : "neutral";
   currentView = nextView;
   localStorage.setItem("life-progress-view", nextView);
-  document.querySelector(".app-shell")?.setAttribute("data-view-motion", direction);
   document.querySelectorAll(".view").forEach((view) => {
     view.classList.toggle("is-active", view.id === `view-${nextView}`);
   });
@@ -3550,13 +3385,6 @@ window.fireDashboard = {
   storageKey
 };
 
-document.addEventListener("visibilitychange", () => {
-  if (!document.hidden) restartFireCountdownTick();
-});
-
-window.addEventListener("pageshow", restartFireCountdownTick);
-window.addEventListener("focus", restartFireCountdownTick);
-
 render();
 refreshCryptoPricesOnOpen();
-restartFireCountdownTick();
+window.setInterval(updateFireCountdown, 1000);
