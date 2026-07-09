@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-title" content="Life Progress" />
     <title>Life Progress Dashboard</title>
     <link rel="manifest" href="manifest.webmanifest?v=5" />
-    <link rel="stylesheet" href="styles.css?v=106" />
+    <link rel="stylesheet" href="styles.css?v=107" />
   </head>
   <body>
     <main class="app-shell">
@@ -187,6 +187,16 @@
               <strong id="totalAssets">¥0</strong>
               <span id="peerBenchmarkSummary">同年代の金融資産分布と比較</span>
             </div>
+            <details class="result-holdings-details">
+              <summary>
+                <span>
+                  <small>投資評価額</small>
+                  <strong id="resultInvestmentTotal">¥0</strong>
+                </span>
+                <b>上位3銘柄</b>
+              </summary>
+              <div id="resultTopHoldings" class="result-top-holdings"></div>
+            </details>
             <div class="result-grid">
               <div>
                 <small>同年代の資産順位</small>
@@ -609,12 +619,12 @@
 
     <script src="firebase-config.js?v=53"></script>
     <script src="jflec-data.js?v=53"></script>
-    <script src="app.js?v=106"></script>
+    <script src="app.js?v=107"></script>
     <script type="module" src="firebase-sync.js?v=54"></script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-          navigator.serviceWorker.register("sw.js?v=106");
+          navigator.serviceWorker.register("sw.js?v=107");
         });
       }
     </script>

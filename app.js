@@ -1413,6 +1413,7 @@ function render() {
   renderOutcomeQuickActions();
   renderCustomizationSettings();
   renderInvestmentHoldings();
+  renderResultTopHoldings();
   renderOutcomeFormOptions();
   renderOutcomeHistory();
   renderAssets();
@@ -1721,18 +1722,11 @@ function renderInvestmentHoldings() {
     ? state.investmentHoldings
     : normalizeInvestmentHoldings([], state.assets);
   const total = holdings.reduce((sum, item) => sum + item.value, 0);
-  const topHoldings = [...holdings]
-    .sort((a, b) => (Number(b.value) || 0) - (Number(a.value) || 0))
-    .slice(0, 3);
-  const displayHoldings = activeHoldingId && !topHoldings.some((item) => item.id === activeHoldingId)
-    ? [...topHoldings.slice(0, 2), holdings.find((item) => item.id === activeHoldingId)].filter(Boolean)
-    : topHoldings;
-  const hiddenCount = Math.max(0, holdings.length - displayHoldings.length);
 
   setText("holdingsTotal", yen.format(total));
-  setText("holdingsSummary", `上位${displayHoldings.length}件 / ${holdings.length}件`);
+  setText("holdingsSummary", `${holdings.length}件`);
   renderHoldingSearchResults();
-  list.innerHTML = displayHoldings
+  list.innerHTML = holdings
     .map((item) => {
       const crypto = isCryptoHolding(item);
       const priceNote = crypto && item.price ? ` / ${yen.format(item.price)}` : "";
@@ -1758,7 +1752,39 @@ function renderInvestmentHoldings() {
       </div>
     `;
     })
-    .join("") + (hiddenCount ? `<p class="holdings-note compact">他${hiddenCount}件は保存済みです。上位3銘柄だけ表示しています。</p>` : "");
+    .join("");
+}
+
+function renderResultTopHoldings() {
+  const container = document.getElementById("resultTopHoldings");
+  if (!container) return;
+  setText("resultInvestmentTotal", yen.format(state.assets.investments));
+  const holdings = [...state.investmentHoldings]
+    .filter((item) => Number(item.value) > 0)
+    .sort((a, b) => (Number(b.value) || 0) - (Number(a.value) || 0))
+    .slice(0, 3);
+
+  if (!holdings.length) {
+    container.innerHTML = '<p class="holdings-note compact">記録タブで銘柄を追加すると、上位3件をここに表示します。</p>';
+    return;
+  }
+
+  container.innerHTML = holdings.map((item, index) => {
+    const share = state.assets.investments > 0
+      ? Math.round((Number(item.value) || 0) / state.assets.investments * 100)
+      : 0;
+    return `
+      <div class="result-top-holding">
+        <span>${index + 1}</span>
+        <div>
+          <strong>${escapeHtml(item.name || item.symbol || "未設定")}</strong>
+          <small>${escapeHtml(item.symbol || "")}</small>
+        </div>
+        <b>${yen.format(Number(item.value) || 0)}</b>
+        <em>${share}%</em>
+      </div>
+    `;
+  }).join("");
 }
 
 function renderHoldingSearchResults() {
