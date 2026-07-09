@@ -2315,15 +2315,27 @@ function showBuybackToast(amount) {
   if (!toast || !time) return;
   const minutes = savedTimeMinutesForAmount(amount);
   time.textContent = formatBuybackTime(minutes, { signed: true });
-  toast.hidden = false;
+  toast.setAttribute("aria-hidden", "false");
   toast.classList.remove("is-visible");
+  flashOutcomeQuickArea();
   void toast.offsetWidth;
   toast.classList.add("is-visible");
   window.clearTimeout(buybackToastTimer);
   buybackToastTimer = window.setTimeout(() => {
     toast.classList.remove("is-visible");
-    toast.hidden = true;
-  }, 1800);
+    toast.setAttribute("aria-hidden", "true");
+  }, 2600);
+}
+
+function flashOutcomeQuickArea() {
+  const area = document.querySelector(".home-outcome-quick");
+  if (!area) return;
+  area.classList.remove("is-flashing");
+  void area.offsetWidth;
+  area.classList.add("is-flashing");
+  window.setTimeout(() => {
+    area.classList.remove("is-flashing");
+  }, 900);
 }
 
 function showHoldingsStatus(message) {
@@ -3286,7 +3298,7 @@ function resetViewSwipe() {
 }
 
 function canStartViewSwipe(target) {
-  return !target.closest("button, input, select, textarea, summary, a, label, [contenteditable='true']");
+  return !target.closest(".home-outcome-quick, .outcome-quick-actions, .outcome-form, button, input, select, textarea, summary, a, label, [contenteditable='true']");
 }
 
 function handleViewSwipeStart(event) {

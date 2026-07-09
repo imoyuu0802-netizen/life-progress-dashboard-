@@ -868,7 +868,7 @@ small {
   position: fixed;
   left: 50%;
   top: 50%;
-  z-index: 50;
+  z-index: 9999;
   display: grid;
   gap: 4px;
   width: min(calc(100vw - 32px), 360px);
@@ -883,6 +883,7 @@ small {
   text-align: center;
   transform: translate(-50%, -42%) scale(0.96);
   transition: opacity 180ms ease, transform 180ms ease;
+  will-change: opacity, transform;
 }
 
 .buyback-toast strong {
@@ -2210,6 +2211,30 @@ small {
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: var(--radius);
+}
+
+.home-outcome-quick.is-flashing {
+  animation: outcome-quick-flash 820ms ease both;
+}
+
+@keyframes outcome-quick-flash {
+  0% {
+    border-color: rgba(70, 209, 139, 0.9);
+    box-shadow: 0 0 0 0 rgba(70, 209, 139, 0.38);
+    transform: scale(0.992);
+  }
+
+  48% {
+    border-color: rgba(70, 209, 139, 0.65);
+    box-shadow: 0 0 0 8px rgba(70, 209, 139, 0.08);
+    transform: scale(1.008);
+  }
+
+  100% {
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: none;
+    transform: scale(1);
+  }
 }
 
 .quick-head {
