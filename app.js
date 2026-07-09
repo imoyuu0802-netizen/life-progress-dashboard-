@@ -1113,6 +1113,17 @@ function showFireCountdownImpact(minutes) {
   impact.classList.add("is-visible");
 }
 
+function flashBuybackSurface() {
+  const shell = document.querySelector(".app-shell");
+  const focusPanel = document.querySelector(".focus-panel");
+  [shell, focusPanel].forEach((element) => {
+    if (!element) return;
+    element.classList.remove("is-buyback-flash");
+    void element.offsetWidth;
+    element.classList.add("is-buyback-flash");
+  });
+}
+
 function showDailyCountdownAction(animate = true) {
   const element = document.getElementById("dailyCountdownAction");
   if (!element) return;
@@ -2333,13 +2344,15 @@ function showBuybackToast(amount) {
   time.textContent = formatBuybackTime(minutes, { signed: true });
   toast.hidden = false;
   toast.classList.remove("is-visible");
-  void toast.offsetWidth;
-  toast.classList.add("is-visible");
+  flashBuybackSurface();
+  window.requestAnimationFrame(() => {
+    toast.classList.add("is-visible");
+  });
   window.clearTimeout(buybackToastTimer);
   buybackToastTimer = window.setTimeout(() => {
     toast.classList.remove("is-visible");
     toast.hidden = true;
-  }, 1800);
+  }, 2600);
 }
 
 function showHoldingsStatus(message) {
