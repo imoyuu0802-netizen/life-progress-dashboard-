@@ -2345,9 +2345,8 @@ function showBuybackToast(amount) {
   toast.hidden = false;
   toast.classList.remove("is-visible");
   flashBuybackSurface();
-  window.requestAnimationFrame(() => {
-    toast.classList.add("is-visible");
-  });
+  void toast.offsetWidth;
+  toast.classList.add("is-visible");
   window.clearTimeout(buybackToastTimer);
   buybackToastTimer = window.setTimeout(() => {
     toast.classList.remove("is-visible");
